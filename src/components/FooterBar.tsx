@@ -2,17 +2,21 @@
 import React from 'react';
 import { Home, Bell, User, Heart, History, Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const FooterBar = () => {
+  const navigate = useNavigate();
+
   const handleItemClick = (label: string, requiresAuth: boolean = false) => {
     if (requiresAuth) {
       alert('Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...');
-      // Aqui seria o redirecionamento para a tela de login/cadastro
+      navigate('/signup');
       return;
     }
     
     if (label === 'Pesquisa') {
       alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
+      navigate('/signup');
       return;
     }
     

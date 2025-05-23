@@ -4,10 +4,14 @@ import { Search, Phone, Mail, Facebook, Instagram } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const RightSidebar = () => {
+  const navigate = useNavigate();
+
   const handleSearchClick = () => {
     alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
+    navigate('/signup');
   };
 
   return (

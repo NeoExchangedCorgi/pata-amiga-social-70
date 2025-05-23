@@ -3,9 +3,15 @@ import React from 'react';
 import { Moon, Sun, LogIn } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleSignInClick = () => {
+    navigate('/signup');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -26,6 +32,7 @@ const Header = () => {
             variant="outline"
             size="sm"
             className="hidden sm:flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
+            onClick={handleSignInClick}
           >
             <LogIn className="h-4 w-4" />
             <span>Sign in</span>
