@@ -1,79 +1,69 @@
 
 import React from 'react';
-import { Search, Phone, Mail, Facebook, Instagram } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Phone, Mail, Facebook, Instagram, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-const RightSidebar = () => {
-  const handleSearchClick = () => {
-    alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
-  };
-
+const OngInfoScreen = () => {
   return (
-    <aside className="hidden lg:block fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-foreground/20 bg-background p-4 overflow-y-auto">
-      <div className="space-y-4">
-        {/* Barra de Pesquisa */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input 
-            placeholder="Procurar perfis..." 
-            className="pl-10 bg-muted/50 border-foreground/20"
-            onClick={handleSearchClick}
-            readOnly
-          />
+    <div className="min-h-screen bg-background p-4 pb-20">
+      <div className="max-w-md mx-auto">
+        <div className="flex items-center mb-6">
+          <Button variant="ghost" size="icon" className="mr-2">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-foreground">Informações da ONG</h1>
         </div>
 
-        {/* Informações da ONG */}
         <Card className="border-foreground/20">
           <CardHeader>
             <CardTitle className="text-foreground">
               Paraíso dos Focinhos
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <p className="text-sm text-muted-foreground leading-relaxed">
               ONG sem fins lucrativos, fundada em 2011, dedicada ao resgate, proteção e cuidado de animais de rua no Rio de Janeiro.
             </p>
             
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-sm text-foreground">
-                <Phone className="h-4 w-4" />
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 text-foreground">
+                <Phone className="h-5 w-5" />
                 <span>(21) 97609-0612</span>
               </div>
               
-              <div className="flex items-center space-x-2 text-sm text-foreground">
-                <Mail className="h-4 w-4" />
+              <div className="flex items-center space-x-3 text-foreground">
+                <Mail className="h-5 w-5" />
                 <span className="break-all">contato@paraisodosfocinhos.com.br</span>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 className="w-full justify-start border-foreground/20 text-foreground hover:bg-foreground/10"
                 onClick={() => window.open('https://www.facebook.com/ongparaisodosfocinhos/', '_blank')}
               >
-                <Facebook className="mr-2 h-4 w-4" />
+                <Facebook className="mr-3 h-5 w-5" />
                 Facebook
               </Button>
               
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 className="w-full justify-start border-foreground/20 text-foreground hover:bg-foreground/10"
                 onClick={() => window.open('https://www.instagram.com/ongparaisodosfocinhos/', '_blank')}
               >
-                <Instagram className="mr-2 h-4 w-4" />
+                <Instagram className="mr-3 h-5 w-5" />
                 Instagram
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    </aside>
+    </div>
   );
 };
 
-export default RightSidebar;
+export default OngInfoScreen;

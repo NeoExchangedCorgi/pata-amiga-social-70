@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import MainFeed from '@/components/MainFeed';
+import FooterBar from '@/components/FooterBar';
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
         <MainFeed />
         <RightSidebar />
       </div>
+      <FooterBar />
     </div>
   );
 };

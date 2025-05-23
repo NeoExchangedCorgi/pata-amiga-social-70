@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, LogIn } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 
@@ -12,23 +12,34 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center space-x-4">
           <img 
-            src="/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png" 
+            src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
             alt="Paraíso dos Focinhos" 
             className="h-10 w-auto"
           />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-pata-yellow-light to-pata-blue-light dark:from-pata-yellow-dark dark:to-pata-blue-dark bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-foreground">
             Pata Amiga
           </h1>
         </div>
         
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-yellow-light/20 dark:hover:bg-pata-yellow-dark/20"
-        >
-          {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden sm:flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>Sign in</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="text-foreground hover:bg-foreground/10"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
     </header>
   );
