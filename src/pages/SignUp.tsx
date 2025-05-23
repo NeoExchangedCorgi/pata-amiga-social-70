@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff } from 'lucide-react';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -14,8 +15,13 @@ const SignUp = () => {
     fullName: '',
     username: '',
     email: '',
-    phone: ''
+    phone: '',
+    password: '',
+    confirmPassword: ''
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,6 +33,12 @@ const SignUp = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      alert('As senhas não coincidem!');
+      return;
+    }
+    
     // Aqui seria a lógica de cadastro real
     console.log('Dados do cadastro:', formData);
     // Simular cadastro bem-sucedido
@@ -104,6 +116,60 @@ const SignUp = () => {
                 required
                 className="border-foreground/20"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-foreground">Senha</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Digite sua senha"
+                  required
+                  className="border-foreground/20 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-foreground">Confirmar Senha</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="Confirme sua senha"
+                  required
+                  className="border-foreground/20 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button 

@@ -6,14 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [formData, setFormData] = useState({
     username: '',
-    email: ''
+    email: '',
+    password: ''
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,6 +78,33 @@ const Login = () => {
                 required
                 className="border-foreground/20"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-foreground">Senha</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Digite sua senha"
+                  required
+                  className="border-foreground/20 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button 
