@@ -35,7 +35,7 @@ interface Comment {
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
 
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(15);
@@ -87,7 +87,7 @@ const PostDetail = () => {
         likes: likesCount,
         replies: comments.length,
         isLiked: isLiked,
-        isOwnPost: user?.username === 'maria_defensora',
+        isOwnPost: profile?.username === 'maria_defensora',
       },
       '2': {
         id: '2',
@@ -98,7 +98,7 @@ const PostDetail = () => {
         likes: 28,
         replies: 7,
         isLiked: true,
-        isOwnPost: user?.username === 'joao_amigo_pets',
+        isOwnPost: profile?.username === 'joao_amigo_pets',
       },
       '3': {
         id: '3',
@@ -110,7 +110,7 @@ const PostDetail = () => {
         likes: 42,
         replies: 12,
         isLiked: false,
-        isOwnPost: user?.username === 'ana_ong_helper',
+        isOwnPost: profile?.username === 'ana_ong_helper',
       }
     };
     
@@ -151,8 +151,8 @@ const PostDetail = () => {
   const addComment = (content: string, parentId?: string) => {
     const newComment: Comment = {
       id: Date.now().toString(),
-      author: user?.fullName || 'Usuário',
-      username: user?.username || 'usuario',
+      author: profile?.full_name || 'Usuário',
+      username: profile?.username || 'usuario',
       content,
       timestamp: 'agora',
       likes: 0,

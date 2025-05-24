@@ -5,30 +5,40 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostCard from '@/components/PostCard';
+import type { Post } from '@/hooks/usePosts';
 
 const Likes = () => {
-  const likedPosts = [
+  // Mock data that matches the Post interface
+  const likedPosts: Post[] = [
     {
       id: '1',
-      author: 'Maria Silva',
-      username: 'maria_defensora',
       content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
-      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
-      timestamp: '2h',
-      likes: 15,
-      replies: 3,
-      isLiked: true,
+      image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
+      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h ago
+      author_id: 'user1',
+      profiles: {
+        id: 'user1',
+        username: 'maria_defensora',
+        full_name: 'Maria Silva',
+        avatar_url: null,
+      },
+      post_likes: Array(15).fill(null).map((_, i) => ({ user_id: `user${i}` })),
+      comments: Array(3).fill(null).map((_, i) => ({ id: `comment${i}` })),
     },
     {
       id: '3',
-      author: 'Ana Costa',
-      username: 'ana_ong_helper',
       content: 'Atualização: O cãozinho que resgatamos ontem já está melhor! Obrigada a todos que ajudaram. Ele ainda precisa de um lar definitivo. 🐕❤️',
-      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500',
-      timestamp: '6h',
-      likes: 42,
-      replies: 12,
-      isLiked: true,
+      image_url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500',
+      created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6h ago
+      author_id: 'user3',
+      profiles: {
+        id: 'user3',
+        username: 'ana_ong_helper',
+        full_name: 'Ana Costa',
+        avatar_url: null,
+      },
+      post_likes: Array(42).fill(null).map((_, i) => ({ user_id: `user${i}` })),
+      comments: Array(12).fill(null).map((_, i) => ({ id: `comment${i}` })),
     },
   ];
 

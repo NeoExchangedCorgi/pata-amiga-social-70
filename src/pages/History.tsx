@@ -5,30 +5,41 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostCard from '@/components/PostCard';
+import type { Post } from '@/hooks/usePosts';
 
 const History = () => {
-  const visitedPosts = [
+  // Mock data that matches the Post interface
+  const visitedPosts: (Post & { visitedAt: string })[] = [
     {
       id: '2',
-      author: 'João Santos',
-      username: 'joao_amigo_pets',
       content: 'Urgente! Gata prenha abandonada na Praça Central. Ela está muito magra e precisa de cuidados veterinários. Já contatei a ONG, mas precisamos de ajuda para o transporte.',
-      timestamp: '4h',
-      likes: 28,
-      replies: 7,
-      isLiked: true,
+      image_url: null,
+      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4h ago
+      author_id: 'user2',
+      profiles: {
+        id: 'user2',
+        username: 'joao_amigo_pets',
+        full_name: 'João Santos',
+        avatar_url: null,
+      },
+      post_likes: Array(28).fill(null).map((_, i) => ({ user_id: `user${i}` })),
+      comments: Array(7).fill(null).map((_, i) => ({ id: `comment${i}` })),
       visitedAt: '1h atrás',
     },
     {
       id: '1',
-      author: 'Maria Silva',
-      username: 'maria_defensora',
       content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
-      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
-      timestamp: '2h',
-      likes: 15,
-      replies: 3,
-      isLiked: false,
+      image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
+      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h ago
+      author_id: 'user1',
+      profiles: {
+        id: 'user1',
+        username: 'maria_defensora',
+        full_name: 'Maria Silva',
+        avatar_url: null,
+      },
+      post_likes: Array(15).fill(null).map((_, i) => ({ user_id: `user${i}` })),
+      comments: Array(3).fill(null).map((_, i) => ({ id: `comment${i}` })),
       visitedAt: '3h atrás',
     },
   ];

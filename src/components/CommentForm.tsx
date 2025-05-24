@@ -15,7 +15,7 @@ interface CommentFormProps {
 
 const CommentForm = ({ onSubmit, placeholder = "Escreva um comentário...", parentId, isReply = false, onCancel }: CommentFormProps) => {
   const [content, setContent] = useState('');
-  const { user, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
   const maxChars = 500;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,9 +35,9 @@ const CommentForm = ({ onSubmit, placeholder = "Escreva um comentário...", pare
     <form onSubmit={handleSubmit} className={`space-y-3 ${isReply ? 'ml-12 mt-3' : ''}`}>
       <div className="flex space-x-3">
         <Avatar className="w-8 h-8">
-          <AvatarImage src="/placeholder.svg" />
+          <AvatarImage src={profile?.avatar_url || "/placeholder.svg"} />
           <AvatarFallback className="bg-pata-blue-light dark:bg-pata-blue-dark text-white text-xs">
-            {user?.fullName?.charAt(0)}
+            {profile?.full_name?.charAt(0) || 'U'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-2">
