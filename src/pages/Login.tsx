@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,15 +13,22 @@ import { useToast } from '@/hooks/use-toast';
 const Login = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { login } = useAuth();
+  const { signIn, isAuthenticated } = useAuthContext();
   const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,24 +38,35 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const success = login(formData);
-    if (success) {
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta!",
-        className: "bg-green-500 text-white border-green-600",
-      });
-      navigate('/');
-    } else {
+    setLoading(true);
+
+    try {
+      const { data, error } = await signIn(formData.email, formData.password);
+
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo de volta!",
+          className: "bg-green-500 text-white border-green-600",
+        });
+        navigate('/');
+      }
+    } catch (error: any) {
       toast({
         title: "Erro no login",
-        description: "Dados incorretos. Verifique suas informações.",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
         variant: "destructive",
-        className: "bg-red-500 text-white border-red-600",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,20 +105,6 @@ const Login = () => {
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-foreground">Nome de Usuário</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleInputChange}
-                placeholder="Digite seu nome de usuário"
-                required
-                className="border-foreground/20"
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">E-mail</Label>
               <Input
@@ -144,8 +149,9 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={loading}
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
 

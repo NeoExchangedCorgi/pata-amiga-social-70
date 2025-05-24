@@ -1,16 +1,71 @@
 
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
+import { useAuthContext } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Calendar, Mail, Phone } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { User, Calendar, Mail, Phone, Edit } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateProfile, signOut } = useAuthContext();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    fullName: user?.fullName || '',
+    username: user?.username || '',
+    phone: user?.phone || '',
+    bio: user?.bio || '',
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const { error } = await updateProfile(formData);
+      
+      if (error) {
+        toast({
+          title: "Erro ao atualizar",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Perfil atualizado!",
+          description: "Suas informações foram salvas com sucesso.",
+          className: "bg-green-500 text-white border-green-600",
+        });
+        setIsEditing(false);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   if (!user) {
     return <div>Carregando...</div>;
@@ -27,50 +82,120 @@ const Profile = () => {
             
             <Card className="border-foreground/20">
               <CardHeader>
-                <CardTitle className="text-foreground flex items-center space-x-2">
-                  <User className="h-6 w-6" />
-                  <span>Informações Pessoais</span>
+                <CardTitle className="text-foreground flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-6 w-6" />
+                    <span>Informações Pessoais</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    {isEditing ? 'Cancelar' : 'Editar'}
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Nome Completo</p>
-                  <p className="text-foreground font-medium">{user.fullName}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-muted-foreground">Nome de Usuário</p>
-                  <p className="text-foreground font-medium">@{user.username}</p>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{user.email}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{user.phone}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">
-                    Membro desde {new Date(user.joinDate).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-                
-                <div className="pt-4 space-y-2">
-                  <Button variant="outline" className="w-full">
-                    Editar Perfil
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Alterar Senha
-                  </Button>
-                  <Button variant="destructive" className="w-full">
-                    Excluir Conta
-                  </Button>
-                </div>
+                {isEditing ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Nome Completo</Label>
+                      <Input
+                        id="fullName"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Nome de Usuário</Label>
+                      <Input
+                        id="username"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefone</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Input
+                        id="bio"
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleInputChange}
+                        placeholder="Conte um pouco sobre você..."
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={handleSave}
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Salvando..." : "Salvar Alterações"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Nome Completo</p>
+                      <p className="text-foreground font-medium">{user.fullName}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm text-muted-foreground">Nome de Usuário</p>
+                      <p className="text-foreground font-medium">@{user.username}</p>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{user.email}</span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{user.phone}</span>
+                    </div>
+                    
+                    {user.bio && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Bio</p>
+                        <p className="text-foreground">{user.bio}</p>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">
+                        Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <Button 
+                        variant="destructive" 
+                        onClick={handleSignOut}
+                        className="w-full"
+                      >
+                        Sair da Conta
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
