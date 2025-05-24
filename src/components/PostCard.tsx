@@ -63,7 +63,9 @@ const PostCard = ({ post }: PostCardProps) => {
 
   const handleDelete = async () => {
     if (isOwnPost) {
-      await deletePost(post.id);
+      console.log('Iniciando exclusão do post:', post.id);
+      const success = await deletePost(post.id);
+      console.log('Resultado da exclusão:', success);
     }
   };
 
@@ -159,7 +161,10 @@ const PostCard = ({ post }: PostCardProps) => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                      <AlertDialogAction 
+                        onClick={handleDelete} 
+                        className="bg-red-600 hover:bg-red-700"
+                      >
                         Excluir
                       </AlertDialogAction>
                     </AlertDialogFooter>

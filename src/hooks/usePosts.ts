@@ -65,7 +65,7 @@ export const usePosts = () => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
 
-      setPosts(sortedData);
+      setPosts(sortedData as Post[]);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -130,7 +130,29 @@ export const usePosts = () => {
       return false;
     }
 
+    console.log(`Tentando excluir post ${postId} do usuário ${user.id}`);
+
     try {
+      // Verificar se o post existe e pertence ao usuário
+      const { data: existingPost, error: checkError } = await supabase
+        .from('posts')
+        .select('id, author_id')
+        .eq('id', postId)
+        .eq('author_id', user.id)
+        .single();
+
+      if (checkError || !existingPost) {
+        console.error('Post não encontrado ou não pertence ao usuário:', checkError);
+        toast({
+          title: "Erro",
+          description: "Post não encontrado ou você não tem permissão para excluí-lo",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('Post encontrado, procedendo com a exclusão...');
+
       // Remove the post from local state immediately for better UX
       setPosts(prev => prev.filter(post => post.id !== postId));
 
@@ -143,15 +165,16 @@ export const usePosts = () => {
       if (error) {
         console.error('Error deleting post:', error);
         // Restore the post if deletion failed
-        fetchPosts();
+        await fetchPosts();
         toast({
           title: "Erro",
-          description: "Erro ao excluir post",
+          description: "Erro ao excluir post: " + error.message,
           variant: "destructive",
         });
         return false;
       }
 
+      console.log('Post excluído com sucesso!');
       toast({
         title: "Post excluído",
         description: "O post e todos os dados relacionados foram excluídos com sucesso",
@@ -160,10 +183,10 @@ export const usePosts = () => {
     } catch (error) {
       console.error('Error deleting post:', error);
       // Restore the post if deletion failed
-      fetchPosts();
+      await fetchPosts();
       toast({
         title: "Erro",
-        description: "Erro ao excluir post",
+        description: "Erro inesperado ao excluir post",
         variant: "destructive",
       });
       return false;
@@ -234,7 +257,8 @@ export const usePosts = () => {
           schema: 'public',
           table: 'posts'
         },
-        () => {
+        (payload) => {
+          console.log('Posts realtime event:', payload);
           fetchPosts();
         }
       )
