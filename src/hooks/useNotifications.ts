@@ -53,8 +53,14 @@ export const useNotifications = () => {
         return;
       }
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      // Type assertion para garantir que o tipo seja correto
+      const typedNotifications = (data || []).map(notification => ({
+        ...notification,
+        type: notification.type as 'like' | 'comment'
+      })) as Notification[];
+
+      setNotifications(typedNotifications);
+      setUnreadCount(typedNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
