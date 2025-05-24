@@ -1,35 +1,26 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Moon, Sun, Home, Mail } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { signIn, isAuthenticated } = useAuthContext();
+  const { login } = useAuth();
   const { toast } = useToast();
-  
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showEmailNotConfirmed, setShowEmailNotConfirmed] = useState(false);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,61 +28,26 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-    
-    // Limpar aviso de e-mail não confirmado quando usuário digitar
-    if (name === 'email' && showEmailNotConfirmed) {
-      setShowEmailNotConfirmed(false);
-    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setShowEmailNotConfirmed(false);
-
-    try {
-      const { data, error } = await signIn(formData.email, formData.password);
-
-      if (error) {
-        console.log('Login error:', error.message);
-        
-        if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
-          setShowEmailNotConfirmed(true);
-          toast({
-            title: "E-mail não confirmado",
-            description: "Verifique sua caixa de entrada e confirme seu e-mail antes de fazer login.",
-            variant: "destructive",
-          });
-        } else if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Credenciais inválidas",
-            description: "E-mail ou senha incorretos. Verifique seus dados e tente novamente.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erro no login",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Bem-vindo de volta!",
-          className: "bg-green-500 text-white border-green-600",
-        });
-        navigate('/');
-      }
-    } catch (error: any) {
-      console.error('Unexpected login error:', error);
+    
+    const success = login(formData);
+    if (success) {
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Bem-vindo de volta!",
+        className: "bg-green-500 text-white border-green-600",
+      });
+      navigate('/');
+    } else {
       toast({
         title: "Erro no login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
+        description: "Dados incorretos. Verifique suas informações.",
         variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -129,19 +85,21 @@ const Login = () => {
         </CardHeader>
         
         <CardContent>
-          {showEmailNotConfirmed && (
-            <div className="mb-4 p-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 rounded-md">
-              <div className="flex items-center space-x-2 text-orange-800 dark:text-orange-200">
-                <Mail className="h-4 w-4" />
-                <div className="text-sm">
-                  <p className="font-medium">E-mail não confirmado</p>
-                  <p>Verifique sua caixa de entrada e clique no link de confirmação para ativar sua conta.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-foreground">Nome de Usuário</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                value={formData.username}
+                onChange={handleInputChange}
+                placeholder="Digite seu nome de usuário"
+                required
+                className="border-foreground/20"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">E-mail</Label>
               <Input
@@ -186,9 +144,8 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={loading}
             >
-              {loading ? "Entrando..." : "Entrar"}
+              Entrar
             </Button>
           </form>
 

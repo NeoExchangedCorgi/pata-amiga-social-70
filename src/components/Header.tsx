@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { Moon, Sun, LogIn, User } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
-  const { isAuthenticated, user } = useAuthContext();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthClick = () => {

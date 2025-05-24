@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { Home, Bell, User, Heart, History, Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const FooterBar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   const handleItemClick = (label: string, requiresAuth: boolean = false, path?: string) => {

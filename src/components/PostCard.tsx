@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Flag, MoreHorizontal, Edit, Trash2, Bookmark } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -10,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PostCardProps {
   post: {
@@ -33,7 +34,7 @@ const PostCard = ({ post }: PostCardProps) => {
   const [isReported, setIsReported] = useState(false);
   const [isMarked, setIsMarked] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated } = useAuth();
 
   const handleLike = () => {
     if (!post.isOwnPost && isAuthenticated) {

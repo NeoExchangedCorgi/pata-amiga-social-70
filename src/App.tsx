@@ -6,10 +6,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import TwoFactorAuth from "./pages/TwoFactorAuth";
 import NotFound from "./pages/NotFound";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
@@ -30,48 +30,17 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/notifications" element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/likes" element={
-                <ProtectedRoute>
-                  <Likes />
-                </ProtectedRoute>
-              } />
-              <Route path="/history" element={
-                <ProtectedRoute>
-                  <History />
-                </ProtectedRoute>
-              } />
-              <Route path="/search" element={
-                <ProtectedRoute>
-                  <Search />
-                </ProtectedRoute>
-              } />
-              <Route path="/post/:id" element={
-                <ProtectedRoute>
-                  <PostDetail />
-                </ProtectedRoute>
-              } />
-              <Route path="/user/:username" element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } />
+              <Route path="/2fa" element={<TwoFactorAuth />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/likes" element={<Likes />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/post/:id" element={<PostDetail />} />
+              <Route path="/user/:username" element={<UserProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

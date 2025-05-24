@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -17,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Comment {
   id: string;
@@ -34,7 +35,7 @@ interface Comment {
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthContext();
+  const { user, isAuthenticated } = useAuth();
 
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(15);
