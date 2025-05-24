@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -71,16 +70,16 @@ const UserProfile = () => {
           .from('posts')
           .select(`
             *,
-            profiles (
+            profiles!fk_posts_author_id (
               id,
               username,
               full_name,
               avatar_url
             ),
-            post_likes (
+            post_likes!fk_post_likes_post_id (
               user_id
             ),
-            comments (
+            comments!fk_comments_post_id (
               id
             )
           `)
@@ -96,11 +95,11 @@ const UserProfile = () => {
           .from('comments')
           .select(`
             *,
-            posts (
+            posts!fk_comments_post_id (
               id,
               content,
               author_id,
-              profiles (
+              profiles!fk_posts_author_id (
                 username,
                 full_name
               )
