@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import PasswordStrength from '@/components/PasswordStrength';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -31,6 +33,14 @@ const SignUp = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handlePasswordGenerate = (newPassword: string) => {
+    setFormData(prev => ({
+      ...prev,
+      password: newPassword,
+      confirmPassword: newPassword
     }));
   };
 
@@ -178,6 +188,10 @@ const SignUp = () => {
                   )}
                 </button>
               </div>
+              <PasswordStrength 
+                password={formData.password} 
+                onPasswordGenerate={handlePasswordGenerate}
+              />
             </div>
 
             <div className="space-y-2">

@@ -6,14 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const RightSidebar = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const handleSearchClick = () => {
     if (!isAuthenticated) {
-      alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...",
+        variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
+      });
       navigate('/signup');
     } else {
       navigate('/search');

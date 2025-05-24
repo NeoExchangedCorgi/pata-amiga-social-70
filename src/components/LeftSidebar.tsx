@@ -4,10 +4,12 @@ import { Home, Bell, User, Heart, History, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
+  const { toast } = useToast();
 
   const menuItems = [
     { icon: Home, label: 'Home', path: '/', active: true, requiresAuth: false },
@@ -19,7 +21,12 @@ const LeftSidebar = () => {
 
   const handleItemClick = (item: any) => {
     if (item.requiresAuth && !isAuthenticated) {
-      alert('Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...');
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...",
+        variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
+      });
       navigate('/signup');
     } else {
       navigate(item.path);

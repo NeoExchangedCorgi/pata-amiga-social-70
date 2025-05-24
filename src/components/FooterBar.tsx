@@ -4,21 +4,33 @@ import { Home, Bell, User, Heart, History, Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const FooterBar = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const handleItemClick = (label: string, requiresAuth: boolean = false, path?: string) => {
     if (requiresAuth && !isAuthenticated) {
-      alert('Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...');
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...",
+        variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
+      });
       navigate('/signup');
       return;
     }
     
     if (label === 'Pesquisa') {
       if (!isAuthenticated) {
-        alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
+        toast({
+          title: "Acesso negado",
+          description: "Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...",
+          variant: "destructive",
+          className: "bg-red-500 text-white border-red-600",
+        });
         navigate('/signup');
       } else {
         navigate('/search');
