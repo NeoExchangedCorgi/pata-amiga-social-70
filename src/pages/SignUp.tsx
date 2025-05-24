@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,25 +18,46 @@ interface SignUpFormData {
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
-  const handleFormSubmit = (formData: SignUpFormData) => {
-    signup({
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleFormSubmit = async (formData: SignUpFormData) => {
+    const { error } = await signup({
       fullName: formData.fullName,
       username: formData.username,
       email: formData.email,
       phone: formData.phone,
+      password: formData.password,
     });
-    
-    toast({
-      title: "Cadastro realizado com sucesso!",
-      description: "Agora você pode fazer login com suas credenciais.",
-      className: "bg-green-500 text-white border-green-600",
-    });
-    
-    navigate('/login');
+
+    if (error) {
+      toast({
+        title: "Erro no cadastro",
+        description: error,
+        variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
+      });
+    } else {
+      toast({
+        title: "Cadastro realizado com sucesso!",
+        description: "Agora você pode fazer login com suas credenciais.",
+        className: "bg-green-500 text-white border-green-600",
+      });
+      navigate('/login');
+    }
   };
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div>Carregando...</div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

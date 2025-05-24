@@ -5,10 +5,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePosts } from '@/hooks/usePosts';
+import { useToast } from '@/hooks/use-toast';
 
 const CreatePost = () => {
   const [content, setContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { profile } = useAuth();
+  const { createPost, refetch } = usePosts();
+  const { toast } = useToast();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -21,13 +28,38 @@ const CreatePost = () => {
     }
   };
 
-  const handleSubmit = () => {
-    if (content.trim()) {
-      // Aqui seria a lógica para criar o post
-      console.log('Criando post:', { content, image: selectedImage });
+  const handleSubmit = async () => {
+    if (!content.trim()) {
+      toast({
+        title: "Erro",
+        description: "O conteúdo do post não pode estar vazio",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    const { error } = await createPost(content, selectedImage || undefined);
+    
+    if (error) {
+      toast({
+        title: "Erro ao criar post",
+        description: error,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Post criado com sucesso!",
+        description: "Seu post foi publicado no feed",
+        className: "bg-green-500 text-white border-green-600",
+      });
       setContent('');
       setSelectedImage(null);
+      refetch();
     }
+    
+    setIsSubmitting(false);
   };
 
   return (
@@ -35,9 +67,9 @@ const CreatePost = () => {
       <CardContent className="p-4">
         <div className="flex space-x-4">
           <Avatar>
-            <AvatarImage src="/placeholder.svg" />
+            <AvatarImage src={profile?.avatar_url || "/placeholder.svg"} />
             <AvatarFallback className="bg-pata-blue-light dark:bg-pata-blue-dark text-white">
-              U
+              {profile?.full_name?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
           
@@ -47,6 +79,7 @@ const CreatePost = () => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[100px] resize-none border-pata-blue-light/20 dark:border-pata-blue-dark/20 focus:border-pata-blue-light dark:focus:border-pata-blue-dark"
+              disabled={isSubmitting}
             />
             
             {selectedImage && (
@@ -61,6 +94,7 @@ const CreatePost = () => {
                   size="sm"
                   className="absolute top-2 right-2"
                   onClick={() => setSelectedImage(null)}
+                  disabled={isSubmitting}
                 >
                   ×
                 </Button>
@@ -75,6 +109,7 @@ const CreatePost = () => {
                   onChange={handleImageUpload}
                   className="hidden"
                   id="image-upload"
+                  disabled={isSubmitting}
                 />
                 <label htmlFor="image-upload">
                   <Button
@@ -83,6 +118,7 @@ const CreatePost = () => {
                     size="sm"
                     className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
                     asChild
+                    disabled={isSubmitting}
                   >
                     <span>
                       <ImageIcon className="h-4 w-4 mr-2" />
@@ -95,6 +131,7 @@ const CreatePost = () => {
                   variant="ghost"
                   size="sm"
                   className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
+                  disabled={isSubmitting}
                 >
                   <Video className="h-4 w-4 mr-2" />
                   Vídeo
@@ -103,11 +140,11 @@ const CreatePost = () => {
               
               <Button
                 onClick={handleSubmit}
-                disabled={!content.trim()}
+                disabled={!content.trim() || isSubmitting}
                 className="bg-pata-yellow-light hover:bg-pata-yellow-light/90 dark:bg-pata-yellow-dark dark:hover:bg-pata-yellow-dark/90 text-black"
               >
                 <Send className="h-4 w-4 mr-2" />
-                Postar
+                {isSubmitting ? 'Postando...' : 'Postar'}
               </Button>
             </div>
           </div>

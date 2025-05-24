@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, profile, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthClick = () => {
@@ -34,24 +34,26 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden sm:flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
-            onClick={handleAuthClick}
-          >
-            {isAuthenticated ? (
-              <>
-                <User className="h-4 w-4" />
-                <span>{user?.username}</span>
-              </>
-            ) : (
-              <>
-                <LogIn className="h-4 w-4" />
-                <span>Sign in</span>
-              </>
-            )}
-          </Button>
+          {!isLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
+              onClick={handleAuthClick}
+            >
+              {isAuthenticated ? (
+                <>
+                  <User className="h-4 w-4" />
+                  <span>{profile?.username || 'Usuário'}</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign in</span>
+                </>
+              )}
+            </Button>
+          )}
           
           <Button
             variant="ghost"

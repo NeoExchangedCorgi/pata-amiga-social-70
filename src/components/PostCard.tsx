@@ -12,34 +12,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePosts } from '@/hooks/usePosts';
+import type { Post } from '@/hooks/usePosts';
 
 interface PostCardProps {
-  post: {
-    id: string;
-    author: string;
-    username: string;
-    content: string;
-    image?: string;
-    timestamp: string;
-    likes: number;
-    replies: number;
-    isLiked: boolean;
-    isOwnPost?: boolean;
-  };
+  post: Post;
 }
 
 const PostCard = ({ post }: PostCardProps) => {
-  const [isLiked, setIsLiked] = useState(post.isLiked);
-  const [likesCount, setLikesCount] = useState(post.likes);
   const [isReported, setIsReported] = useState(false);
   const [isMarked, setIsMarked] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const { toggleLike } = usePosts();
+
+  const isOwnPost = user?.id === post.author_id;
+  const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
+  const likesCount = post.post_likes?.length || 0;
+  const commentsCount = post.comments?.length || 0;
 
   const handleLike = () => {
-    if (!post.isOwnPost && isAuthenticated) {
-      setIsLiked(!isLiked);
-      setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
+    if (!isOwnPost && isAuthenticated) {
+      toggleLike(post.id);
     }
   };
 
@@ -62,15 +56,29 @@ const PostCard = ({ post }: PostCardProps) => {
   };
 
   const handleAuthorClick = () => {
-    navigate(`/user/${post.username}`);
+    navigate(`/user/${post.profiles.username}`);
   };
 
   const handlePostClick = (e: React.MouseEvent) => {
-    // Não navegar se clicou em botões ou links
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
       return;
     }
     navigate(`/post/${post.id}`);
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'agora';
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d`;
+    }
   };
 
   return (
@@ -82,9 +90,9 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleAuthorClick(); }}>
-              <AvatarImage src="/placeholder.svg" />
+              <AvatarImage src={post.profiles.avatar_url || "/placeholder.svg"} />
               <AvatarFallback className="bg-pata-blue-light dark:bg-pata-blue-dark text-white">
-                {post.author.charAt(0)}
+                {post.profiles.full_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -92,9 +100,11 @@ const PostCard = ({ post }: PostCardProps) => {
                 className="font-semibold text-sm cursor-pointer hover:underline" 
                 onClick={(e) => { e.stopPropagation(); handleAuthorClick(); }}
               >
-                {post.author}
+                {post.profiles.full_name}
               </h3>
-              <p className="text-xs text-muted-foreground">@{post.username} · {post.timestamp}</p>
+              <p className="text-xs text-muted-foreground">
+                @{post.profiles.username} · {formatTimeAgo(post.created_at)}
+              </p>
             </div>
           </div>
           <DropdownMenu>
@@ -104,7 +114,7 @@ const PostCard = ({ post }: PostCardProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {post.isOwnPost ? (
+              {isOwnPost ? (
                 <>
                   <DropdownMenuItem>
                     <Edit className="h-4 w-4 mr-2" />
@@ -129,10 +139,10 @@ const PostCard = ({ post }: PostCardProps) => {
       <CardContent className="pt-0">
         <p className="text-sm leading-relaxed mb-3">{post.content}</p>
         
-        {post.image && (
+        {post.image_url && (
           <div className="mb-4 rounded-lg overflow-hidden">
             <img 
-              src={post.image} 
+              src={post.image_url} 
               alt="Post image" 
               className="w-full h-auto max-h-96 object-cover"
             />
@@ -147,19 +157,19 @@ const PostCard = ({ post }: PostCardProps) => {
             className="flex items-center space-x-2 text-muted-foreground hover:text-pata-blue-light dark:hover:text-pata-blue-dark"
           >
             <MessageCircle className="h-4 w-4" />
-            <span className="text-xs">{post.replies}</span>
+            <span className="text-xs">{commentsCount}</span>
           </Button>
           
           <Button
             variant="ghost"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleLike(); }}
-            disabled={post.isOwnPost || !isAuthenticated}
+            disabled={isOwnPost || !isAuthenticated}
             className={`flex items-center space-x-2 ${
               isLiked 
                 ? 'text-red-500 hover:text-red-600' 
                 : 'text-muted-foreground hover:text-red-500'
-            } ${(post.isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
             <span className="text-xs">{likesCount}</span>
@@ -169,12 +179,12 @@ const PostCard = ({ post }: PostCardProps) => {
             variant="ghost"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleMark(); }}
-            disabled={post.isOwnPost || !isAuthenticated}
+            disabled={isOwnPost || !isAuthenticated}
             className={`flex items-center space-x-2 ${
               isMarked 
                 ? 'text-blue-500 hover:text-blue-600' 
                 : 'text-muted-foreground hover:text-blue-500'
-            } ${(post.isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Bookmark className={`h-4 w-4 ${isMarked ? 'fill-current' : ''}`} />
           </Button>
