@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -65,11 +64,22 @@ const SignUp = () => {
     });
     
     toast({
-      title: "Cadastro realizado com sucesso!",
-      description: "Faça o login para continuar.",
-      className: "bg-green-500 text-white border-green-600",
+      title: "Cadastro enviado!",
+      description: "Verifique seu e-mail/SMS para o código de verificação.",
+      className: "bg-blue-500 text-white border-blue-600",
     });
-    navigate('/login');
+    
+    // Redirecionar para a tela de 2FA com os dados do usuário
+    navigate('/2fa', { 
+      state: { 
+        userData: {
+          fullName: formData.fullName,
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone,
+        }
+      }
+    });
   };
 
   return (
