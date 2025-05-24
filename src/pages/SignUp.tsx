@@ -30,21 +30,12 @@ const SignUp = () => {
     });
     
     toast({
-      title: "Cadastro enviado!",
-      description: "Verifique seu e-mail/SMS para o código de verificação.",
-      className: "bg-blue-500 text-white border-blue-600",
+      title: "Cadastro realizado com sucesso!",
+      description: "Agora você pode fazer login com suas credenciais.",
+      className: "bg-green-500 text-white border-green-600",
     });
     
-    navigate('/2fa', { 
-      state: { 
-        userData: {
-          fullName: formData.fullName,
-          username: formData.username,
-          email: formData.email,
-          phone: formData.phone,
-        }
-      }
-    });
+    navigate('/login');
   };
 
   return (
