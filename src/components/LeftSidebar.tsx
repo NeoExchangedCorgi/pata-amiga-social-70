@@ -3,26 +3,33 @@ import React from 'react';
 import { Home, Bell, User, Heart, History, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
 
   const menuItems = [
-    { icon: Home, label: 'Home', active: true, requiresAuth: false },
-    { icon: Bell, label: 'Notificações', requiresAuth: true },
-    { icon: User, label: 'Perfil', requiresAuth: true },
-    { icon: Heart, label: 'Curtidas', requiresAuth: true },
-    { icon: History, label: 'Histórico', requiresAuth: true },
+    { icon: Home, label: 'Home', path: '/', active: true, requiresAuth: false },
+    { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
+    { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
+    { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
+    { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
   ];
 
   const handleItemClick = (item: any) => {
-    if (item.requiresAuth) {
+    if (item.requiresAuth && !isAuthenticated) {
       alert('Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...');
       navigate('/signup');
+    } else {
+      navigate(item.path);
     }
   };
 
   const handleLogout = () => {
+    if (isAuthenticated) {
+      logout();
+    }
     navigate('/login');
   };
 
@@ -32,9 +39,9 @@ const LeftSidebar = () => {
         {menuItems.map((item) => (
           <Button
             key={item.label}
-            variant={item.active ? "secondary" : "ghost"}
+            variant={window.location.pathname === item.path ? "secondary" : "ghost"}
             className={`w-full justify-start text-left h-12 text-foreground ${
-              item.active 
+              window.location.pathname === item.path 
                 ? 'bg-foreground/10' 
                 : 'hover:bg-foreground/5'
             }`}

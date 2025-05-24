@@ -2,15 +2,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const { signup } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -39,15 +41,38 @@ const SignUp = () => {
       return;
     }
     
-    // Aqui seria a lógica de cadastro real
-    console.log('Dados do cadastro:', formData);
-    // Simular cadastro bem-sucedido
-    alert('Cadastro realizado com sucesso! Redirecionando para o feed...');
-    navigate('/');
+    signup({
+      fullName: formData.fullName,
+      username: formData.username,
+      email: formData.email,
+      phone: formData.phone,
+    });
+    
+    alert('Cadastro realizado com sucesso! Faça o login para continuar.');
+    navigate('/login');
   };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4 flex items-center space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/')}
+          className="text-foreground hover:bg-foreground/10"
+        >
+          <Home className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="text-foreground hover:bg-foreground/10"
+        >
+          {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        </Button>
+      </div>
+
       <Card className="w-full max-w-md border-foreground/20">
         <CardHeader className="text-center space-y-4">
           <img 

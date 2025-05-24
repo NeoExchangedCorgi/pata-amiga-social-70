@@ -5,13 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const RightSidebar = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const handleSearchClick = () => {
-    alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
-    navigate('/signup');
+    if (!isAuthenticated) {
+      alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
+      navigate('/signup');
+    } else {
+      navigate('/search');
+    }
   };
 
   return (
@@ -53,6 +59,15 @@ const RightSidebar = () => {
             </div>
 
             <div className="space-y-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start border-foreground/20 text-foreground hover:bg-foreground/10"
+                onClick={() => window.open('https://www.paraisodosfocinhos.com.br/', '_blank')}
+              >
+                Site Oficial
+              </Button>
+              
               <Button 
                 variant="outline" 
                 size="sm" 

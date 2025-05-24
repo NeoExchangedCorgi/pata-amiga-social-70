@@ -1,22 +1,28 @@
 
 import React from 'react';
-import { Moon, Sun, LogIn } from 'lucide-react';
+import { Moon, Sun, LogIn, User } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignInClick = () => {
-    navigate('/signup');
+  const handleAuthClick = () => {
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      navigate('/signup');
+    }
   };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <img 
             src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
             alt="Paraíso dos Focinhos" 
@@ -32,10 +38,19 @@ const Header = () => {
             variant="outline"
             size="sm"
             className="hidden sm:flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
-            onClick={handleSignInClick}
+            onClick={handleAuthClick}
           >
-            <LogIn className="h-4 w-4" />
-            <span>Sign in</span>
+            {isAuthenticated ? (
+              <>
+                <User className="h-4 w-4" />
+                <span>{user?.username}</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="h-4 w-4" />
+                <span>Sign in</span>
+              </>
+            )}
           </Button>
           
           <Button

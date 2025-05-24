@@ -1,16 +1,17 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -29,15 +30,37 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui seria a lógica de login real
-    console.log('Dados do login:', formData);
-    // Simular login bem-sucedido
-    alert('Login realizado com sucesso! Bem-vindo de volta!');
-    navigate('/');
+    
+    const success = login(formData);
+    if (success) {
+      alert('Login realizado com sucesso! Bem-vindo de volta!');
+      navigate('/');
+    } else {
+      alert('Dados incorretos. Verifique suas informações.');
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4 flex items-center space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/')}
+          className="text-foreground hover:bg-foreground/10"
+        >
+          <Home className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="text-foreground hover:bg-foreground/10"
+        >
+          {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        </Button>
+      </div>
+
       <Card className="w-full max-w-md border-foreground/20">
         <CardHeader className="text-center space-y-4">
           <img 

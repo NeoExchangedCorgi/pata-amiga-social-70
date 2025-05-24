@@ -3,35 +3,45 @@ import React from 'react';
 import { Home, Bell, User, Heart, History, Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const FooterBar = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  const handleItemClick = (label: string, requiresAuth: boolean = false) => {
-    if (requiresAuth) {
+  const handleItemClick = (label: string, requiresAuth: boolean = false, path?: string) => {
+    if (requiresAuth && !isAuthenticated) {
       alert('Você precisa fazer login para acessar esta área. Redirecionando para o cadastro...');
       navigate('/signup');
       return;
     }
     
     if (label === 'Pesquisa') {
-      alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
-      navigate('/signup');
+      if (!isAuthenticated) {
+        alert('Você precisa fazer login para pesquisar perfis. Redirecionando para o cadastro...');
+        navigate('/signup');
+      } else {
+        navigate('/search');
+      }
       return;
     }
     
     if (label === 'Info') {
-      // Aqui seria a navegação para a tela de informações da ONG
-      console.log('Navegando para informações da ONG');
+      navigate('/ong-info');
+      return;
+    }
+
+    if (path) {
+      navigate(path);
     }
   };
 
   const menuItems = [
-    { icon: Home, label: 'Home', requiresAuth: false },
-    { icon: Bell, label: 'Notificações', requiresAuth: true },
-    { icon: User, label: 'Perfil', requiresAuth: true },
-    { icon: Heart, label: 'Curtidas', requiresAuth: true },
-    { icon: History, label: 'Histórico', requiresAuth: true },
+    { icon: Home, label: 'Home', path: '/', requiresAuth: false },
+    { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
+    { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
+    { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
+    { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
     { icon: Search, label: 'Pesquisa', requiresAuth: false },
     { icon: Info, label: 'Info', requiresAuth: false },
   ];
@@ -45,7 +55,7 @@ const FooterBar = () => {
             variant="ghost"
             size="sm"
             className="flex flex-col items-center space-y-1 h-auto py-2 px-2 text-foreground hover:bg-foreground/10"
-            onClick={() => handleItemClick(item.label, item.requiresAuth)}
+            onClick={() => handleItemClick(item.label, item.requiresAuth, item.path)}
           >
             <item.icon className="h-5 w-5" />
             <span className="text-xs">{item.label}</span>
