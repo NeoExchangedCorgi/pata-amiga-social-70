@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { login } = useAuth();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -33,10 +35,19 @@ const Login = () => {
     
     const success = login(formData);
     if (success) {
-      alert('Login realizado com sucesso! Bem-vindo de volta!');
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Bem-vindo de volta!",
+        className: "bg-green-500 text-white border-green-600",
+      });
       navigate('/');
     } else {
-      alert('Dados incorretos. Verifique suas informações.');
+      toast({
+        title: "Erro no login",
+        description: "Dados incorretos. Verifique suas informações.",
+        variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
+      });
     }
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { signup } = useAuth();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -37,7 +38,12 @@ const SignUp = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      alert('As senhas não coincidem!');
+      toast({
+        title: "Erro no cadastro",
+        description: "As senhas não coincidem!",
+        variant: "destructive",
+        className: "bg-red-500 text-white border-red-600",
+      });
       return;
     }
     
@@ -48,7 +54,11 @@ const SignUp = () => {
       phone: formData.phone,
     });
     
-    alert('Cadastro realizado com sucesso! Faça o login para continuar.');
+    toast({
+      title: "Cadastro realizado com sucesso!",
+      description: "Faça o login para continuar.",
+      className: "bg-green-500 text-white border-green-600",
+    });
     navigate('/login');
   };
 
