@@ -13,7 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (userData: User) => void;
+  login: (loginData: { username: string; email: string; password: string }) => boolean;
   logout: () => void;
   signup: (userData: Omit<User, 'joinDate'>) => void;
 }
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('Usuário cadastrado:', newUser);
   };
 
-  const login = (loginData: { username: string; email: string; password: string }) => {
+  const login = (loginData: { username: string; email: string; password: string }): boolean => {
     // Simular verificação dos dados
     const savedUser = localStorage.getItem('userData');
     if (savedUser) {
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider value={{
       user,
       isAuthenticated: !!user,
-      login: login as any,
+      login,
       logout,
       signup,
     }}>
