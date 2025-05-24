@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -37,8 +36,47 @@ const PostDetail = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
+  // Mock post data baseado no ID - em uma aplicação real viria de uma API
+  const getPostData = (postId: string) => {
+    const posts = {
+      '1': {
+        id: '1',
+        author: 'Maria Silva',
+        username: 'maria_defensora',
+        content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
+        image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
+        timestamp: '2h',
+        likes: 15,
+        replies: 3,
+      },
+      '2': {
+        id: '2',
+        author: 'João Santos',
+        username: 'joao_amigo_pets',
+        content: 'Urgente! Gata prenha abandonada na Praça Central. Ela está muito magra e precisa de cuidados veterinários. Já contatei a ONG, mas precisamos de ajuda para o transporte.',
+        timestamp: '4h',
+        likes: 28,
+        replies: 7,
+      },
+      '3': {
+        id: '3',
+        author: 'Ana Costa',
+        username: 'ana_ong_helper',
+        content: 'Atualização: O cãozinho que resgatamos ontem já está melhor! Obrigada a todos que ajudaram. Ele ainda precisa de um lar definitivo. 🐕❤️',
+        image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500',
+        timestamp: '6h',
+        likes: 42,
+        replies: 12,
+      }
+    };
+    
+    return posts[postId as keyof typeof posts] || posts['1'];
+  };
+
+  const postData = getPostData(id || '1');
+  
   const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(15);
+  const [likesCount, setLikesCount] = useState(postData.likes);
   const [isReported, setIsReported] = useState(false);
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -52,13 +90,13 @@ const PostDetail = () => {
       replies: [
         {
           id: '2',
-          author: 'Maria Silva',
-          username: 'maria_defensora',
+          author: postData.author,
+          username: postData.username,
           content: 'Obrigada, Carlos! Ele está na Rua das Flores, número 123. Você pode ir até lá?',
           timestamp: '45min',
           likes: 1,
           isLiked: false,
-          isOwnComment: true,
+          isOwnComment: user?.username === postData.username,
         }
       ]
     },
@@ -74,16 +112,11 @@ const PostDetail = () => {
   ]);
 
   const post = {
-    id: id,
-    author: 'Maria Silva',
-    username: 'maria_defensora',
-    content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
-    timestamp: '2h',
+    ...postData,
+    isLiked: isLiked,
     likes: likesCount,
     replies: comments.length,
-    isLiked: isLiked,
-    isOwnPost: user?.username === 'maria_defensora',
+    isOwnPost: user?.username === postData.username,
   };
 
   const handleLike = () => {

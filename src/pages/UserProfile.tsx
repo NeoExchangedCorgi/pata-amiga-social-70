@@ -14,16 +14,59 @@ const UserProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
 
-  // Mock user data - in a real app this would come from an API
-  const profileUser = {
-    fullName: 'Maria Silva',
-    username: username || 'maria_defensora',
-    bio: 'Defensora dos animais há 5 anos. Sempre disposta a ajudar no resgate de pets abandonados.',
-    joinDate: '2020-03-15T00:00:00.000Z',
-    postsCount: 24,
-    followersCount: 156,
-    followingCount: 89,
+  // Mock user data baseado no username - em uma aplicação real viria de uma API
+  const getUserData = (username: string) => {
+    const users = {
+      'maria_defensora': {
+        fullName: 'Maria Silva',
+        username: 'maria_defensora',
+        bio: 'Defensora dos animais há 5 anos. Sempre disposta a ajudar no resgate de pets abandonados.',
+        joinDate: '2020-03-15T00:00:00.000Z',
+        postsCount: 24,
+        followersCount: 156,
+        followingCount: 89,
+      },
+      'joao_amigo_pets': {
+        fullName: 'João Santos',
+        username: 'joao_amigo_pets',
+        bio: 'Amante dos animais e voluntário em várias ONGs. Ajudo com resgates e adoções.',
+        joinDate: '2019-08-20T00:00:00.000Z',
+        postsCount: 47,
+        followersCount: 203,
+        followingCount: 134,
+      },
+      'ana_ong_helper': {
+        fullName: 'Ana Costa',
+        username: 'ana_ong_helper',
+        bio: 'Coordenadora da ONG Paraíso dos Focinhos. Dedicada ao bem-estar animal.',
+        joinDate: '2018-12-10T00:00:00.000Z',
+        postsCount: 89,
+        followersCount: 542,
+        followingCount: 67,
+      },
+      'carlos_vet': {
+        fullName: 'Carlos Silva',
+        username: 'carlos_vet',
+        bio: 'Veterinário especializado em resgates e cuidados emergenciais. Disponível para ajudar.',
+        joinDate: '2021-01-15T00:00:00.000Z',
+        postsCount: 35,
+        followersCount: 298,
+        followingCount: 45,
+      }
+    };
+    
+    return users[username as keyof typeof users] || {
+      fullName: 'Usuário',
+      username: username || 'usuario',
+      bio: 'Perfil não encontrado.',
+      joinDate: '2023-01-01T00:00:00.000Z',
+      postsCount: 0,
+      followersCount: 0,
+      followingCount: 0,
+    };
   };
+
+  const profileUser = getUserData(username || '');
 
   return (
     <div className="min-h-screen bg-background">
