@@ -9,7 +9,7 @@ import CommentForm from '@/components/CommentForm';
 import CommentCard from '@/components/CommentCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, ArrowLeft, Flag, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, ArrowLeft, Flag, MoreHorizontal, Edit, Trash2, Bookmark } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -40,6 +40,7 @@ const PostDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(15);
   const [isReported, setIsReported] = useState(false);
+  const [isMarked, setIsMarked] = useState(false);
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
@@ -73,17 +74,55 @@ const PostDetail = () => {
     }
   ]);
 
+  // Mock post data based on ID
+  const getPostData = (postId: string) => {
+    const posts: { [key: string]: any } = {
+      '1': {
+        id: '1',
+        author: 'Maria Silva',
+        username: 'maria_defensora',
+        content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
+        image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
+        timestamp: '2h',
+        likes: likesCount,
+        replies: comments.length,
+        isLiked: isLiked,
+        isOwnPost: user?.username === 'maria_defensora',
+      },
+      '2': {
+        id: '2',
+        author: 'João Santos',
+        username: 'joao_amigo_pets',
+        content: 'Urgente! Gata prenha abandonada na Praça Central. Ela está muito magra e precisa de cuidados veterinários. Já contatei a ONG, mas precisamos de ajuda para o transporte.',
+        timestamp: '4h',
+        likes: 28,
+        replies: 7,
+        isLiked: true,
+        isOwnPost: user?.username === 'joao_amigo_pets',
+      },
+      '3': {
+        id: '3',
+        author: 'Ana Costa',
+        username: 'ana_ong_helper',
+        content: 'Atualização: O cãozinho que resgatamos ontem já está melhor! Obrigada a todos que ajudaram. Ele ainda precisa de um lar definitivo. 🐕❤️',
+        image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500',
+        timestamp: '6h',
+        likes: 42,
+        replies: 12,
+        isLiked: false,
+        isOwnPost: user?.username === 'ana_ong_helper',
+      }
+    };
+    
+    return posts[postId || '1'] || posts['1'];
+  };
+
+  const postData = getPostData(id);
   const post = {
-    id: id,
-    author: 'Maria Silva',
-    username: 'maria_defensora',
-    content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
-    timestamp: '2h',
+    ...postData,
     likes: likesCount,
     replies: comments.length,
     isLiked: isLiked,
-    isOwnPost: user?.username === 'maria_defensora',
   };
 
   const handleLike = () => {
@@ -96,6 +135,12 @@ const PostDetail = () => {
   const handleReport = () => {
     if (isAuthenticated) {
       setIsReported(!isReported);
+    }
+  };
+
+  const handleMark = () => {
+    if (isAuthenticated) {
+      setIsMarked(!isMarked);
     }
   };
 
@@ -228,7 +273,7 @@ const PostDetail = () => {
                   />
                 )}
 
-                <div className="flex items-center space-x-6 pt-4 border-t border-foreground/10">
+                <div className="flex items-center space-x-4 pt-4 border-t border-foreground/10">
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -242,6 +287,16 @@ const PostDetail = () => {
                   <Button variant="ghost" size="sm" className="text-muted-foreground">
                     <MessageCircle className="h-4 w-4 mr-1" />
                     {comments.length}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleMark}
+                    disabled={post.isOwnPost || !isAuthenticated}
+                    className={`${isMarked ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-blue-500'} ${(post.isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Bookmark className={`h-4 w-4 mr-1 ${isMarked ? 'fill-current' : ''}`} />
+                    {isMarked ? 'Marcado' : 'Marcar'}
                   </Button>
                 </div>
               </CardContent>

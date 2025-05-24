@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Flag, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Flag, MoreHorizontal, Edit, Trash2, Bookmark } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,6 +32,7 @@ const PostCard = ({ post }: PostCardProps) => {
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likes);
   const [isReported, setIsReported] = useState(false);
+  const [isMarked, setIsMarked] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
@@ -45,6 +46,12 @@ const PostCard = ({ post }: PostCardProps) => {
   const handleReport = () => {
     if (isAuthenticated) {
       setIsReported(!isReported);
+    }
+  };
+
+  const handleMark = () => {
+    if (isAuthenticated) {
+      setIsMarked(!isMarked);
     }
   };
 
@@ -161,6 +168,20 @@ const PostCard = ({ post }: PostCardProps) => {
           <Button
             variant="ghost"
             size="sm"
+            onClick={(e) => { e.stopPropagation(); handleMark(); }}
+            disabled={post.isOwnPost || !isAuthenticated}
+            className={`flex items-center space-x-2 ${
+              isMarked 
+                ? 'text-blue-500 hover:text-blue-600' 
+                : 'text-muted-foreground hover:text-blue-500'
+            } ${(post.isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <Bookmark className={`h-4 w-4 ${isMarked ? 'fill-current' : ''}`} />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={(e) => { e.stopPropagation(); handleReport(); }}
             disabled={!isAuthenticated}
             className={`flex items-center space-x-2 ${
@@ -170,7 +191,6 @@ const PostCard = ({ post }: PostCardProps) => {
             } ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Flag className={`h-4 w-4 ${isReported ? 'fill-current' : ''}`} />
-            <span className="text-xs">{isReported ? 'Denunciado' : 'Denunciar'}</span>
           </Button>
         </div>
       </CardContent>

@@ -14,16 +14,43 @@ const UserProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
 
-  // Mock user data - in a real app this would come from an API
-  const profileUser = {
-    fullName: 'Maria Silva',
-    username: username || 'maria_defensora',
-    bio: 'Defensora dos animais há 5 anos. Sempre disposta a ajudar no resgate de pets abandonados.',
-    joinDate: '2020-03-15T00:00:00.000Z',
-    postsCount: 24,
-    followersCount: 156,
-    followingCount: 89,
+  // Mock user data based on username
+  const getUserData = (username: string) => {
+    const users: { [key: string]: any } = {
+      'maria_defensora': {
+        fullName: 'Maria Silva',
+        username: 'maria_defensora',
+        bio: 'Defensora dos animais há 5 anos. Sempre disposta a ajudar no resgate de pets abandonados.',
+        joinDate: '2020-03-15T00:00:00.000Z',
+        postsCount: 24,
+      },
+      'joao_amigo_pets': {
+        fullName: 'João Santos',
+        username: 'joao_amigo_pets',
+        bio: 'Veterinário apaixonado por animais. Atendimento de emergência para pets abandonados.',
+        joinDate: '2019-08-20T00:00:00.000Z',
+        postsCount: 18,
+      },
+      'ana_ong_helper': {
+        fullName: 'Ana Costa',
+        username: 'ana_ong_helper',
+        bio: 'Voluntária da ONG Paraíso dos Focinhos. Ajudo com resgates e adoções.',
+        joinDate: '2021-01-10T00:00:00.000Z',
+        postsCount: 32,
+      },
+      'carlos_vet': {
+        fullName: 'Carlos Silva',
+        username: 'carlos_vet',
+        bio: 'Veterinário especialista em animais de rua. Consultas gratuitas para pets resgatados.',
+        joinDate: '2018-05-12T00:00:00.000Z',
+        postsCount: 45,
+      }
+    };
+    
+    return users[username || 'maria_defensora'] || users['maria_defensora'];
   };
+
+  const profileUser = getUserData(username || '');
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,19 +103,7 @@ const UserProfile = () => {
                     <p className="font-semibold text-foreground">{profileUser.postsCount}</p>
                     <p className="text-sm text-muted-foreground">Posts</p>
                   </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground">{profileUser.followersCount}</p>
-                    <p className="text-sm text-muted-foreground">Seguidores</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground">{profileUser.followingCount}</p>
-                    <p className="text-sm text-muted-foreground">Seguindo</p>
-                  </div>
                 </div>
-
-                <Button className="w-full mt-4">
-                  Seguir
-                </Button>
               </CardContent>
             </Card>
           </div>
