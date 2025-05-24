@@ -24,18 +24,18 @@ export const useSavedPosts = () => {
         .from('saved_posts')
         .select(`
           *,
-          posts (
+          posts!fk_saved_posts_post_id (
             *,
-            profiles (
+            profiles!fk_posts_author_id (
               id,
               username,
               full_name,
               avatar_url
             ),
-            post_likes (
+            post_likes!fk_post_likes_post_id (
               user_id
             ),
-            comments (
+            comments!fk_comments_post_id (
               id
             )
           )
@@ -80,18 +80,18 @@ export const useSavedPosts = () => {
           })
           .select(`
             *,
-            posts (
+            posts!fk_saved_posts_post_id (
               *,
-              profiles (
+              profiles!fk_posts_author_id (
                 id,
                 username,
                 full_name,
                 avatar_url
               ),
-              post_likes (
+              post_likes!fk_post_likes_post_id (
                 user_id
               ),
-              comments (
+              comments!fk_comments_post_id (
                 id
               )
             )

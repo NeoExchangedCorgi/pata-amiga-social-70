@@ -72,16 +72,16 @@ const PostDetail = () => {
           .from('posts')
           .select(`
             *,
-            profiles (
+            profiles!fk_posts_author_id (
               id,
               username,
               full_name,
               avatar_url
             ),
-            post_likes (
+            post_likes!fk_post_likes_post_id (
               user_id
             ),
-            comments (
+            comments!fk_comments_post_id (
               id
             )
           `)
@@ -101,7 +101,7 @@ const PostDetail = () => {
           .from('comments')
           .select(`
             *,
-            profiles (
+            profiles!fk_comments_author_id (
               username,
               full_name,
               avatar_url
@@ -216,12 +216,12 @@ const PostDetail = () => {
         .from('comments')
         .insert({
           content,
-          post_id: post.id,
+          post_id: post!.id,
           author_id: user.id,
         })
         .select(`
           *,
-          profiles (
+          profiles!fk_comments_author_id (
             username,
             full_name,
             avatar_url

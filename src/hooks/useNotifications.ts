@@ -35,12 +35,12 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          actor:profiles!notifications_actor_id_fkey (
+          actor:profiles!fk_notifications_actor_id (
             username,
             full_name,
             avatar_url
           ),
-          post:posts (
+          post:posts!fk_notifications_post_id (
             content
           )
         `)

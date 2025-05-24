@@ -25,18 +25,18 @@ export const usePostViews = () => {
         .from('post_views')
         .select(`
           *,
-          posts (
+          posts!fk_post_views_post_id (
             *,
-            profiles (
+            profiles!fk_posts_author_id (
               id,
               username,
               full_name,
               avatar_url
             ),
-            post_likes (
+            post_likes!fk_post_likes_post_id (
               user_id
             ),
-            comments (
+            comments!fk_comments_post_id (
               id
             )
           )

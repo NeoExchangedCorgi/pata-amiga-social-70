@@ -32,16 +32,16 @@ export const usePosts = () => {
         .from('posts')
         .select(`
           *,
-          profiles (
+          profiles!fk_posts_author_id (
             id,
             username,
             full_name,
             avatar_url
           ),
-          post_likes (
+          post_likes!fk_post_likes_post_id (
             user_id
           ),
-          comments (
+          comments!fk_comments_post_id (
             id
           )
         `)
@@ -93,16 +93,16 @@ export const usePosts = () => {
         })
         .select(`
           *,
-          profiles (
+          profiles!fk_posts_author_id (
             id,
             username,
             full_name,
             avatar_url
           ),
-          post_likes (
+          post_likes!fk_post_likes_post_id (
             user_id
           ),
-          comments (
+          comments!fk_comments_post_id (
             id
           )
         `)
