@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useAuthActions } from '@/hooks/useAuthActions';
 
 interface User {
   fullName: string;
@@ -34,34 +35,24 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const { signupUser, loginUser, logoutUser } = useAuthActions();
 
   const signup = (userData: Omit<User, 'joinDate'>) => {
-    const newUser: User = {
-      ...userData,
-      joinDate: new Date().toISOString(),
-    };
-    // Simular salvamento no localStorage
-    localStorage.setItem('userData', JSON.stringify(newUser));
-    console.log('Usuário cadastrado:', newUser);
+    signupUser(userData);
   };
 
   const login = (loginData: { username: string; email: string; password: string }): boolean => {
-    // Simular verificação dos dados
-    const savedUser = localStorage.getItem('userData');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      if (userData.username === loginData.username && userData.email === loginData.email) {
-        setUser(userData);
-        console.log('Login realizado com sucesso:', userData);
-        return true;
-      }
+    const userData = loginUser(loginData);
+    if (userData) {
+      setUser(userData);
+      return true;
     }
     return false;
   };
 
   const logout = () => {
     setUser(null);
-    console.log('Logout realizado');
+    logoutUser();
   };
 
   return (
