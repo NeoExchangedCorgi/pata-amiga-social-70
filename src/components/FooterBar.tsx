@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Bell, User, Heart, History, Search, Info } from 'lucide-react';
+import { Home, Bell, User, Heart, History, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,11 +37,6 @@ const FooterBar = () => {
       }
       return;
     }
-    
-    if (label === 'Info') {
-      navigate('/ong-info');
-      return;
-    }
 
     if (path) {
       navigate(path);
@@ -55,7 +50,6 @@ const FooterBar = () => {
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
     { icon: Search, label: 'Pesquisa', requiresAuth: false },
-    { icon: Info, label: 'Info', requiresAuth: false },
   ];
 
   return (

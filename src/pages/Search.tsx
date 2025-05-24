@@ -63,7 +63,7 @@ const Search = () => {
       <Header />
       <div className="flex w-full">
         <LeftSidebar />
-        <main className="md:ml-64 min-h-screen bg-background pb-32 md:pb-0">
+        <main className="md:ml-64 min-h-screen bg-background pb-4 md:pb-0">
           <div className="max-w-2xl mx-auto p-4 space-y-4">
             <h1 className="text-2xl font-bold text-foreground mb-6">Pesquisar</h1>
             
@@ -128,8 +128,8 @@ const Search = () => {
         </main>
       </div>
       
-      {/* Footer com informações da ONG */}
-      <footer className="bg-muted border-t border-foreground/20 p-4 mt-8">
+      {/* Footer com informações da ONG - com padding extra para dispositivos móveis */}
+      <footer className="bg-muted border-t border-foreground/20 p-4 mt-8 mb-16 md:mb-0">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center space-x-4 mb-4">
             <img 
