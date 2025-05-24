@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Home, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
@@ -23,6 +23,7 @@ const Login = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showEmailNotConfirmed, setShowEmailNotConfirmed] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -36,21 +37,44 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Limpar aviso de e-mail não confirmado quando usuário digitar
+    if (name === 'email' && showEmailNotConfirmed) {
+      setShowEmailNotConfirmed(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowEmailNotConfirmed(false);
 
     try {
       const { data, error } = await signIn(formData.email, formData.password);
 
       if (error) {
-        toast({
-          title: "Erro no login",
-          description: error.message,
-          variant: "destructive",
-        });
+        console.log('Login error:', error.message);
+        
+        if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
+          setShowEmailNotConfirmed(true);
+          toast({
+            title: "E-mail não confirmado",
+            description: "Verifique sua caixa de entrada e confirme seu e-mail antes de fazer login.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Credenciais inválidas",
+            description: "E-mail ou senha incorretos. Verifique seus dados e tente novamente.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro no login",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Login realizado com sucesso!",
@@ -60,6 +84,7 @@ const Login = () => {
         navigate('/');
       }
     } catch (error: any) {
+      console.error('Unexpected login error:', error);
       toast({
         title: "Erro no login",
         description: "Ocorreu um erro inesperado. Tente novamente.",
@@ -104,6 +129,18 @@ const Login = () => {
         </CardHeader>
         
         <CardContent>
+          {showEmailNotConfirmed && (
+            <div className="mb-4 p-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 rounded-md">
+              <div className="flex items-center space-x-2 text-orange-800 dark:text-orange-200">
+                <Mail className="h-4 w-4" />
+                <div className="text-sm">
+                  <p className="font-medium">E-mail não confirmado</p>
+                  <p>Verifique sua caixa de entrada e clique no link de confirmação para ativar sua conta.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">E-mail</Label>

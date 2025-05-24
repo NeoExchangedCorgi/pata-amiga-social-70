@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AuthHeader from '@/components/AuthHeader';
 
@@ -27,6 +26,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,20 +60,31 @@ const SignUp = () => {
       });
 
       if (error) {
-        toast({
-          title: "Erro no cadastro",
-          description: error.message,
-          variant: "destructive",
-        });
+        console.log('Signup error:', error.message);
+        
+        if (error.message.includes('User already registered')) {
+          toast({
+            title: "Usuário já existe",
+            description: "Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro no cadastro",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
+        setEmailSent(true);
         toast({
           title: "Cadastro realizado!",
           description: "Verifique seu e-mail para confirmar sua conta.",
           className: "bg-green-500 text-white border-green-600",
         });
-        navigate('/login');
       }
     } catch (error: any) {
+      console.error('Unexpected signup error:', error);
       toast({
         title: "Erro no cadastro",
         description: "Ocorreu um erro inesperado. Tente novamente.",
@@ -83,6 +94,72 @@ const SignUp = () => {
       setLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-foreground/20">
+          <CardHeader>
+            <AuthHeader title="Confirme seu E-mail" />
+          </CardHeader>
+          
+          <CardContent className="text-center space-y-4">
+            <div className="flex justify-center">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">Cadastro Realizado!</h3>
+              <p className="text-sm text-muted-foreground">
+                Enviamos um e-mail de confirmação para <strong>{formData.email}</strong>
+              </p>
+            </div>
+            
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+              <div className="flex items-start space-x-3">
+                <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div className="text-sm text-blue-800 dark:text-blue-200">
+                  <p className="font-medium">Próximos passos:</p>
+                  <ol className="list-decimal list-inside mt-2 space-y-1">
+                    <li>Verifique sua caixa de entrada</li>
+                    <li>Clique no link de confirmação</li>
+                    <li>Retorne aqui para fazer login</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col space-y-2">
+              <Button 
+                onClick={() => navigate('/login')}
+                className="w-full"
+              >
+                Ir para Login
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setEmailSent(false);
+                  setFormData({
+                    fullName: '',
+                    username: '',
+                    email: '',
+                    phone: '',
+                    password: '',
+                    confirmPassword: ''
+                  });
+                }}
+                className="w-full"
+              >
+                Voltar ao Cadastro
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
