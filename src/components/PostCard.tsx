@@ -13,6 +13,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
+import { useSavedPosts } from '@/hooks/useSavedPosts';
+import { usePostViews } from '@/hooks/usePostViews';
 import type { Post } from '@/hooks/usePosts';
 
 interface PostCardProps {
@@ -21,15 +23,17 @@ interface PostCardProps {
 
 const PostCard = ({ post }: PostCardProps) => {
   const [isReported, setIsReported] = useState(false);
-  const [isMarked, setIsMarked] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const { toggleLike } = usePosts();
+  const { toggleSavePost, isPostSaved } = useSavedPosts();
+  const { addPostView } = usePostViews();
 
   const isOwnPost = user?.id === post.author_id;
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
   const commentsCount = post.comments?.length || 0;
+  const isSaved = isPostSaved(post.id);
 
   const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
@@ -43,14 +47,15 @@ const PostCard = ({ post }: PostCardProps) => {
     }
   };
 
-  const handleMark = () => {
+  const handleSave = () => {
     if (isAuthenticated) {
-      setIsMarked(!isMarked);
+      toggleSavePost(post.id);
     }
   };
 
   const handleCommentClick = () => {
     if (isAuthenticated) {
+      addPostView(post.id);
       navigate(`/post/${post.id}`);
     }
   };
@@ -63,6 +68,7 @@ const PostCard = ({ post }: PostCardProps) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
       return;
     }
+    addPostView(post.id);
     navigate(`/post/${post.id}`);
   };
 
@@ -178,15 +184,15 @@ const PostCard = ({ post }: PostCardProps) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => { e.stopPropagation(); handleMark(); }}
+            onClick={(e) => { e.stopPropagation(); handleSave(); }}
             disabled={isOwnPost || !isAuthenticated}
             className={`flex items-center space-x-2 ${
-              isMarked 
+              isSaved 
                 ? 'text-blue-500 hover:text-blue-600' 
                 : 'text-muted-foreground hover:text-blue-500'
             } ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <Bookmark className={`h-4 w-4 ${isMarked ? 'fill-current' : ''}`} />
+            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
           </Button>
           
           <Button

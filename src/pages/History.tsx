@@ -5,44 +5,52 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostCard from '@/components/PostCard';
-import type { Post } from '@/hooks/usePosts';
+import { Button } from '@/components/ui/button';
+import { Pin, Trash2 } from 'lucide-react';
+import { usePostViews } from '@/hooks/usePostViews';
 
 const History = () => {
-  // Mock data that matches the Post interface
-  const visitedPosts: (Post & { visitedAt: string })[] = [
-    {
-      id: '2',
-      content: 'Urgente! Gata prenha abandonada na Praça Central. Ela está muito magra e precisa de cuidados veterinários. Já contatei a ONG, mas precisamos de ajuda para o transporte.',
-      image_url: null,
-      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4h ago
-      author_id: 'user2',
-      profiles: {
-        id: 'user2',
-        username: 'joao_amigo_pets',
-        full_name: 'João Santos',
-        avatar_url: null,
-      },
-      post_likes: Array(28).fill(null).map((_, i) => ({ user_id: `user${i}` })),
-      comments: Array(7).fill(null).map((_, i) => ({ id: `comment${i}` })),
-      visitedAt: '1h atrás',
-    },
-    {
-      id: '1',
-      content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
-      image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h ago
-      author_id: 'user1',
-      profiles: {
-        id: 'user1',
-        username: 'maria_defensora',
-        full_name: 'Maria Silva',
-        avatar_url: null,
-      },
-      post_likes: Array(15).fill(null).map((_, i) => ({ user_id: `user${i}` })),
-      comments: Array(3).fill(null).map((_, i) => ({ id: `comment${i}` })),
-      visitedAt: '3h atrás',
-    },
-  ];
+  const { viewedPosts, isLoading, togglePinPost, removeFromHistory } = usePostViews();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex w-full">
+          <LeftSidebar />
+          <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
+            <div className="max-w-2xl mx-auto p-4">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded mb-6"></div>
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-48 bg-gray-200 rounded"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </main>
+          <RightSidebar />
+        </div>
+        <FooterBar />
+      </div>
+    );
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'agora';
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h atrás`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d atrás`;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,14 +62,48 @@ const History = () => {
             <h1 className="text-2xl font-bold text-foreground mb-6">Histórico</h1>
             
             <div className="space-y-4">
-              {visitedPosts.map((post) => (
-                <div key={post.id} className="animate-fade-in">
-                  <div className="text-xs text-muted-foreground mb-2">
-                    Visitado {post.visitedAt}
-                  </div>
-                  <PostCard post={post} />
+              {viewedPosts.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    Nenhum post visitado ainda.
+                  </p>
                 </div>
-              ))}
+              ) : (
+                viewedPosts.map((view) => (
+                  <div key={view.id} className="animate-fade-in">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs text-muted-foreground">
+                        {view.is_pinned && (
+                          <span className="inline-flex items-center space-x-1 text-blue-500 mr-2">
+                            <Pin className="h-3 w-3" />
+                            <span>Fixado</span>
+                          </span>
+                        )}
+                        Visitado {formatTimeAgo(view.viewed_at)}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => togglePinPost(view.post_id)}
+                          className={`${view.is_pinned ? 'text-blue-500' : 'text-muted-foreground'}`}
+                        >
+                          <Pin className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFromHistory(view.post_id)}
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <PostCard post={view.posts} />
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </main>

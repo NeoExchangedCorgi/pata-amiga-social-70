@@ -52,7 +52,20 @@ export const usePosts = () => {
         return;
       }
 
-      setPosts(data || []);
+      // Ordenar por número de curtidas (decrescente) e depois por data de criação (decrescente)
+      const sortedData = (data || []).sort((a, b) => {
+        const likesA = a.post_likes?.length || 0;
+        const likesB = b.post_likes?.length || 0;
+        
+        if (likesA !== likesB) {
+          return likesB - likesA; // Mais curtidas primeiro
+        }
+        
+        // Se igual número de curtidas, ordenar por data (mais recente primeiro)
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      setPosts(sortedData);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -100,7 +113,7 @@ export const usePosts = () => {
         return { error: error.message };
       }
 
-      setPosts(prev => [data, ...prev]);
+      // Não adicionar diretamente ao estado, deixar o realtime fazer isso
       return { data };
     } catch (error) {
       console.error('Error creating post:', error);
@@ -154,15 +167,69 @@ export const usePosts = () => {
         }
       }
 
-      // Refresh posts to update like counts
-      fetchPosts();
+      // Não recarregar aqui, deixar o realtime fazer isso
     } catch (error) {
       console.error('Error toggling like:', error);
     }
   };
 
+  // Configurar realtime para atualizações automáticas
   useEffect(() => {
     fetchPosts();
+
+    // Escutar mudanças em posts
+    const postsChannel = supabase
+      .channel('posts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts'
+        },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    // Escutar mudanças em likes
+    const likesChannel = supabase
+      .channel('likes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_likes'
+        },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    // Escutar mudanças em comentários
+    const commentsChannel = supabase
+      .channel('comments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments'
+        },
+        () => {
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(postsChannel);
+      supabase.removeChannel(likesChannel);
+      supabase.removeChannel(commentsChannel);
+    };
   }, []);
 
   return {
