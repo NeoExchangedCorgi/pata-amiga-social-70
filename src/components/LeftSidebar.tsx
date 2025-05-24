@@ -1,14 +1,13 @@
-
 import React from 'react';
 import { Home, Bell, User, Heart, History, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, signOut } = useAuthContext();
   const { toast } = useToast();
 
   const menuItems = [
@@ -35,7 +34,7 @@ const LeftSidebar = () => {
 
   const handleLogout = () => {
     if (isAuthenticated) {
-      logout();
+      signOut();
     }
     navigate('/login');
   };

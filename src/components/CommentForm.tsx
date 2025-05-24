@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 interface CommentFormProps {
   onSubmit: (content: string, parentId?: string) => void;
@@ -15,7 +14,7 @@ interface CommentFormProps {
 
 const CommentForm = ({ onSubmit, placeholder = "Escreva um comentário...", parentId, isReply = false, onCancel }: CommentFormProps) => {
   const [content, setContent] = useState('');
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuthContext();
   const maxChars = 500;
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Flag, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import CommentForm from './CommentForm';
 
 interface Comment {
@@ -39,7 +38,7 @@ const CommentCard = ({ comment, onReply, onLike, onReport, level = 0 }: CommentC
   const [isReported, setIsReported] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuthContext();
 
   const handleLike = () => {
     if (!comment.isOwnComment && isAuthenticated) {
