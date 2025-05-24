@@ -131,6 +131,9 @@ export const usePosts = () => {
     }
 
     try {
+      // Remove the post from local state immediately for better UX
+      setPosts(prev => prev.filter(post => post.id !== postId));
+
       const { error } = await supabase
         .from('posts')
         .delete()
@@ -139,6 +142,8 @@ export const usePosts = () => {
 
       if (error) {
         console.error('Error deleting post:', error);
+        // Restore the post if deletion failed
+        fetchPosts();
         toast({
           title: "Erro",
           description: "Erro ao excluir post",
@@ -149,11 +154,13 @@ export const usePosts = () => {
 
       toast({
         title: "Post excluído",
-        description: "O post foi excluído com sucesso",
+        description: "O post e todos os dados relacionados foram excluídos com sucesso",
       });
       return true;
     } catch (error) {
       console.error('Error deleting post:', error);
+      // Restore the post if deletion failed
+      fetchPosts();
       toast({
         title: "Erro",
         description: "Erro ao excluir post",
