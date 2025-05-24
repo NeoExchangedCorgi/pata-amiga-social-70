@@ -1,26 +1,9 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Flag, MoreHorizontal, Trash2, Bookmark, Eye, EyeOff } from 'lucide-react';
+import { Heart, MessageCircle, Flag, Bookmark, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
@@ -37,7 +20,7 @@ const PostCard = ({ post }: PostCardProps) => {
   const [showBlurredContent, setShowBlurredContent] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { toggleLike, deletePost } = usePosts();
+  const { toggleLike } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, isPostReported } = usePostReports();
@@ -58,14 +41,6 @@ const PostCard = ({ post }: PostCardProps) => {
   const handleReport = async () => {
     if (isAuthenticated && !isOwnPost) {
       await reportPost(post.id);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (isOwnPost) {
-      console.log('Iniciando exclusão do post:', post.id);
-      const success = await deletePost(post.id);
-      console.log('Resultado da exclusão:', success);
     }
   };
 
@@ -137,47 +112,6 @@ const PostCard = ({ post }: PostCardProps) => {
               </p>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isOwnPost ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
-                    </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Excluir post</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja excluir este post? Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDelete} 
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              ) : (
-                <DropdownMenuItem onClick={handleReport}>
-                  <Flag className="h-4 w-4 mr-2" />
-                  {isReported ? 'Denunciado' : 'Denunciar'}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </CardHeader>
       
