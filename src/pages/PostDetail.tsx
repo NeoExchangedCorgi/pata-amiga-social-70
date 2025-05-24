@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
@@ -19,116 +19,155 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { usePosts } from '@/hooks/usePosts';
+import { useSavedPosts } from '@/hooks/useSavedPosts';
+import { usePostViews } from '@/hooks/usePostViews';
+import type { Post } from '@/hooks/usePosts';
 
 interface Comment {
   id: string;
-  author: string;
-  username: string;
+  author_id: string;
   content: string;
-  timestamp: string;
-  likes: number;
-  isLiked: boolean;
-  isOwnComment?: boolean;
+  created_at: string;
+  profiles: {
+    username: string;
+    full_name: string;
+    avatar_url?: string;
+  };
   replies?: Comment[];
 }
 
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { profile, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
+  const { toggleLike } = usePosts();
+  const { toggleSavePost, isPostSaved } = useSavedPosts();
+  const { addPostView } = usePostViews();
 
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(15);
+  const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isReported, setIsReported] = useState(false);
-  const [isMarked, setIsMarked] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: '1',
-      author: 'Carlos Silva',
-      username: 'carlos_vet',
-      content: 'Posso ajudar! Sou veterinário e tenho experiência com resgates. Onde exatamente você encontrou o cachorro?',
-      timestamp: '1h',
-      likes: 3,
-      isLiked: false,
-      replies: [
-        {
-          id: '2',
-          author: 'Maria Silva',
-          username: 'maria_defensora',
-          content: 'Obrigada, Carlos! Ele está na Rua das Flores, número 123. Você pode ir até lá?',
-          timestamp: '45min',
-          likes: 1,
-          isLiked: false,
-          isOwnComment: true,
-        }
-      ]
-    },
-    {
-      id: '3',
-      author: 'Ana Costa',
-      username: 'ana_ong_helper',
-      content: 'Já entrei em contato com a ONG Paraíso dos Focinhos. Eles podem ajudar com o transporte se alguém conseguir fazer o primeiro atendimento.',
-      timestamp: '30min',
-      likes: 5,
-      isLiked: true,
-    }
-  ]);
 
-  // Mock post data based on ID
-  const getPostData = (postId: string) => {
-    const posts: { [key: string]: any } = {
-      '1': {
-        id: '1',
-        author: 'Maria Silva',
-        username: 'maria_defensora',
-        content: 'Encontrei um cachorrinho ferido na Rua das Flores, 123. Ele está com uma pata machucada e muito assustado. Alguém pode ajudar com o resgate?',
-        image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500',
-        timestamp: '2h',
-        likes: likesCount,
-        replies: comments.length,
-        isLiked: isLiked,
-        isOwnPost: profile?.username === 'maria_defensora',
-      },
-      '2': {
-        id: '2',
-        author: 'João Santos',
-        username: 'joao_amigo_pets',
-        content: 'Urgente! Gata prenha abandonada na Praça Central. Ela está muito magra e precisa de cuidados veterinários. Já contatei a ONG, mas precisamos de ajuda para o transporte.',
-        timestamp: '4h',
-        likes: 28,
-        replies: 7,
-        isLiked: true,
-        isOwnPost: profile?.username === 'joao_amigo_pets',
-      },
-      '3': {
-        id: '3',
-        author: 'Ana Costa',
-        username: 'ana_ong_helper',
-        content: 'Atualização: O cãozinho que resgatamos ontem já está melhor! Obrigada a todos que ajudaram. Ele ainda precisa de um lar definitivo. 🐕❤️',
-        image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500',
-        timestamp: '6h',
-        likes: 42,
-        replies: 12,
-        isLiked: false,
-        isOwnPost: profile?.username === 'ana_ong_helper',
+  useEffect(() => {
+    const fetchPostData = async () => {
+      if (!id) return;
+
+      try {
+        // Buscar dados do post
+        const { data: postData, error: postError } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles (
+              id,
+              username,
+              full_name,
+              avatar_url
+            ),
+            post_likes (
+              user_id
+            ),
+            comments (
+              id
+            )
+          `)
+          .eq('id', id)
+          .single();
+
+        if (postError || !postData) {
+          console.error('Error fetching post:', postError);
+          setIsLoading(false);
+          return;
+        }
+
+        setPost(postData);
+
+        // Buscar comentários do post
+        const { data: commentsData, error: commentsError } = await supabase
+          .from('comments')
+          .select(`
+            *,
+            profiles (
+              username,
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('post_id', id)
+          .order('created_at', { ascending: true });
+
+        if (!commentsError && commentsData) {
+          setComments(commentsData);
+        }
+
+        // Registrar visualização
+        if (user && postData) {
+          addPostView(postData.id);
+        }
+
+      } catch (error) {
+        console.error('Error fetching post data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    
-    return posts[postId || '1'] || posts['1'];
-  };
 
-  const postData = getPostData(id);
-  const post = {
-    ...postData,
-    likes: likesCount,
-    replies: comments.length,
-    isLiked: isLiked,
-  };
+    fetchPostData();
+  }, [id, user, addPostView]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex w-full">
+          <LeftSidebar />
+          <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
+            <div className="max-w-2xl mx-auto p-4">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded mb-6"></div>
+                <div className="h-64 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </main>
+          <RightSidebar />
+        </div>
+        <FooterBar />
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex w-full">
+          <LeftSidebar />
+          <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
+            <div className="max-w-2xl mx-auto p-4">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Post não encontrado.</p>
+              </div>
+            </div>
+          </main>
+          <RightSidebar />
+        </div>
+        <FooterBar />
+      </div>
+    );
+  }
+
+  const isOwnPost = user?.id === post.author_id;
+  const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
+  const likesCount = post.post_likes?.length || 0;
+  const commentsCount = comments.length;
+  const isSaved = isPostSaved(post.id);
 
   const handleLike = () => {
-    if (!post.isOwnPost && isAuthenticated) {
-      setIsLiked(!isLiked);
-      setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
+    if (!isOwnPost && isAuthenticated) {
+      toggleLike(post.id);
     }
   };
 
@@ -140,58 +179,56 @@ const PostDetail = () => {
 
   const handleMark = () => {
     if (isAuthenticated) {
-      setIsMarked(!isMarked);
+      toggleSavePost(post.id);
     }
   };
 
   const handleAuthorClick = () => {
-    navigate(`/user/${post.username}`);
+    navigate(`/user/${post.profiles.username}`);
   };
 
-  const addComment = (content: string, parentId?: string) => {
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      author: profile?.full_name || 'Usuário',
-      username: profile?.username || 'usuario',
-      content,
-      timestamp: 'agora',
-      likes: 0,
-      isLiked: false,
-      isOwnComment: true,
-      replies: []
-    };
+  const addComment = async (content: string) => {
+    if (!user || !profile) return;
 
-    if (parentId) {
-      // Adicionar como resposta
-      const addReplyToComment = (comments: Comment[]): Comment[] => {
-        return comments.map(comment => {
-          if (comment.id === parentId) {
-            return {
-              ...comment,
-              replies: [...(comment.replies || []), newComment]
-            };
-          } else if (comment.replies) {
-            return {
-              ...comment,
-              replies: addReplyToComment(comment.replies)
-            };
-          }
-          return comment;
-        });
-      };
-      setComments(addReplyToComment(comments));
-    } else {
-      // Adicionar como comentário principal
-      setComments([...comments, newComment]);
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          content,
+          post_id: post.id,
+          author_id: user.id,
+        })
+        .select(`
+          *,
+          profiles (
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (!error && data) {
+        setComments([...comments, data]);
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
     }
   };
 
-  const handleCommentLike = (commentId: string) => {
-    console.log('Curtir comentário:', commentId);
-  };
-
-  const handleCommentReport = (commentId: string) => {
-    console.log('Denunciar comentário:', commentId);
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'agora';
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d`;
+    }
   };
 
   return (
@@ -215,9 +252,9 @@ const PostDetail = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-3">
                     <Avatar className="cursor-pointer" onClick={handleAuthorClick}>
-                      <AvatarImage src="/placeholder.svg" />
+                      <AvatarImage src={post.profiles.avatar_url || "/placeholder.svg"} />
                       <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-600 text-white">
-                        {post.author.charAt(0)}
+                        {post.profiles.full_name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
@@ -226,11 +263,11 @@ const PostDetail = () => {
                           className="font-semibold text-foreground cursor-pointer hover:underline"
                           onClick={handleAuthorClick}
                         >
-                          {post.author}
+                          {post.profiles.full_name}
                         </h3>
-                        <span className="text-muted-foreground">@{post.username}</span>
+                        <span className="text-muted-foreground">@{post.profiles.username}</span>
                         <span className="text-muted-foreground">·</span>
-                        <span className="text-muted-foreground">{post.timestamp}</span>
+                        <span className="text-muted-foreground">{formatTimeAgo(post.created_at)}</span>
                       </div>
                     </div>
                   </div>
@@ -242,7 +279,7 @@ const PostDetail = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {post.isOwnPost ? (
+                      {isOwnPost ? (
                         <>
                           <DropdownMenuItem>
                             <Edit className="h-4 w-4 mr-2" />
@@ -265,9 +302,9 @@ const PostDetail = () => {
 
                 <p className="text-foreground mb-4 leading-relaxed">{post.content}</p>
 
-                {post.image && (
+                {post.image_url && (
                   <img
-                    src={post.image}
+                    src={post.image_url}
                     alt="Post content"
                     className="w-full rounded-lg mb-4"
                   />
@@ -278,25 +315,25 @@ const PostDetail = () => {
                     variant="ghost" 
                     size="sm" 
                     onClick={handleLike}
-                    disabled={post.isOwnPost || !isAuthenticated}
-                    className={`${isLiked ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'} ${(post.isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isOwnPost || !isAuthenticated}
+                    className={`${isLiked ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'} ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-                    {post.likes}
+                    {likesCount}
                   </Button>
                   <Button variant="ghost" size="sm" className="text-muted-foreground">
                     <MessageCircle className="h-4 w-4 mr-1" />
-                    {comments.length}
+                    {commentsCount}
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleMark}
-                    disabled={post.isOwnPost || !isAuthenticated}
-                    className={`${isMarked ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-blue-500'} ${(post.isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isOwnPost || !isAuthenticated}
+                    className={`${isSaved ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-blue-500'} ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <Bookmark className={`h-4 w-4 mr-1 ${isMarked ? 'fill-current' : ''}`} />
-                    {isMarked ? 'Marcado' : 'Marcar'}
+                    <Bookmark className={`h-4 w-4 mr-1 ${isSaved ? 'fill-current' : ''}`} />
+                    {isSaved ? 'Marcado' : 'Marcar'}
                   </Button>
                 </div>
               </CardContent>
@@ -306,22 +343,34 @@ const PostDetail = () => {
               <CardContent className="p-4">
                 <h4 className="font-semibold text-foreground mb-4">Comentários</h4>
                 
-                <CommentForm onSubmit={addComment} />
+                {isAuthenticated && <CommentForm onSubmit={addComment} />}
                 
                 <div className="mt-6 space-y-4">
                   {comments.length > 0 ? (
                     comments.map((comment) => (
-                      <CommentCard
-                        key={comment.id}
-                        comment={comment}
-                        onReply={addComment}
-                        onLike={handleCommentLike}
-                        onReport={handleCommentReport}
-                      />
+                      <div key={comment.id} className="border-b border-foreground/10 pb-4 last:border-b-0">
+                        <div className="flex items-start space-x-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={comment.profiles.avatar_url || "/placeholder.svg"} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-600 text-white text-xs">
+                              {comment.profiles.full_name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-foreground text-sm">{comment.profiles.full_name}</span>
+                              <span className="text-muted-foreground text-xs">@{comment.profiles.username}</span>
+                              <span className="text-muted-foreground text-xs">·</span>
+                              <span className="text-muted-foreground text-xs">{formatTimeAgo(comment.created_at)}</span>
+                            </div>
+                            <p className="text-foreground text-sm mt-1">{comment.content}</p>
+                          </div>
+                        </div>
+                      </div>
                     ))
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
-                      Seja o primeiro a comentar!
+                      {isAuthenticated ? 'Seja o primeiro a comentar!' : 'Faça login para ver e adicionar comentários.'}
                     </p>
                   )}
                 </div>

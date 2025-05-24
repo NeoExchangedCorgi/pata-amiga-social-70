@@ -8,36 +8,54 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, User, Phone, Mail, Facebook, Instagram } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+
+interface SearchResult {
+  id: string;
+  username: string;
+  full_name: string;
+  bio?: string;
+  created_at: string;
+  avatar_url?: string;
+}
 
 const Search = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = () => {
-    if (searchTerm.trim()) {
-      // Simular resultados de pesquisa
-      const mockResults = [
-        {
-          id: '1',
-          username: 'maria_defensora',
-          fullName: 'Maria Silva',
-          bio: 'Defensora dos animais 🐕🐱',
-          joinDate: '2023-01-15',
-        },
-        {
-          id: '2',
-          username: 'joao_amigo_pets',
-          fullName: 'João Santos',
-          bio: 'Voluntário na ONG Paraíso dos Focinhos',
-          joinDate: '2023-03-10',
-        },
-      ].filter(user => 
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setSearchResults(mockResults);
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      return;
     }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, bio, created_at, avatar_url')
+        .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+        .limit(10);
+
+      if (error) {
+        console.error('Error searching profiles:', error);
+        return;
+      }
+
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Error searching profiles:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProfileClick = (username: string) => {
+    navigate(`/user/${username}`);
   };
 
   return (
@@ -60,25 +78,45 @@ const Search = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
-              <Button onClick={handleSearch} className="bg-primary text-primary-foreground">
-                Buscar
+              <Button onClick={handleSearch} className="bg-primary text-primary-foreground" disabled={isLoading}>
+                {isLoading ? 'Buscando...' : 'Buscar'}
               </Button>
             </div>
 
             <div className="space-y-4">
+              {searchResults.length === 0 && searchTerm && !isLoading && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Nenhum perfil encontrado para "{searchTerm}"</p>
+                </div>
+              )}
+              
               {searchResults.map((user) => (
-                <Card key={user.id} className="border-foreground/20">
+                <Card 
+                  key={user.id} 
+                  className="border-foreground/20 cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => handleProfileClick(user.username)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-muted-foreground" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {user.avatar_url ? (
+                          <img 
+                            src={user.avatar_url} 
+                            alt={user.full_name}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          user.full_name.charAt(0)
+                        )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">{user.fullName}</h3>
+                        <h3 className="font-semibold text-foreground">{user.full_name}</h3>
                         <p className="text-sm text-muted-foreground">@{user.username}</p>
-                        <p className="text-sm text-foreground mt-1">{user.bio}</p>
+                        {user.bio && (
+                          <p className="text-sm text-foreground mt-1">{user.bio}</p>
+                        )}
                         <p className="text-xs text-muted-foreground">
-                          Membro desde {new Date(user.joinDate).toLocaleDateString('pt-BR')}
+                          Membro desde {new Date(user.created_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     </div>
