@@ -113,11 +113,53 @@ export const usePosts = () => {
         return { error: error.message };
       }
 
-      // Não adicionar diretamente ao estado, deixar o realtime fazer isso
       return { data };
     } catch (error) {
       console.error('Error creating post:', error);
       return { error: 'Erro interno do servidor' };
+    }
+  };
+
+  const deletePost = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para excluir posts",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('author_id', user.id);
+
+      if (error) {
+        console.error('Error deleting post:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir post",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({
+        title: "Post excluído",
+        description: "O post foi excluído com sucesso",
+      });
+      return true;
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir post",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -166,8 +208,6 @@ export const usePosts = () => {
           return;
         }
       }
-
-      // Não recarregar aqui, deixar o realtime fazer isso
     } catch (error) {
       console.error('Error toggling like:', error);
     }
@@ -236,6 +276,7 @@ export const usePosts = () => {
     posts,
     isLoading,
     createPost,
+    deletePost,
     toggleLike,
     refetch: fetchPosts,
   };

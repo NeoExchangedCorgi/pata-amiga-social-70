@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Flag, MoreHorizontal, Edit, Trash2, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, Flag, MoreHorizontal, Trash2, Bookmark, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,11 +10,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
+import { usePostReports } from '@/hooks/usePostReports';
 import type { Post } from '@/hooks/usePosts';
 
 interface PostCardProps {
@@ -22,18 +34,20 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post }: PostCardProps) => {
-  const [isReported, setIsReported] = useState(false);
+  const [showBlurredContent, setShowBlurredContent] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { toggleLike } = usePosts();
+  const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
+  const { reportPost, isPostReported } = usePostReports();
 
   const isOwnPost = user?.id === post.author_id;
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
   const commentsCount = post.comments?.length || 0;
   const isSaved = isPostSaved(post.id);
+  const isReported = isPostReported(post.id);
 
   const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
@@ -41,9 +55,15 @@ const PostCard = ({ post }: PostCardProps) => {
     }
   };
 
-  const handleReport = () => {
-    if (isAuthenticated) {
-      setIsReported(!isReported);
+  const handleReport = async () => {
+    if (isAuthenticated && !isOwnPost) {
+      await reportPost(post.id);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isOwnPost) {
+      await deletePost(post.id);
     }
   };
 
@@ -87,6 +107,8 @@ const PostCard = ({ post }: PostCardProps) => {
     }
   };
 
+  const shouldBlur = isReported && !showBlurredContent;
+
   return (
     <Card 
       className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors cursor-pointer"
@@ -121,16 +143,28 @@ const PostCard = ({ post }: PostCardProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {isOwnPost ? (
-                <>
-                  <DropdownMenuItem>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
-                  </DropdownMenuItem>
-                </>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir post</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir este post? Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : (
                 <DropdownMenuItem onClick={handleReport}>
                   <Flag className="h-4 w-4 mr-2" />
@@ -143,16 +177,67 @@ const PostCard = ({ post }: PostCardProps) => {
       </CardHeader>
       
       <CardContent className="pt-0">
-        <p className="text-sm leading-relaxed mb-3">{post.content}</p>
-        
-        {post.image_url && (
-          <div className="mb-4 rounded-lg overflow-hidden">
-            <img 
-              src={post.image_url} 
-              alt="Post image" 
-              className="w-full h-auto max-h-96 object-cover"
-            />
+        {shouldBlur ? (
+          <div className="relative">
+            <div className="filter blur-md select-none pointer-events-none">
+              <p className="text-sm leading-relaxed mb-3">{post.content}</p>
+              {post.image_url && (
+                <div className="mb-4 rounded-lg overflow-hidden">
+                  <img 
+                    src={post.image_url} 
+                    alt="Post image" 
+                    className="w-full h-auto max-h-96 object-cover"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Button
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowBlurredContent(true);
+                }}
+                className="bg-background/80 backdrop-blur-sm"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Possível conteúdo sensível! Clique para visualizar
+              </Button>
+            </div>
           </div>
+        ) : (
+          <>
+            {isReported && showBlurredContent && (
+              <div className="mb-3 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded border border-yellow-300 dark:border-yellow-700">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                    Conteúdo denunciado - visualizando mesmo assim
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowBlurredContent(false);
+                    }}
+                  >
+                    <EyeOff className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            <p className="text-sm leading-relaxed mb-3">{post.content}</p>
+            
+            {post.image_url && (
+              <div className="mb-4 rounded-lg overflow-hidden">
+                <img 
+                  src={post.image_url} 
+                  alt="Post image" 
+                  className="w-full h-auto max-h-96 object-cover"
+                />
+              </div>
+            )}
+          </>
         )}
         
         <div className="flex items-center justify-between pt-2 border-t border-border/50">
@@ -199,12 +284,12 @@ const PostCard = ({ post }: PostCardProps) => {
             variant="ghost"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleReport(); }}
-            disabled={!isAuthenticated}
+            disabled={!isAuthenticated || isOwnPost}
             className={`flex items-center space-x-2 ${
               isReported 
                 ? 'text-red-500' 
                 : 'text-muted-foreground hover:text-orange-500'
-            } ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(!isAuthenticated || isOwnPost) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Flag className={`h-4 w-4 ${isReported ? 'fill-current' : ''}`} />
           </Button>

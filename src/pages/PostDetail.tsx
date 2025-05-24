@@ -6,10 +6,9 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import CommentForm from '@/components/CommentForm';
-import CommentCard from '@/components/CommentCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, ArrowLeft, Flag, MoreHorizontal, Edit, Trash2, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, ArrowLeft, Flag, MoreHorizontal, Trash2, Bookmark } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -17,12 +16,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
+import { usePostReports } from '@/hooks/usePostReports';
 import type { Post } from '@/hooks/usePosts';
 
 interface Comment {
@@ -42,14 +53,14 @@ const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, profile, isAuthenticated } = useAuth();
-  const { toggleLike } = usePosts();
+  const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
+  const { reportPost, isPostReported } = usePostReports();
 
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isReported, setIsReported] = useState(false);
 
   useEffect(() => {
     const fetchPostData = async () => {
@@ -164,6 +175,7 @@ const PostDetail = () => {
   const likesCount = post.post_likes?.length || 0;
   const commentsCount = comments.length;
   const isSaved = isPostSaved(post.id);
+  const isReported = isPostReported(post.id);
 
   const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
@@ -171,9 +183,18 @@ const PostDetail = () => {
     }
   };
 
-  const handleReport = () => {
-    if (isAuthenticated) {
-      setIsReported(!isReported);
+  const handleReport = async () => {
+    if (isAuthenticated && !isOwnPost) {
+      await reportPost(post.id);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isOwnPost) {
+      const success = await deletePost(post.id);
+      if (success) {
+        navigate('/');
+      }
     }
   };
 
@@ -280,16 +301,28 @@ const PostDetail = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       {isOwnPost ? (
-                        <>
-                          <DropdownMenuItem>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir post</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir este post? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       ) : (
                         <DropdownMenuItem onClick={handleReport}>
                           <Flag className="h-4 w-4 mr-2" />
