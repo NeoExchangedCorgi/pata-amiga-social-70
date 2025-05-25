@@ -105,6 +105,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_notifications_comment_id"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_notifications_post_id"
             columns: ["post_id"]
             isOneToOne: false
@@ -307,7 +314,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
-          media_type: string | null
+          media_type: Database["public"]["Enums"]["media_type_enum"] | null
           media_url: string | null
           updated_at: string | null
         }
@@ -316,7 +323,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
-          media_type?: string | null
+          media_type?: Database["public"]["Enums"]["media_type_enum"] | null
           media_url?: string | null
           updated_at?: string | null
         }
@@ -325,7 +332,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
-          media_type?: string | null
+          media_type?: Database["public"]["Enums"]["media_type_enum"] | null
           media_url?: string | null
           updated_at?: string | null
         }
@@ -437,7 +444,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      media_type_enum: "image" | "video"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -552,6 +559,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      media_type_enum: ["image", "video"],
+    },
   },
 } as const

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -151,6 +150,15 @@ const Login = () => {
               {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Link 
+              to="/forgot-password" 
+              className="text-sm text-primary hover:underline"
+            >
+              Esqueci minha senha
+            </Link>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
