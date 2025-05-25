@@ -38,18 +38,18 @@ const Header = () => {
             <Button
               variant="outline"
               size="sm"
-              className="hidden sm:flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
+              className="flex items-center space-x-2 border-foreground/20 text-foreground hover:bg-foreground/10"
               onClick={handleAuthClick}
             >
               {isAuthenticated ? (
                 <>
                   <User className="h-4 w-4" />
-                  <span>{profile?.username || 'Usuário'}</span>
+                  <span className="hidden sm:inline">{profile?.username || 'Usuário'}</span>
                 </>
               ) : (
                 <>
                   <LogIn className="h-4 w-4" />
-                  <span>Sign in</span>
+                  <span className="hidden sm:inline">Sign in</span>
                 </>
               )}
             </Button>
