@@ -64,11 +64,11 @@ const FooterBar = () => {
   };
 
   const menuItems = [
-    { icon: Home, label: 'Home', path: '/', requiresAuth: false },
     { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
     { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
+    ...(isAuthenticated ? [{ icon: LogOut, label: 'Logout', action: handleLogout, requiresAuth: false }] : [])
   ];
 
   return (
@@ -100,31 +100,24 @@ const FooterBar = () => {
               <SheetTitle className="text-left">Menu</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col space-y-2 mt-6">
-              {menuItems.slice(1).map((item) => (
+              {menuItems.map((item) => (
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className="justify-start text-left h-12"
-                  onClick={() => handleItemClick(item.label, item.requiresAuth, item.path)}
+                  className={`justify-start text-left h-12 ${
+                    item.label === 'Logout' ? 'text-red-600 hover:text-red-700 hover:bg-red-50' : ''
+                  }`}
+                  onClick={() => handleItemClick(
+                    item.label, 
+                    item.requiresAuth, 
+                    'path' in item ? item.path : undefined, 
+                    'action' in item ? item.action : undefined
+                  )}
                 >
                   <item.icon className="h-5 w-5 mr-3" />
                   <span>{item.label}</span>
                 </Button>
               ))}
-              
-              {isAuthenticated && (
-                <>
-                  <div className="border-t border-foreground/20 my-2" />
-                  <Button
-                    variant="ghost"
-                    className="justify-start text-left h-12 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => handleItemClick('Logout', false, undefined, handleLogout)}
-                  >
-                    <LogOut className="h-5 w-5 mr-3" />
-                    <span>Logout</span>
-                  </Button>
-                </>
-              )}
             </div>
           </SheetContent>
         </Sheet>
