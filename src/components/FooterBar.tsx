@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Home, Bell, User, Heart, History, Menu, LogOut } from 'lucide-react';
+import { Home, Bell, User, Heart, History, Menu, LogOut, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -82,6 +82,16 @@ const FooterBar = () => {
         >
           <Home className="h-5 w-5" />
           <span className="text-xs">Home</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex flex-col items-center space-y-1 h-auto py-2 px-2 text-foreground hover:bg-foreground/10"
+          onClick={() => handleItemClick('Pesquisar', false, '/search')}
+        >
+          <Search className="h-5 w-5" />
+          <span className="text-xs">Pesquisar</span>
         </Button>
 
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
