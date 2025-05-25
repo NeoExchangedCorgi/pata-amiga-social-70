@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,6 +5,7 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import CommentForm from '@/components/CommentForm';
+import PostContent from '@/components/PostContent';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, ArrowLeft, Flag, MoreHorizontal, Trash2, Bookmark } from 'lucide-react';
@@ -333,15 +333,12 @@ const PostDetail = () => {
                   </DropdownMenu>
                 </div>
 
-                <p className="text-foreground mb-4 leading-relaxed">{post.content}</p>
-
-                {post.image_url && (
-                  <img
-                    src={post.image_url}
-                    alt="Post content"
-                    className="w-full rounded-lg mb-4"
-                  />
-                )}
+                <PostContent 
+                  content={post.content}
+                  mediaUrl={post.media_url}
+                  mediaType={post.media_type}
+                  isReported={isReported}
+                />
 
                 <div className="flex items-center space-x-4 pt-4 border-t border-foreground/10">
                   <Button 
