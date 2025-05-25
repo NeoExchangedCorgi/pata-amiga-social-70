@@ -9,7 +9,7 @@ export const usePostCreate = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const createPost = async (content: string, imageUrl?: string) => {
+  const createPost = async (content: string, mediaUrl?: string, mediaType?: string) => {
     if (!user) {
       toast({
         title: "Erro",
@@ -21,7 +21,7 @@ export const usePostCreate = () => {
 
     setIsCreating(true);
     try {
-      const result = await postsApi.createPost(content, imageUrl, user.id);
+      const result = await postsApi.createPost(content, mediaUrl, mediaType, user.id);
       return result;
     } catch (error) {
       console.error('Error creating post:', error);

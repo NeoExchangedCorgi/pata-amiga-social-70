@@ -55,7 +55,8 @@ const PostCard = ({ post }: PostCardProps) => {
       <CardContent className="pt-0">
         <PostContent 
           content={post.content}
-          imageUrl={post.image_url}
+          mediaUrl={post.media_url}
+          mediaType={post.media_type}
           isReported={isReported}
         />
         

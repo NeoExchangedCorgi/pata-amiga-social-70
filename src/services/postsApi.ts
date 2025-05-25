@@ -1,10 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
   id: string;
   content: string;
-  image_url?: string;
+  media_url?: string;
+  media_type?: string;
   created_at: string;
   author_id: string;
   profiles: {
@@ -59,12 +59,13 @@ export const postsApi = {
     return sortedData as Post[];
   },
 
-  async createPost(content: string, imageUrl: string | undefined, userId: string) {
+  async createPost(content: string, mediaUrl: string | undefined, mediaType: string | undefined, userId: string) {
     const { data, error } = await supabase
       .from('posts')
       .insert({
         content,
-        image_url: imageUrl,
+        media_url: mediaUrl,
+        media_type: mediaType,
         author_id: userId,
       })
       .select(`

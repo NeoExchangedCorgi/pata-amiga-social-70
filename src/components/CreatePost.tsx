@@ -11,18 +11,20 @@ import { useToast } from '@/hooks/use-toast';
 
 const CreatePost = () => {
   const [content, setContent] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { profile } = useAuth();
   const { createPost, refetch } = usePosts();
   const { toast } = useToast();
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
+        setSelectedMedia(e.target?.result as string);
+        setMediaType(type);
       };
       reader.readAsDataURL(file);
     }
@@ -40,7 +42,7 @@ const CreatePost = () => {
 
     setIsSubmitting(true);
     
-    const { error } = await createPost(content, selectedImage || undefined);
+    const { error } = await createPost(content, selectedMedia || undefined, mediaType || undefined);
     
     if (error) {
       toast({
@@ -55,7 +57,8 @@ const CreatePost = () => {
         className: "bg-green-500 text-white border-green-600",
       });
       setContent('');
-      setSelectedImage(null);
+      setSelectedMedia(null);
+      setMediaType(null);
       refetch();
     }
     
@@ -82,18 +85,29 @@ const CreatePost = () => {
               disabled={isSubmitting}
             />
             
-            {selectedImage && (
+            {selectedMedia && (
               <div className="relative">
-                <img 
-                  src={selectedImage} 
-                  alt="Preview" 
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+                {mediaType === 'image' ? (
+                  <img 
+                    src={selectedMedia} 
+                    alt="Preview" 
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                ) : (
+                  <video 
+                    src={selectedMedia} 
+                    controls
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
                 <Button
                   variant="destructive"
                   size="sm"
                   className="absolute top-2 right-2"
-                  onClick={() => setSelectedImage(null)}
+                  onClick={() => {
+                    setSelectedMedia(null);
+                    setMediaType(null);
+                  }}
                   disabled={isSubmitting}
                 >
                   ×
@@ -106,7 +120,7 @@ const CreatePost = () => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={(e) => handleMediaUpload(e, 'image')}
                   className="hidden"
                   id="image-upload"
                   disabled={isSubmitting}
@@ -127,15 +141,29 @@ const CreatePost = () => {
                   </Button>
                 </label>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => handleMediaUpload(e, 'video')}
+                  className="hidden"
+                  id="video-upload"
                   disabled={isSubmitting}
-                >
-                  <Video className="h-4 w-4" />
-                  <span className="ml-2 hidden sm:inline">Vídeo</span>
-                </Button>
+                />
+                <label htmlFor="video-upload">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
+                    asChild
+                    disabled={isSubmitting}
+                  >
+                    <span>
+                      <Video className="h-4 w-4" />
+                      <span className="ml-2 hidden sm:inline">Vídeo</span>
+                    </span>
+                  </Button>
+                </label>
               </div>
               
               <Button

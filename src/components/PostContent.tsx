@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 
 interface PostContentProps {
   content: string;
-  imageUrl?: string;
+  mediaUrl?: string;
+  mediaType?: string;
   isReported: boolean;
 }
 
-const PostContent = ({ content, imageUrl, isReported }: PostContentProps) => {
+const PostContent = ({ content, mediaUrl, mediaType, isReported }: PostContentProps) => {
   const [showBlurredContent, setShowBlurredContent] = useState(false);
   const shouldBlur = isReported && !showBlurredContent;
 
@@ -18,13 +19,21 @@ const PostContent = ({ content, imageUrl, isReported }: PostContentProps) => {
       <div className="relative">
         <div className="filter blur-md select-none pointer-events-none">
           <p className="text-sm leading-relaxed mb-3">{content}</p>
-          {imageUrl && (
+          {mediaUrl && (
             <div className="mb-4 rounded-lg overflow-hidden">
-              <img 
-                src={imageUrl} 
-                alt="Post image" 
-                className="w-full h-auto max-h-96 object-cover"
-              />
+              {mediaType === 'video' ? (
+                <video 
+                  src={mediaUrl} 
+                  controls
+                  className="w-full h-auto max-h-96 object-cover"
+                />
+              ) : (
+                <img 
+                  src={mediaUrl} 
+                  alt="Post media" 
+                  className="w-full h-auto max-h-96 object-cover"
+                />
+              )}
             </div>
           )}
         </div>
@@ -68,13 +77,21 @@ const PostContent = ({ content, imageUrl, isReported }: PostContentProps) => {
       )}
       <p className="text-sm leading-relaxed mb-3">{content}</p>
       
-      {imageUrl && (
+      {mediaUrl && (
         <div className="mb-4 rounded-lg overflow-hidden">
-          <img 
-            src={imageUrl} 
-            alt="Post image" 
-            className="w-full h-auto max-h-96 object-cover"
-          />
+          {mediaType === 'video' ? (
+            <video 
+              src={mediaUrl} 
+              controls
+              className="w-full h-auto max-h-96 object-cover"
+            />
+          ) : (
+            <img 
+              src={mediaUrl} 
+              alt="Post media" 
+              className="w-full h-auto max-h-96 object-cover"
+            />
+          )}
         </div>
       )}
     </>
