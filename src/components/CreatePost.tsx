@@ -121,8 +121,8 @@ const CreatePost = () => {
                     disabled={isSubmitting}
                   >
                     <span>
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Foto
+                      <ImageIcon className="h-4 w-4" />
+                      <span className="ml-2 hidden sm:inline">Foto</span>
                     </span>
                   </Button>
                 </label>
@@ -133,8 +133,8 @@ const CreatePost = () => {
                   className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
                   disabled={isSubmitting}
                 >
-                  <Video className="h-4 w-4 mr-2" />
-                  Vídeo
+                  <Video className="h-4 w-4" />
+                  <span className="ml-2 hidden sm:inline">Vídeo</span>
                 </Button>
               </div>
               
@@ -143,8 +143,10 @@ const CreatePost = () => {
                 disabled={!content.trim() || isSubmitting}
                 className="bg-pata-yellow-light hover:bg-pata-yellow-light/90 dark:bg-pata-yellow-dark dark:hover:bg-pata-yellow-dark/90 text-black"
               >
-                <Send className="h-4 w-4 mr-2" />
-                {isSubmitting ? 'Postando...' : 'Postar'}
+                <Send className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">
+                  {isSubmitting ? 'Postando...' : 'Postar'}
+                </span>
               </Button>
             </div>
           </div>
