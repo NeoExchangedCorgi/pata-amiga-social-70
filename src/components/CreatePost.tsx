@@ -8,25 +8,27 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFile, convertFileToDataUrl } from '@/utils/fileUpload';
 
 const CreatePost = () => {
   const [content, setContent] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { profile } = useAuth();
   const { createPost, refetch } = usePosts();
   const { toast } = useToast();
 
-  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+  const handleMediaUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedMedia(e.target?.result as string);
-        setMediaType(type);
-      };
-      reader.readAsDataURL(file);
+      setSelectedFile(file);
+      setMediaType(type);
+      
+      // Criar preview para exibição imediata
+      const previewDataUrl = await convertFileToDataUrl(file);
+      setPreviewUrl(previewDataUrl);
     }
   };
 
@@ -42,24 +44,53 @@ const CreatePost = () => {
 
     setIsSubmitting(true);
     
-    const { error } = await createPost(content, selectedMedia || undefined, mediaType || undefined);
-    
-    if (error) {
+    try {
+      let mediaUrl: string | undefined;
+      
+      // Se há um arquivo selecionado, fazer upload primeiro
+      if (selectedFile && profile?.id) {
+        const uploadResult = await uploadFile(selectedFile, profile.id);
+        
+        if (uploadResult.error) {
+          toast({
+            title: "Erro no upload",
+            description: uploadResult.error,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        
+        mediaUrl = uploadResult.url;
+      }
+      
+      const { error } = await createPost(content, mediaUrl, mediaType || undefined);
+      
+      if (error) {
+        toast({
+          title: "Erro ao criar post",
+          description: error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Post criado com sucesso!",
+          description: "Seu post foi publicado no feed",
+          className: "bg-green-500 text-white border-green-600",
+        });
+        setContent('');
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setMediaType(null);
+        refetch();
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
       toast({
-        title: "Erro ao criar post",
-        description: error,
+        title: "Erro interno",
+        description: "Ocorreu um erro inesperado",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Post criado com sucesso!",
-        description: "Seu post foi publicado no feed",
-        className: "bg-green-500 text-white border-green-600",
-      });
-      setContent('');
-      setSelectedMedia(null);
-      setMediaType(null);
-      refetch();
     }
     
     setIsSubmitting(false);
@@ -85,17 +116,17 @@ const CreatePost = () => {
               disabled={isSubmitting}
             />
             
-            {selectedMedia && (
+            {previewUrl && (
               <div className="relative">
                 {mediaType === 'image' ? (
                   <img 
-                    src={selectedMedia} 
+                    src={previewUrl} 
                     alt="Preview" 
                     className="w-full h-48 object-cover rounded-lg"
                   />
                 ) : (
                   <video 
-                    src={selectedMedia} 
+                    src={previewUrl} 
                     controls
                     className="w-full h-48 object-cover rounded-lg"
                   />
@@ -105,7 +136,8 @@ const CreatePost = () => {
                   size="sm"
                   className="absolute top-2 right-2"
                   onClick={() => {
-                    setSelectedMedia(null);
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
                     setMediaType(null);
                   }}
                   disabled={isSubmitting}
