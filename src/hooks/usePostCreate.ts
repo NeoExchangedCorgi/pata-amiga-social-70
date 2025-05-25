@@ -21,7 +21,9 @@ export const usePostCreate = () => {
 
     setIsCreating(true);
     try {
+      console.log('Creating post in API with:', { content, mediaUrl, mediaType, userId: user.id });
       const result = await postsApi.createPost(content, mediaUrl, mediaType, user.id);
+      console.log('Post creation result:', result);
       return result;
     } catch (error) {
       console.error('Error creating post:', error);

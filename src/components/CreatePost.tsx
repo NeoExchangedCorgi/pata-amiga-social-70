@@ -16,6 +16,7 @@ const CreatePost = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const { profile } = useAuth();
   const { createPost, refetch } = usePosts();
   const { toast } = useToast();
@@ -23,12 +24,34 @@ const CreatePost = () => {
   const handleMediaUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selected:', file.name, file.size, file.type);
+      
+      // Verificar tamanho do arquivo (50MB max)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O arquivo deve ter no máximo 50MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setSelectedFile(file);
       setMediaType(type);
       
       // Criar preview para exibição imediata
-      const previewDataUrl = await convertFileToDataUrl(file);
-      setPreviewUrl(previewDataUrl);
+      try {
+        const previewDataUrl = await convertFileToDataUrl(file);
+        setPreviewUrl(previewDataUrl);
+      } catch (error) {
+        console.error('Error creating preview:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao criar preview do arquivo",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -42,50 +65,75 @@ const CreatePost = () => {
       return;
     }
 
+    if (!profile?.id) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para postar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
+    setUploadProgress('Iniciando...');
     
     try {
       let mediaUrl: string | undefined;
       
       // Se há um arquivo selecionado, fazer upload primeiro
-      if (selectedFile && profile?.id) {
+      if (selectedFile) {
+        setUploadProgress('Fazendo upload do arquivo...');
+        console.log('Starting file upload process');
+        
         const uploadResult = await uploadFile(selectedFile, profile.id);
         
         if (uploadResult.error) {
+          console.error('Upload failed:', uploadResult.error);
           toast({
             title: "Erro no upload",
             description: uploadResult.error,
             variant: "destructive",
           });
           setIsSubmitting(false);
+          setUploadProgress('');
           return;
         }
         
         mediaUrl = uploadResult.url;
+        console.log('Upload successful, media URL:', mediaUrl);
+        setUploadProgress('Criando post...');
       }
       
+      console.log('Creating post with:', { content, mediaUrl, mediaType });
       const { error } = await createPost(content, mediaUrl, mediaType || undefined);
       
       if (error) {
+        console.error('Post creation failed:', error);
         toast({
           title: "Erro ao criar post",
           description: error,
           variant: "destructive",
         });
       } else {
+        console.log('Post created successfully');
         toast({
           title: "Post criado com sucesso!",
           description: "Seu post foi publicado no feed",
           className: "bg-green-500 text-white border-green-600",
         });
+        
+        // Limpar formulário
         setContent('');
         setSelectedFile(null);
         setPreviewUrl(null);
         setMediaType(null);
+        setUploadProgress('');
+        
+        // Recarregar posts
         refetch();
       }
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error('Error in post creation process:', error);
       toast({
         title: "Erro interno",
         description: "Ocorreu um erro inesperado",
@@ -94,6 +142,14 @@ const CreatePost = () => {
     }
     
     setIsSubmitting(false);
+    setUploadProgress('');
+  };
+
+  const removeMedia = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setMediaType(null);
+    setUploadProgress('');
   };
 
   return (
@@ -116,6 +172,12 @@ const CreatePost = () => {
               disabled={isSubmitting}
             />
             
+            {uploadProgress && (
+              <div className="text-sm text-blue-600 dark:text-blue-400">
+                {uploadProgress}
+              </div>
+            )}
+            
             {previewUrl && (
               <div className="relative">
                 {mediaType === 'image' ? (
@@ -135,11 +197,7 @@ const CreatePost = () => {
                   variant="destructive"
                   size="sm"
                   className="absolute top-2 right-2"
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewUrl(null);
-                    setMediaType(null);
-                  }}
+                  onClick={removeMedia}
                   disabled={isSubmitting}
                 >
                   ×
@@ -205,7 +263,7 @@ const CreatePost = () => {
               >
                 <Send className="h-4 w-4" />
                 <span className="ml-2 hidden sm:inline">
-                  {isSubmitting ? 'Postando...' : 'Postar'}
+                  {isSubmitting ? (uploadProgress || 'Postando...') : 'Postar'}
                 </span>
               </Button>
             </div>
