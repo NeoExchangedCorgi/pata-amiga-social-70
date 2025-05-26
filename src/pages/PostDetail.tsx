@@ -14,6 +14,7 @@ import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
+import { useComments } from '@/hooks/useComments';
 import type { Post } from '@/hooks/usePosts';
 
 interface Comment {
@@ -32,14 +33,14 @@ interface Comment {
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, profile, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, isPostReported } = usePostReports();
+  const { comments, addComment } = useComments(id || '');
 
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,7 +48,6 @@ const PostDetail = () => {
       if (!id) return;
 
       try {
-        // Buscar dados do post
         const { data: postData, error: postError } = await supabase
           .from('posts')
           .select(`
@@ -76,28 +76,37 @@ const PostDetail = () => {
 
         setPost(postData);
 
-        // Buscar comentários do post
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('comments')
-          .select(`
-            *,
-            profiles!fk_comments_author_id (
-              username,
-              full_name,
-              avatar_url
-            )
-          `)
-          .eq('post_id', id)
-          .order('created_at', { ascending: true });
-
-        if (!commentsError && commentsData) {
-          setComments(commentsData);
-        }
-
         // Registrar visualização
         if (user && postData) {
           addPostView(postData.id);
         }
+
+        // Set up realtime subscription for this specific post
+        const channel = supabase
+          .channel(`post-${id}`)
+          .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'posts',
+            filter: `id=eq.${id}`
+          }, (payload) => {
+            console.log('Post updated in real-time:', payload);
+            setPost(payload.new as Post);
+          })
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'post_likes',
+            filter: `post_id=eq.${id}`
+          }, () => {
+            // Refetch post data to get updated likes
+            fetchPostData();
+          })
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
 
       } catch (error) {
         console.error('Error fetching post data:', error);
@@ -121,35 +130,6 @@ const PostDetail = () => {
     } else {
       const diffInDays = Math.floor(diffInHours / 24);
       return `${diffInDays}d`;
-    }
-  };
-
-  const addComment = async (content: string) => {
-    if (!user || !profile) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .insert({
-          content,
-          post_id: post!.id,
-          author_id: user.id,
-        })
-        .select(`
-          *,
-          profiles!fk_comments_author_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .single();
-
-      if (!error && data) {
-        setComments([...comments, data]);
-      }
-    } catch (error) {
-      console.error('Error adding comment:', error);
     }
   };
 

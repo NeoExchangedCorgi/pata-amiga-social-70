@@ -56,7 +56,6 @@ export const usePostsManager = () => {
     try {
       const result = await postsApi.createPost(content, mediaUrl, mediaType, user.id);
       if (!result.error) {
-        await fetchPosts();
         toast({
           title: "Post criado!",
           description: "Seu post foi publicado com sucesso.",
@@ -74,13 +73,27 @@ export const usePostsManager = () => {
   const deletePost = async (postId: string) => {
     if (!user) return false;
 
-    // Optimistic update
+    // Optimistic update - remove post immediately
+    const originalPosts = posts;
+    const originalAllPosts = allPosts;
     setPosts(prev => prev.filter(post => post.id !== postId));
     setAllPosts(prev => prev.filter(post => post.id !== postId));
     
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {
-      await fetchPosts(); // Restore on failure
+      // Restore on failure
+      setPosts(originalPosts);
+      setAllPosts(originalAllPosts);
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar post",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Post deletado",
+        description: "Post removido com sucesso",
+      });
     }
     return success;
   };
@@ -96,6 +109,25 @@ export const usePostsManager = () => {
     }
 
     try {
+      // Optimistic update
+      const updateLikes = (posts: Post[]) => posts.map(post => {
+        if (post.id === postId) {
+          const hasLiked = post.post_likes?.some(like => like.user_id === user.id) || false;
+          const newLikes = hasLiked
+            ? post.post_likes?.filter(like => like.user_id !== user.id) || []
+            : [...(post.post_likes || []), { user_id: user.id }];
+          
+          return {
+            ...post,
+            post_likes: newLikes
+          };
+        }
+        return post;
+      });
+
+      setPosts(updateLikes);
+      setAllPosts(updateLikes);
+
       const hasLiked = await postsApi.checkUserLike(postId, user.id);
       
       if (hasLiked) {
@@ -105,25 +137,64 @@ export const usePostsManager = () => {
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Revert optimistic update on error
+      await fetchPosts();
     }
   };
 
-  // Set up realtime subscriptions
+  // Set up realtime subscriptions with more comprehensive event handling
   useEffect(() => {
     fetchPosts();
 
     const postsChannel = supabase
-      .channel('posts-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+      .channel('posts-realtime')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        console.log('New post created:', payload);
+        fetchPosts(); // Refresh to get complete data with relations
+      })
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        console.log('Post updated:', payload);
         fetchPosts();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, () => {
+      .on('postgres_changes', { 
+        event: 'DELETE', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        console.log('Post deleted:', payload);
+        const deletedId = payload.old?.id;
+        if (deletedId) {
+          setPosts(prev => prev.filter(post => post.id !== deletedId));
+          setAllPosts(prev => prev.filter(post => post.id !== deletedId));
+        }
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'post_likes' 
+      }, () => {
+        console.log('Like changed, refreshing posts');
         fetchPosts();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'comments' 
+      }, () => {
+        console.log('Comment changed, refreshing posts');
         fetchPosts();
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(postsChannel);

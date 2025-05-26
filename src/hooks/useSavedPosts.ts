@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import type { Post } from '@/hooks/usePosts';
 
 interface SavedPost {
@@ -15,6 +16,7 @@ export const useSavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchSavedPosts = async () => {
     if (!user) return;
@@ -63,13 +65,27 @@ export const useSavedPosts = () => {
       const existingSave = savedPosts.find(save => save.post_id === postId);
       
       if (existingSave) {
+        // Optimistic update - remove immediately
+        setSavedPosts(prev => prev.filter(save => save.id !== existingSave.id));
+        
         const { error } = await supabase
           .from('saved_posts')
           .delete()
           .eq('id', existingSave.id);
 
-        if (!error) {
-          setSavedPosts(prev => prev.filter(save => save.id !== existingSave.id));
+        if (error) {
+          // Revert on error
+          await fetchSavedPosts();
+          toast({
+            title: "Erro",
+            description: "Erro ao remover post dos salvos",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Post removido",
+            description: "Post removido dos salvos",
+          });
         }
       } else {
         const { data, error } = await supabase
@@ -99,11 +115,27 @@ export const useSavedPosts = () => {
           .single();
 
         if (!error && data) {
+          // Optimistic update - add immediately
           setSavedPosts(prev => [data, ...prev]);
+          toast({
+            title: "Post salvo",
+            description: "Post adicionado aos salvos",
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Erro ao salvar post",
+            variant: "destructive",
+          });
         }
       }
     } catch (error) {
       console.error('Error toggling save:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar solicitação",
+        variant: "destructive",
+      });
     }
   };
 
@@ -111,8 +143,28 @@ export const useSavedPosts = () => {
     return savedPosts.some(save => save.post_id === postId);
   };
 
+  // Set up realtime subscriptions
   useEffect(() => {
-    fetchSavedPosts();
+    if (user) {
+      fetchSavedPosts();
+
+      const channel = supabase
+        .channel('saved-posts-realtime')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'saved_posts',
+          filter: `user_id=eq.${user.id}`
+        }, (payload) => {
+          console.log('Saved posts changed:', payload);
+          fetchSavedPosts();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [user]);
 
   return {
