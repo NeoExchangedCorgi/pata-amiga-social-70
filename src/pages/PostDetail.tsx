@@ -22,7 +22,7 @@ const PostDetail = () => {
   const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
+  const { reportPost, removeReport, isPostReported } = usePostReports();
 
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,27 +135,24 @@ const PostDetail = () => {
   const isSaved = isPostSaved(post.id);
   const isReported = isPostReported(post.id);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!isOwnPost && isAuthenticated) {
-      toggleLike(post.id);
+      await toggleLike(post.id);
+      window.location.reload();
     }
   };
 
   const handleReport = async () => {
     if (isAuthenticated && !isOwnPost) {
-      const success = await reportPost(post.id);
-      if (success) {
-        refreshReports();
-      }
+      await reportPost(post.id);
+      window.location.reload();
     }
   };
 
   const handleRemoveReport = async () => {
     if (isAuthenticated && !isOwnPost) {
-      const success = await removeReport(post.id);
-      if (success) {
-        refreshReports();
-      }
+      await removeReport(post.id);
+      window.location.reload();
     }
   };
 
@@ -168,9 +165,10 @@ const PostDetail = () => {
     }
   };
 
-  const handleMark = () => {
+  const handleMark = async () => {
     if (isAuthenticated) {
-      toggleSavePost(post.id);
+      await toggleSavePost(post.id);
+      window.location.reload();
     }
   };
 

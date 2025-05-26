@@ -55,12 +55,14 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     e.preventDefault();
     e.stopPropagation();
     await handleReport();
+    window.location.reload();
   };
 
   const handleRemoveReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleRemoveReport();
+    window.location.reload();
   };
 
   const isProfileCurrentlyHidden = isProfileHidden(authorId);
