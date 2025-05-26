@@ -28,27 +28,52 @@ export const useHiddenProfiles = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Primeiro buscar os perfis ocultos
+      const { data: hiddenData, error: hiddenError } = await supabase
         .from('hidden_profiles')
-        .select(`
-          *,
-          profiles!hidden_profiles_hidden_profile_id_fkey (
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('hidden_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching hidden profiles:', error);
+      if (hiddenError) {
+        console.error('Error fetching hidden profiles:', hiddenError);
         return;
       }
 
-      setHiddenProfiles(data || []);
-      setHiddenProfileIds(new Set((data || []).map(hp => hp.hidden_profile_id)));
+      if (!hiddenData || hiddenData.length === 0) {
+        setHiddenProfiles([]);
+        setHiddenProfileIds(new Set());
+        return;
+      }
+
+      // Buscar os dados dos perfis
+      const profileIds = hiddenData.map(hp => hp.hidden_profile_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', profileIds);
+
+      if (profilesError) {
+        console.error('Error fetching profile details:', profilesError);
+        return;
+      }
+
+      // Combinar os dados
+      const combinedData: HiddenProfile[] = hiddenData.map(hiddenProfile => {
+        const profile = profilesData?.find(p => p.id === hiddenProfile.hidden_profile_id);
+        return {
+          ...hiddenProfile,
+          profiles: profile || {
+            id: hiddenProfile.hidden_profile_id,
+            username: 'Usuário desconhecido',
+            full_name: 'Usuário desconhecido',
+            avatar_url: undefined
+          }
+        };
+      });
+
+      setHiddenProfiles(combinedData);
+      setHiddenProfileIds(new Set(hiddenData.map(hp => hp.hidden_profile_id)));
     } catch (error) {
       console.error('Error fetching hidden profiles:', error);
     } finally {
