@@ -25,14 +25,22 @@ interface CommentSectionProps {
 }
 
 const CommentSection = ({ comments, isAuthenticated, onAddComment, formatTimeAgo }: CommentSectionProps) => {
+  console.log('CommentSection: Rendering with comments:', comments);
+
   return (
     <Card className="border-foreground/20">
       <CardContent className="p-4">
-        <h4 className="font-semibold text-foreground mb-4">Comentários</h4>
+        <h4 className="font-semibold text-foreground mb-4">
+          Comentários ({comments.length})
+        </h4>
         
-        {isAuthenticated && <CommentForm onSubmit={onAddComment} />}
+        {isAuthenticated && (
+          <div className="mb-6">
+            <CommentForm onSubmit={onAddComment} />
+          </div>
+        )}
         
-        <div className="mt-6 space-y-4">
+        <div className="space-y-4">
           {comments.length > 0 ? (
             comments.map((comment) => (
               <div key={comment.id} className="border-b border-foreground/10 pb-4 last:border-b-0">
@@ -40,15 +48,21 @@ const CommentSection = ({ comments, isAuthenticated, onAddComment, formatTimeAgo
                   <Avatar className="w-8 h-8">
                     <AvatarImage src={comment.profiles.avatar_url || "/placeholder.svg"} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-600 text-white text-xs">
-                      {comment.profiles.full_name.charAt(0)}
+                      {comment.profiles.full_name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-foreground text-sm">{comment.profiles.full_name}</span>
-                      <span className="text-muted-foreground text-xs">@{comment.profiles.username}</span>
+                      <span className="font-medium text-foreground text-sm">
+                        {comment.profiles.full_name}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        @{comment.profiles.username}
+                      </span>
                       <span className="text-muted-foreground text-xs">·</span>
-                      <span className="text-muted-foreground text-xs">{formatTimeAgo(comment.created_at)}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {formatTimeAgo(comment.created_at)}
+                      </span>
                     </div>
                     <p className="text-foreground text-sm mt-1">{comment.content}</p>
                   </div>

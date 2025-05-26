@@ -20,32 +20,32 @@ export interface Post {
 
 export const postsApi = {
   async fetchPosts() {
-    console.log('API: Fetching posts...');
+    console.log('PostsAPI: Fetching posts...');
     const { data, error } = await supabase
       .from('posts')
       .select(`
         *,
-        profiles!fk_posts_author_id (
+        profiles!posts_author_id_fkey (
           id,
           username,
           full_name,
           avatar_url
         ),
-        post_likes!fk_post_likes_post_id (
+        post_likes!post_likes_post_id_fkey (
           user_id
         ),
-        comments!fk_comments_post_id (
+        comments!comments_post_id_fkey (
           id
         )
       `)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('API Error fetching posts:', error);
+      console.error('PostsAPI: Error fetching posts:', error);
       return [];
     }
 
-    console.log('API: Posts fetched successfully:', data?.length, 'posts');
+    console.log('PostsAPI: Posts fetched successfully:', data?.length, 'posts');
 
     // Sort by likes count (descending) then by creation date (descending)
     const sortedData = (data || []).sort((a, b) => {
@@ -64,7 +64,7 @@ export const postsApi = {
   },
 
   async createPost(content: string, mediaUrl: string | undefined, mediaType: 'image' | 'video' | undefined, userId: string) {
-    console.log('API: Creating post...', { content, mediaUrl, mediaType, userId });
+    console.log('PostsAPI: Creating post...', { content, mediaUrl, mediaType, userId });
     
     const { data, error } = await supabase
       .from('posts')
@@ -76,27 +76,27 @@ export const postsApi = {
       })
       .select(`
         *,
-        profiles!fk_posts_author_id (
+        profiles!posts_author_id_fkey (
           id,
           username,
           full_name,
           avatar_url
         ),
-        post_likes!fk_post_likes_post_id (
+        post_likes!post_likes_post_id_fkey (
           user_id
         ),
-        comments!fk_comments_post_id (
+        comments!comments_post_id_fkey (
           id
         )
       `)
       .single();
 
     if (error) {
-      console.error('API Error creating post:', error);
+      console.error('PostsAPI: Error creating post:', error);
       return { error: error.message };
     }
 
-    console.log('API: Post created successfully:', data);
+    console.log('PostsAPI: Post created successfully:', data);
     return { data };
   },
 
