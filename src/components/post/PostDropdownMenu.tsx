@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff, Edit } from 'lucide-react';
+import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,8 +25,11 @@ interface PostDropdownMenuProps {
   isSaved: boolean;
   isProfileHidden: boolean;
   isReported: boolean;
+  isPostHidden?: boolean;
   onSave: (e: React.MouseEvent) => void;
   onHideProfile: (e: React.MouseEvent) => void;
+  onHidePost?: (e: React.MouseEvent) => void;
+  onUnhidePost?: (e: React.MouseEvent) => void;
   onReport: (e: React.MouseEvent) => void;
   onRemoveReport: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
@@ -40,8 +42,11 @@ const PostDropdownMenu = ({
   isSaved,
   isProfileHidden,
   isReported,
+  isPostHidden = false,
   onSave,
   onHideProfile,
+  onHidePost,
+  onUnhidePost,
   onReport,
   onRemoveReport,
   onDelete,
@@ -80,6 +85,16 @@ const PostDropdownMenu = ({
     } else {
       setShowReportDialog(true);
       setIsOpen(false);
+    }
+  };
+
+  const handleHidePostClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isPostHidden && onUnhidePost) {
+      handleItemClick(onUnhidePost, e);
+    } else if (!isPostHidden && onHidePost) {
+      handleItemClick(onHidePost, e);
     }
   };
 
@@ -124,13 +139,34 @@ const PostDropdownMenu = ({
                 {isSaved ? 'Remover dos salvos' : 'Salvar post'}
               </DropdownMenuItem>
               
-              <DropdownMenuItem 
-                onClick={(e) => handleItemClick(onHideProfile, e)}
-                onSelect={(e) => e.preventDefault()}
-              >
-                <EyeOff className="h-4 w-4 mr-2" />
-                {isProfileHidden ? 'Perfil já ocultado' : 'Ocultar perfil'}
-              </DropdownMenuItem>
+              {!isOwnPost && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={handleHidePostClick}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {isPostHidden ? (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Desocultar post
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Ocultar post
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    onClick={(e) => handleItemClick(onHideProfile, e)}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    {isProfileHidden ? 'Perfil já ocultado' : 'Ocultar perfil'}
+                  </DropdownMenuItem>
+                </>
+              )}
               
               {isOwnPost ? (
                 <>

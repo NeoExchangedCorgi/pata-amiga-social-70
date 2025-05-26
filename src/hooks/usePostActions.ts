@@ -6,6 +6,7 @@ import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
 import { useGlobalReports } from '@/hooks/useGlobalReports';
+import { useHiddenPosts } from '@/hooks/useHiddenPosts';
 import { usePostsManager } from '@/hooks/usePostsManager';
 
 export const usePostActions = (postId: string, authorId: string) => {
@@ -16,6 +17,7 @@ export const usePostActions = (postId: string, authorId: string) => {
   const { addPostView } = usePostViews();
   const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
   const { addGlobalReport, removeGlobalReport, isPostGloballyReported, isPostCensored } = useGlobalReports();
+  const { hidePost, unhidePost, isPostHidden } = useHiddenPosts();
   const { toast } = useToast();
 
   const isOwnPost = user?.id === authorId;
@@ -23,6 +25,7 @@ export const usePostActions = (postId: string, authorId: string) => {
   const isReported = isPostReported(postId);
   const isGloballyReported = isPostGloballyReported(postId);
   const isCensored = isPostCensored(postId);
+  const isHidden = isPostHidden(postId);
 
   const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
@@ -64,6 +67,16 @@ export const usePostActions = (postId: string, authorId: string) => {
     return await removeGlobalReport(postId);
   };
 
+  const handleHidePost = async () => {
+    if (!isAuthenticated || isOwnPost) return false;
+    return await hidePost(postId);
+  };
+
+  const handleUnhidePost = async () => {
+    if (!isAuthenticated || isOwnPost) return false;
+    return await unhidePost(postId);
+  };
+
   const handleSave = () => {
     if (!isAuthenticated) {
       toast({
@@ -86,6 +99,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     isReported,
     isGloballyReported,
     isCensored,
+    isHidden,
     isAuthenticated,
     handleLike,
     handleEdit,
@@ -93,6 +107,8 @@ export const usePostActions = (postId: string, authorId: string) => {
     handleRemoveReport,
     handleGlobalReport,
     handleRemoveGlobalReport,
+    handleHidePost,
+    handleUnhidePost,
     handleSave,
     handleView,
   };

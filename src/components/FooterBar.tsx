@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Home, Bell, User, Heart, History, Menu, LogOut, Search, EyeOff, Bookmark } from 'lucide-react';
+import { Home, Bell, User, Heart, History, Menu, LogOut, Search, EyeOff, Bookmark, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -70,6 +70,7 @@ const FooterBar = () => {
     { icon: Bookmark, label: 'Marcações', path: '/marcacoes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
     { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
+    { icon: Phone, label: 'Contate a ONG', path: '/contact-ong', requiresAuth: false },
     ...(isAuthenticated ? [{ icon: LogOut, label: 'Logout', action: handleLogout, requiresAuth: false }] : [])
   ];
 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Bell, User, Heart, History, LogOut, EyeOff, Bookmark } from 'lucide-react';
+import { Home, Bell, User, Heart, History, LogOut, EyeOff, Bookmark, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +19,7 @@ const LeftSidebar = () => {
     { icon: Bookmark, label: 'Marcações', path: '/marcacoes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
     { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
+    { icon: Phone, label: 'Contate a ONG', path: '/contact-ong', requiresAuth: false },
   ];
 
   const handleItemClick = (item: any) => {

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
@@ -17,8 +16,10 @@ export interface Post {
   post_likes: Array<{ user_id: string }>;
 }
 
+export type SortType = 'likes' | 'recent';
+
 export const postsApi = {
-  async fetchPosts() {
+  async fetchPosts(sortType: SortType = 'likes') {
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -40,17 +41,22 @@ export const postsApi = {
       return [];
     }
 
-    // Sort by likes count (descending) then by creation date (descending)
+    // Sort based on the provided sort type
     const sortedData = (data || []).sort((a, b) => {
-      const likesA = a.post_likes?.length || 0;
-      const likesB = b.post_likes?.length || 0;
-      
-      if (likesA !== likesB) {
-        return likesB - likesA; // More likes first
+      if (sortType === 'recent') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      } else {
+        // Sort by likes count (descending) then by creation date (descending)
+        const likesA = a.post_likes?.length || 0;
+        const likesB = b.post_likes?.length || 0;
+        
+        if (likesA !== likesB) {
+          return likesB - likesA; // More likes first
+        }
+        
+        // If same number of likes, sort by date (newest first)
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
-      
-      // If same number of likes, sort by date (newest first)
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
     return sortedData as Post[];
@@ -88,7 +94,6 @@ export const postsApi = {
   },
 
   async updatePost(postId: string, content: string, userId: string) {
-    // Check if post exists and belongs to user
     const { data: existingPost, error: checkError } = await supabase
       .from('posts')
       .select('id, author_id')
@@ -132,7 +137,6 @@ export const postsApi = {
   },
 
   async deletePost(postId: string, userId: string) {
-    // Check if post exists and belongs to user
     const { data: existingPost, error: checkError } = await supabase
       .from('posts')
       .select('id, author_id')

@@ -22,6 +22,7 @@ import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
 import HiddenProfiles from "./pages/HiddenProfiles";
 import Marcacoes from "./pages/Marcacoes";
+import ContactOng from "./pages/ContactOng";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/user/:username" element={<UserProfile />} />
               <Route path="/hidden-profiles" element={<HiddenProfiles />} />
               <Route path="/marcacoes" element={<Marcacoes />} />
+              <Route path="/contact-ong" element={<ContactOng />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

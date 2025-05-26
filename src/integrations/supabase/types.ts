@@ -90,6 +90,27 @@ export type Database = {
           },
         ]
       }
+      hidden_posts: {
+        Row: {
+          hidden_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          hidden_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          hidden_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hidden_profiles: {
         Row: {
           hidden_at: string
