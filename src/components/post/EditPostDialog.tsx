@@ -38,6 +38,7 @@ const EditPostDialog = ({ isOpen, onClose, onSave, initialContent }: EditPostDia
       const success = await onSave(content.trim());
       if (success) {
         onClose();
+        window.location.reload();
       }
     } catch (error) {
       console.error('Error saving post:', error);
