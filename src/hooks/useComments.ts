@@ -24,7 +24,10 @@ export const useComments = (postId: string) => {
   const { toast } = useToast();
 
   const fetchComments = async () => {
-    if (!postId) return;
+    if (!postId) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -45,6 +48,7 @@ export const useComments = (postId: string) => {
         return;
       }
 
+      console.log('Fetched comments:', data);
       setComments(data || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -62,6 +66,8 @@ export const useComments = (postId: string) => {
       });
       return;
     }
+
+    console.log('Adding comment:', { content, postId, userId: user.id });
 
     try {
       const { data, error } = await supabase
@@ -91,10 +97,18 @@ export const useComments = (postId: string) => {
         return;
       }
 
+      console.log('Comment added successfully:', data);
+
+      // Atualizar o estado local imediatamente
+      setComments(prevComments => [...prevComments, data]);
+
       toast({
         title: "Comentário adicionado",
         description: "Seu comentário foi publicado",
       });
+
+      // Fazer refresh para garantir sincronização
+      await fetchComments();
     } catch (error) {
       console.error('Error adding comment:', error);
       toast({
@@ -105,7 +119,7 @@ export const useComments = (postId: string) => {
     }
   };
 
-  // Set up realtime subscriptions with proper channel configuration
+  // Set up realtime subscriptions
   useEffect(() => {
     if (postId) {
       fetchComments();
@@ -118,7 +132,7 @@ export const useComments = (postId: string) => {
           table: 'comments',
           filter: `post_id=eq.${postId}`
         }, (payload) => {
-          console.log('New comment received:', payload);
+          console.log('New comment received via realtime:', payload);
           fetchComments(); // Refetch to get complete data with joins
         })
         .on('postgres_changes', {
@@ -127,7 +141,7 @@ export const useComments = (postId: string) => {
           table: 'comments',
           filter: `post_id=eq.${postId}`
         }, (payload) => {
-          console.log('Comment updated:', payload);
+          console.log('Comment updated via realtime:', payload);
           fetchComments();
         })
         .on('postgres_changes', {
@@ -136,7 +150,7 @@ export const useComments = (postId: string) => {
           table: 'comments',
           filter: `post_id=eq.${postId}`
         }, (payload) => {
-          console.log('Comment deleted:', payload);
+          console.log('Comment deleted via realtime:', payload);
           const deletedId = payload.old?.id;
           if (deletedId) {
             setComments(prev => prev.filter(c => c.id !== deletedId));

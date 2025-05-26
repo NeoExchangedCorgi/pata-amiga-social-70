@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
@@ -19,6 +20,7 @@ export interface Post {
 
 export const postsApi = {
   async fetchPosts() {
+    console.log('API: Fetching posts...');
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -39,9 +41,11 @@ export const postsApi = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching posts:', error);
+      console.error('API Error fetching posts:', error);
       return [];
     }
+
+    console.log('API: Posts fetched successfully:', data?.length, 'posts');
 
     // Sort by likes count (descending) then by creation date (descending)
     const sortedData = (data || []).sort((a, b) => {
@@ -60,6 +64,8 @@ export const postsApi = {
   },
 
   async createPost(content: string, mediaUrl: string | undefined, mediaType: 'image' | 'video' | undefined, userId: string) {
+    console.log('API: Creating post...', { content, mediaUrl, mediaType, userId });
+    
     const { data, error } = await supabase
       .from('posts')
       .insert({
@@ -86,10 +92,11 @@ export const postsApi = {
       .single();
 
     if (error) {
-      console.error('Error creating post:', error);
+      console.error('API Error creating post:', error);
       return { error: error.message };
     }
 
+    console.log('API: Post created successfully:', data);
     return { data };
   },
 
@@ -136,6 +143,7 @@ export const postsApi = {
   },
 
   async addLike(postId: string, userId: string) {
+    console.log('API: Adding like...', { postId, userId });
     const { error } = await supabase
       .from('post_likes')
       .insert({
@@ -147,10 +155,12 @@ export const postsApi = {
       console.error('Error adding like:', error);
       return false;
     }
+    console.log('Like added successfully');
     return true;
   },
 
   async removeLike(postId: string, userId: string) {
+    console.log('API: Removing like...', { postId, userId });
     const { error } = await supabase
       .from('post_likes')
       .delete()
@@ -161,6 +171,7 @@ export const postsApi = {
       console.error('Error removing like:', error);
       return false;
     }
+    console.log('Like removed successfully');
     return true;
   },
 };

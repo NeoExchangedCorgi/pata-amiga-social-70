@@ -17,7 +17,9 @@ export const usePostsManager = () => {
 
   const fetchPosts = async () => {
     try {
+      console.log('Fetching posts...');
       const data = await postsApi.fetchPosts();
+      console.log('Posts fetched:', data);
       setAllPosts(data);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -53,13 +55,21 @@ export const usePostsManager = () => {
     }
 
     setIsCreating(true);
+    console.log('Creating post:', { content, mediaUrl, mediaType, userId: user.id });
+    
     try {
       const result = await postsApi.createPost(content, mediaUrl, mediaType, user.id);
       if (!result.error) {
+        console.log('Post created successfully:', result.data);
         toast({
           title: "Post criado!",
           description: "Seu post foi publicado com sucesso.",
         });
+        
+        // Refresh imediatamente após criar o post
+        await fetchPosts();
+      } else {
+        console.error('Error creating post:', result.error);
       }
       return result;
     } catch (error) {
@@ -73,6 +83,7 @@ export const usePostsManager = () => {
   const deletePost = async (postId: string) => {
     if (!user) return false;
 
+    console.log('Deleting post:', postId);
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {
       toast({
@@ -85,6 +96,8 @@ export const usePostsManager = () => {
         title: "Post deletado",
         description: "Post removido com sucesso",
       });
+      // Refresh após deletar
+      await fetchPosts();
     }
     return success;
   };
@@ -100,6 +113,7 @@ export const usePostsManager = () => {
     }
 
     try {
+      console.log('Toggling like for post:', postId);
       const hasLiked = await postsApi.checkUserLike(postId, user.id);
       
       if (hasLiked) {
@@ -107,6 +121,8 @@ export const usePostsManager = () => {
       } else {
         await postsApi.addLike(postId, user.id);
       }
+      
+      // Não fazer refresh imediato para likes, deixar o realtime atualizar
     } catch (error) {
       console.error('Error toggling like:', error);
       toast({
@@ -124,19 +140,35 @@ export const usePostsManager = () => {
     const postsChannel = supabase
       .channel('posts_realtime')
       .on('postgres_changes', { 
-        event: '*', 
+        event: 'INSERT', 
         schema: 'public', 
         table: 'posts' 
       }, (payload) => {
-        console.log('Posts table changed:', payload);
+        console.log('New post inserted via realtime:', payload);
         fetchPosts(); // Refetch to get complete data with relations
+      })
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        console.log('Post updated via realtime:', payload);
+        fetchPosts();
+      })
+      .on('postgres_changes', { 
+        event: 'DELETE', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        console.log('Post deleted via realtime:', payload);
+        fetchPosts();
       })
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'post_likes' 
       }, (payload) => {
-        console.log('Post likes changed:', payload);
+        console.log('Post likes changed via realtime:', payload);
         fetchPosts();
       })
       .on('postgres_changes', { 
@@ -144,7 +176,7 @@ export const usePostsManager = () => {
         schema: 'public', 
         table: 'comments' 
       }, (payload) => {
-        console.log('Comments changed:', payload);
+        console.log('Comments changed via realtime:', payload);
         fetchPosts();
       })
       .subscribe((status) => {
