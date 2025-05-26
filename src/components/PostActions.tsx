@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Flag, Bookmark, Eye, EyeOff } from 'lucide-react';
+import { Heart, Share2, MoreHorizontal, Flag, Bookmark, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,18 +18,14 @@ interface PostActionsProps {
   postId: string;
   authorId: string;
   likesCount: number;
-  commentsCount: number;
   isLiked: boolean;
-  onCommentClick: () => void;
 }
 
 const PostActions = ({ 
   postId, 
   authorId, 
   likesCount, 
-  commentsCount, 
-  isLiked, 
-  onCommentClick 
+  isLiked
 }: PostActionsProps) => {
   const { user, isAuthenticated } = useAuth();
   const { toggleLike, deletePost } = usePosts();
@@ -96,16 +92,6 @@ const PostActions = ({
         >
           <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
           <span className="text-sm">{likesCount}</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex items-center space-x-1 text-muted-foreground hover:text-blue-500"
-          onClick={onCommentClick}
-        >
-          <MessageCircle className="h-4 w-4" />
-          <span className="text-sm">{commentsCount}</span>
         </Button>
 
         <Button
