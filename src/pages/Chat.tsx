@@ -43,12 +43,23 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Aguardar o carregamento da autenticação antes de verificar
+    if (!isAuthenticated && !isLoading) {
       navigate('/login');
       return;
     }
-    fetchUsers();
-  }, [isAuthenticated, isAdmin]);
+    
+    if (isAuthenticated) {
+      fetchUsers();
+    }
+  }, [isAuthenticated, isAdmin, isLoading]);
+
+  // Aguardar o contexto de autenticação carregar
+  useEffect(() => {
+    if (profile !== null || user !== null) {
+      setIsLoading(false);
+    }
+  }, [profile, user]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -156,6 +167,7 @@ const Chat = () => {
     });
   };
 
+  // Mostrar carregamento enquanto verifica autenticação
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
