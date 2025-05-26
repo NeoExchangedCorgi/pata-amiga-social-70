@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,7 @@ import FooterBar from '@/components/FooterBar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Send, MessageCircle } from 'lucide-react';
+import { Search, Send, MessageCircle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,6 +40,7 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [showUsersList, setShowUsersList] = useState(true);
 
   useEffect(() => {
     // Aguardar o carregamento da autenticação antes de verificar
@@ -157,6 +157,12 @@ const Chat = () => {
   const selectUser = (chatUser: ChatUser) => {
     setSelectedUser(chatUser);
     fetchMessages(chatUser.id);
+    setShowUsersList(false); // Hide users list on mobile when chat is selected
+  };
+
+  const handleBackToUsers = () => {
+    setShowUsersList(true);
+    setSelectedUser(null);
   };
 
   const formatTime = (dateString: string) => {
@@ -197,10 +203,10 @@ const Chat = () => {
         <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
           <div className="max-w-6xl mx-auto p-4">
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-foreground mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
                 {isAdmin ? 'Chat Administrativo' : 'Chat com a ONG'}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 {isAdmin 
                   ? 'Converse com os usuários que precisam de ajuda'
                   : 'Entre em contato com nossa equipe'
@@ -208,7 +214,126 @@ const Chat = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+            {/* Mobile Layout */}
+            <div className="block lg:hidden">
+              {showUsersList ? (
+                /* Lista de usuários no mobile */
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-lg">
+                      <MessageCircle className="h-5 w-5" />
+                      <span>{isAdmin ? 'Usuários' : 'Administradores'}</span>
+                    </CardTitle>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Pesquisar..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="max-h-[60vh] overflow-y-auto">
+                      {filteredUsers.map((chatUser) => (
+                        <div
+                          key={chatUser.id}
+                          onClick={() => selectUser(chatUser)}
+                          className="p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                              <span className="text-primary font-medium text-lg">
+                                {chatUser.full_name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{chatUser.full_name}</p>
+                              <p className="text-sm text-muted-foreground truncate">@{chatUser.username}</p>
+                            </div>
+                            {chatUser.has_unread_messages && (
+                              <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                /* Chat área no mobile */
+                <Card>
+                  {selectedUser && (
+                    <>
+                      <CardHeader className="border-b">
+                        <CardTitle className="flex items-center space-x-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleBackToUsers}
+                            className="p-2"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-primary font-medium">
+                              {selectedUser.full_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate">{selectedUser.full_name}</p>
+                            <p className="text-sm text-muted-foreground truncate">@{selectedUser.username}</p>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0 flex flex-col h-[60vh]">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                          {messages.map((message) => (
+                            <div
+                              key={message.id}
+                              className={`flex ${
+                                message.sender_id === user?.id ? 'justify-end' : 'justify-start'
+                              }`}
+                            >
+                              <div
+                                className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                                  message.sender_id === user?.id
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted'
+                                }`}
+                              >
+                                <p className="text-sm">{message.message}</p>
+                                <p className="text-xs opacity-75 mt-1">
+                                  {formatTime(message.created_at)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="border-t p-4">
+                          <div className="flex space-x-2">
+                            <Input
+                              placeholder="Digite sua mensagem..."
+                              value={newMessage}
+                              onChange={(e) => setNewMessage(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                              className="flex-1"
+                            />
+                            <Button onClick={sendMessage} size="icon">
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </>
+                  )}
+                </Card>
+              )}
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden lg:grid lg:grid-cols-3 gap-6 h-[600px]">
               {/* Lista de usuários */}
               <Card className="lg:col-span-1">
                 <CardHeader>
