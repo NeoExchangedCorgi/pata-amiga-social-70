@@ -33,9 +33,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     }
   };
 
-  const handleHideProfile = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleHideProfile = async () => {
     await hideProfile(authorId);
   };
 
