@@ -14,8 +14,8 @@ const ScrollToTopButton = () => {
       // Considera que está no topo se scrollTop for 0
       setIsAtTop(scrollTop === 0);
       
-      // Mostra o botão se a página foi rolada mais de 200px
-      setIsVisible(scrollTop > 200);
+      // Mostra o botão se a página foi rolada mais de 100px
+      setIsVisible(scrollTop > 100);
     };
 
     window.addEventListener('scroll', toggleVisibility);
@@ -37,10 +37,6 @@ const ScrollToTopButton = () => {
     }
   };
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
     <Button
       onClick={scrollToTop}
@@ -50,8 +46,9 @@ const ScrollToTopButton = () => {
         bg-primary hover:bg-primary/90 text-primary-foreground
         shadow-lg transition-all duration-300 ease-in-out
         md:bottom-6 md:right-8 md:h-14 md:w-14
+        ${isVisible ? 'translate-y-0' : 'translate-y-16'}
         ${isAtTop 
-          ? 'opacity-50 cursor-not-allowed hover:bg-primary' 
+          ? 'opacity-30 cursor-not-allowed hover:bg-primary scale-95' 
           : 'opacity-100 hover:scale-110'
         }
       `}
