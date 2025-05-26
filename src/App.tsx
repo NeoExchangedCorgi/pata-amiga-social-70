@@ -21,6 +21,7 @@ import Search from "./pages/Search";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
 import HiddenProfiles from "./pages/HiddenProfiles";
+import Marcacoes from "./pages/Marcacoes";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/user/:username" element={<UserProfile />} />
               <Route path="/hidden-profiles" element={<HiddenProfiles />} />
+              <Route path="/marcacoes" element={<Marcacoes />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
