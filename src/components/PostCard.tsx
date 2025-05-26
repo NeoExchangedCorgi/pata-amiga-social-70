@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePostActions } from '@/hooks/usePostActions';
+import { ROUTES } from '@/constants/app';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostActions from './PostActions';
@@ -23,12 +24,12 @@ const PostCard = ({ post }: PostCardProps) => {
   const commentsCount = post.comments?.length || 0;
 
   const handleAuthorClick = () => {
-    navigate(`/user/${post.profiles.username}`);
+    navigate(ROUTES.USER_PROFILE(post.profiles.username));
   };
 
   const handleCommentClick = () => {
     handleView();
-    navigate(`/post/${post.id}`);
+    navigate(ROUTES.POST_DETAIL(post.id));
   };
 
   const handlePostClick = (e: React.MouseEvent) => {
@@ -36,7 +37,7 @@ const PostCard = ({ post }: PostCardProps) => {
       return;
     }
     handleView();
-    navigate(`/post/${post.id}`);
+    navigate(ROUTES.POST_DETAIL(post.id));
   };
 
   return (

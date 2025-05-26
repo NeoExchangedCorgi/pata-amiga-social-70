@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Moon, Sun } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { THEME_CONFIG, ROUTES } from '@/constants/app';
 
 const ForgotPassword = () => {
   const { theme, toggleTheme } = useTheme();
@@ -22,8 +23,7 @@ const ForgotPassword = () => {
     setIsSubmitting(true);
 
     try {
-      // Get the current origin dynamically
-      const redirectUrl = `${window.location.origin}/reset-password`;
+      const redirectUrl = `${window.location.origin}${ROUTES.RESET_PASSWORD}`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
@@ -56,6 +56,8 @@ const ForgotPassword = () => {
     }
   };
 
+  const logoSrc = theme === 'dark' ? THEME_CONFIG.LOGO_DARK : THEME_CONFIG.LOGO_LIGHT;
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="absolute top-4 right-4">
@@ -72,7 +74,7 @@ const ForgotPassword = () => {
       <Card className="w-full max-w-md border-foreground/20">
         <CardHeader className="text-center space-y-4">
           <img 
-            src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
+            src={logoSrc}
             alt="Paraíso dos Focinhos" 
             className="h-16 w-auto mx-auto"
           />
@@ -113,7 +115,7 @@ const ForgotPassword = () => {
                   Enviaremos um link para redefinir sua senha no e-mail informado.
                 </p>
                 <Link 
-                  to="/login" 
+                  to={ROUTES.LOGIN}
                   className="inline-flex items-center text-primary hover:underline font-medium"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -154,7 +156,7 @@ const ForgotPassword = () => {
                   Enviar novamente
                 </Button>
                 
-                <Link to="/login">
+                <Link to={ROUTES.LOGIN}>
                   <Button variant="ghost" className="w-full">
                     Voltar ao login
                   </Button>

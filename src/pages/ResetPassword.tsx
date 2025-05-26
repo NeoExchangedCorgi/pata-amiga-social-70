@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -9,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { THEME_CONFIG, APP_CONFIG, ROUTES } from '@/constants/app';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -112,10 +112,10 @@ const ResetPassword = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (formData.password.length < APP_CONFIG.VALIDATION.MIN_PASSWORD_LENGTH) {
       toast({
         title: "Erro",
-        description: "A senha deve ter pelo menos 6 caracteres.",
+        description: `A senha deve ter pelo menos ${APP_CONFIG.VALIDATION.MIN_PASSWORD_LENGTH} caracteres.`,
         variant: "destructive",
         className: "bg-red-500 text-white border-red-600",
       });
@@ -143,10 +143,9 @@ const ResetPassword = () => {
           className: "bg-green-500 text-white border-green-600",
         });
         
-        // Fazer logout para limpar a sessão e redirecionar para login
         await supabase.auth.signOut();
         setTimeout(() => {
-          navigate('/login');
+          navigate(ROUTES.LOGIN);
         }, 2000);
       }
     } catch (error) {
@@ -161,6 +160,8 @@ const ResetPassword = () => {
       setIsSubmitting(false);
     }
   };
+
+  const logoSrc = theme === 'dark' ? THEME_CONFIG.LOGO_DARK : THEME_CONFIG.LOGO_LIGHT;
 
   if (isLoading) {
     return (
@@ -190,7 +191,7 @@ const ResetPassword = () => {
         <Card className="w-full max-w-md border-foreground/20">
           <CardHeader className="text-center space-y-4">
             <img 
-              src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
+              src={logoSrc}
               alt="Paraíso dos Focinhos" 
               className="h-16 w-auto mx-auto"
             />
@@ -216,12 +217,12 @@ const ResetPassword = () => {
             </ul>
             
             <div className="space-y-2 pt-4">
-              <Link to="/forgot-password">
+              <Link to={ROUTES.FORGOT_PASSWORD}>
                 <Button className="w-full">
                   Solicitar novo link
                 </Button>
               </Link>
-              <Link to="/login">
+              <Link to={ROUTES.LOGIN}>
                 <Button variant="outline" className="w-full">
                   Voltar ao login
                 </Button>
@@ -249,7 +250,7 @@ const ResetPassword = () => {
       <Card className="w-full max-w-md border-foreground/20">
         <CardHeader className="text-center space-y-4">
           <img 
-            src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
+            src={logoSrc}
             alt="Paraíso dos Focinhos" 
             className="h-16 w-auto mx-auto"
           />
@@ -317,7 +318,7 @@ const ResetPassword = () => {
             <div className="text-sm text-muted-foreground">
               <p>Sua nova senha deve ter:</p>
               <ul className="list-disc list-inside mt-1 space-y-1">
-                <li>Pelo menos 6 caracteres</li>
+                <li>Pelo menos {APP_CONFIG.VALIDATION.MIN_PASSWORD_LENGTH} caracteres</li>
                 <li>Uma combinação de letras e números (recomendado)</li>
               </ul>
             </div>
