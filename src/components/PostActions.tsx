@@ -26,6 +26,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     e.stopPropagation();
     if (isAuthenticated && !isOwnPost) {
       await toggleLike(postId);
+      window.location.reload();
     }
   };
 
@@ -34,25 +35,27 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     e.stopPropagation();
     if (isOwnPost) {
       await deletePost(postId);
+      window.location.reload();
     }
   };
 
-  const handleHideProfile = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleHideProfile = async () => {
     await hideProfile(authorId);
+    window.location.reload();
   };
 
   const handleSavePost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleSave();
+    window.location.reload();
   };
 
   const handleReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleReport();
+    window.location.reload();
   };
 
   const isProfileCurrentlyHidden = isProfileHidden(authorId);

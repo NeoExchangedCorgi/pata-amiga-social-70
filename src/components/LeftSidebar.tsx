@@ -29,9 +29,9 @@ const LeftSidebar = () => {
         variant: "destructive",
         className: "bg-red-500 text-white border-red-600",
       });
-      navigate('/signup');
+      window.location.href = '/signup';
     } else {
-      navigate(item.path);
+      window.location.href = item.path;
     }
   };
 
@@ -39,7 +39,7 @@ const LeftSidebar = () => {
     if (isAuthenticated) {
       logout();
     }
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   return (

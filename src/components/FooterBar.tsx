@@ -23,7 +23,7 @@ const FooterBar = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/');
+      window.location.href = '/';
       setIsOpen(false);
       toast({
         title: "Logout realizado",
@@ -52,13 +52,13 @@ const FooterBar = () => {
         variant: "destructive",
         className: "bg-red-500 text-white border-red-600",
       });
-      navigate('/signup');
+      window.location.href = '/signup';
       setIsOpen(false);
       return;
     }
     
     if (path) {
-      navigate(path);
+      window.location.href = path;
       setIsOpen(false);
     }
   };

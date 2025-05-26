@@ -13,16 +13,20 @@ const Header = () => {
 
   const handleAuthClick = () => {
     if (isAuthenticated) {
-      navigate('/profile');
+      window.location.href = '/profile';
     } else {
-      navigate('/signup');
+      window.location.href = '/signup';
     }
+  };
+
+  const handleLogoClick = () => {
+    window.location.href = '/';
   };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center space-x-4" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+        <div className="flex items-center space-x-4" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
           <img 
             src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
             alt="Paraíso dos Focinhos" 
