@@ -71,12 +71,12 @@ const DeleteProfile = () => {
 
       toast({
         title: "Perfil deletado",
-        description: "Seu perfil foi deletado com sucesso. Você será redirecionado.",
+        description: "Seu perfil foi deletado com sucesso. Você será redirecionado para o cadastro.",
       });
 
-      // Logout and redirect after a short delay
+      // Redirect to signup page after a short delay
       setTimeout(() => {
-        navigate('/');
+        navigate('/signup');
       }, 2000);
 
     } catch (error) {
