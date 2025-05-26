@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import History from "./pages/History";
 import Search from "./pages/Search";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
+import HiddenProfiles from "./pages/HiddenProfiles";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,7 @@ const App = () => (
               <Route path="/search" element={<Search />} />
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path="/user/:username" element={<UserProfile />} />
+              <Route path="/hidden-profiles" element={<HiddenProfiles />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

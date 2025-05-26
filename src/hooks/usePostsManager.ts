@@ -4,18 +4,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
 
 export const usePostsManager = () => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isProfileHidden } = useHiddenProfiles();
 
   const fetchPosts = async () => {
     try {
       const data = await postsApi.fetchPosts();
-      setPosts(data);
+      setAllPosts(data);
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast({
@@ -27,6 +30,17 @@ export const usePostsManager = () => {
       setIsLoading(false);
     }
   };
+
+  // Filtrar posts de perfis ocultos
+  useEffect(() => {
+    if (!user) {
+      setPosts(allPosts);
+      return;
+    }
+
+    const filteredPosts = allPosts.filter(post => !isProfileHidden(post.author_id));
+    setPosts(filteredPosts);
+  }, [allPosts, isProfileHidden, user]);
 
   const createPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
     if (!user) {
@@ -62,6 +76,7 @@ export const usePostsManager = () => {
 
     // Optimistic update
     setPosts(prev => prev.filter(post => post.id !== postId));
+    setAllPosts(prev => prev.filter(post => post.id !== postId));
     
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {

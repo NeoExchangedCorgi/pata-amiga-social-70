@@ -65,6 +65,27 @@ export type Database = {
           },
         ]
       }
+      hidden_profiles: {
+        Row: {
+          hidden_at: string
+          hidden_profile_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          hidden_at?: string
+          hidden_profile_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          hidden_at?: string
+          hidden_profile_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string

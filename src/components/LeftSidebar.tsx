@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Bell, User, Heart, History, LogOut } from 'lucide-react';
+import { Home, Bell, User, Heart, History, LogOut, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +17,7 @@ const LeftSidebar = () => {
     { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
+    { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
   ];
 
   const handleItemClick = (item: any) => {
