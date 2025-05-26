@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,32 +35,49 @@ const DeleteProfile = () => {
     setIsDeleting(true);
 
     try {
-      // For now, we'll handle the deletion by deleting related data manually
-      // In a real implementation, this should be done with a database function
+      // Get the current session to include the JWT token
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Delete user's posts, comments, likes, etc.
-      await supabase.from('post_likes').delete().eq('user_id', user.id);
-      await supabase.from('comments').delete().eq('author_id', user.id);
-      await supabase.from('posts').delete().eq('author_id', user.id);
-      await supabase.from('notifications').delete().eq('user_id', user.id);
-      await supabase.from('notifications').delete().eq('actor_id', user.id);
-      await supabase.from('post_views').delete().eq('user_id', user.id);
-      await supabase.from('post_reports').delete().eq('user_id', user.id);
-      await supabase.from('saved_posts').delete().eq('user_id', user.id);
-      await supabase.from('hidden_profiles').delete().eq('user_id', user.id);
-      await supabase.from('hidden_profiles').delete().eq('hidden_profile_id', user.id);
-      
-      // Delete profile
-      await supabase.from('profiles').delete().eq('id', user.id);
+      if (!session) {
+        toast({
+          title: "Erro",
+          description: "Sessão não encontrada. Faça login novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call the Edge Function to delete the user account
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/delete-user-account`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Error deleting profile:', result);
+        toast({
+          title: "Erro",
+          description: result.error || "Erro ao deletar o perfil. Tente novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Perfil deletado",
-        description: "Seu perfil foi deletado com sucesso.",
+        description: "Seu perfil foi deletado com sucesso. Você será redirecionado.",
       });
 
-      // Logout and redirect
-      await logout();
-      navigate('/');
+      // Logout and redirect after a short delay
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+
     } catch (error) {
       console.error('Error deleting profile:', error);
       toast({
