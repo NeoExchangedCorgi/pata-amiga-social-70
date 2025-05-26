@@ -5,10 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
-  type: 'like' | 'comment';
+  type: 'like';
   post_id: string;
   actor_id: string;
-  comment_id?: string;
   read: boolean;
   created_at: string;
   actor: {
@@ -45,6 +44,7 @@ export const useNotifications = () => {
           )
         `)
         .eq('user_id', user.id)
+        .eq('type', 'like')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -56,7 +56,7 @@ export const useNotifications = () => {
       // Type assertion para garantir que o tipo seja correto
       const typedNotifications = (data || []).map(notification => ({
         ...notification,
-        type: notification.type as 'like' | 'comment'
+        type: notification.type as 'like'
       })) as Notification[];
 
       setNotifications(typedNotifications);

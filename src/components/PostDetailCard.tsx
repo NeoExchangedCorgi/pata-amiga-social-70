@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark } from 'lucide-react';
+import { Heart, Bookmark } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import PostContent from '@/components/PostContent';
 import PostDetailActions from '@/components/PostDetailActions';
@@ -13,7 +13,6 @@ interface PostDetailCardProps {
   isOwnPost: boolean;
   isLiked: boolean;
   likesCount: number;
-  commentsCount: number;
   isSaved: boolean;
   isReported: boolean;
   isAuthenticated: boolean;
@@ -30,7 +29,6 @@ const PostDetailCard = ({
   isOwnPost,
   isLiked,
   likesCount,
-  commentsCount,
   isSaved,
   isReported,
   isAuthenticated,
@@ -92,10 +90,6 @@ const PostDetailCard = ({
           >
             <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
             {likesCount}
-          </Button>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            <MessageCircle className="h-4 w-4 mr-1" />
-            {commentsCount}
           </Button>
           <Button
             variant="ghost"

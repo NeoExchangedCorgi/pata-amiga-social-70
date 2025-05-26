@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,7 +7,6 @@ import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostDetailHeader from '@/components/PostDetailHeader';
 import PostDetailCard from '@/components/PostDetailCard';
-import CommentSection from '@/components/CommentSection';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,19 +15,6 @@ import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
 import type { Post } from '@/hooks/usePosts';
-
-interface Comment {
-  id: string;
-  author_id: string;
-  content: string;
-  created_at: string;
-  profiles: {
-    username: string;
-    full_name: string;
-    avatar_url?: string;
-  };
-  replies?: Comment[];
-}
 
 const PostDetail = () => {
   const { id } = useParams();
@@ -39,7 +26,6 @@ const PostDetail = () => {
   const { reportPost, isPostReported } = usePostReports();
 
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -60,9 +46,6 @@ const PostDetail = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           `)
           .eq('id', id)
@@ -75,24 +58,6 @@ const PostDetail = () => {
         }
 
         setPost(postData);
-
-        // Buscar comentários do post
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('comments')
-          .select(`
-            *,
-            profiles!fk_comments_author_id (
-              username,
-              full_name,
-              avatar_url
-            )
-          `)
-          .eq('post_id', id)
-          .order('created_at', { ascending: true });
-
-        if (!commentsError && commentsData) {
-          setComments(commentsData);
-        }
 
         // Registrar visualização
         if (user && postData) {
@@ -121,35 +86,6 @@ const PostDetail = () => {
     } else {
       const diffInDays = Math.floor(diffInHours / 24);
       return `${diffInDays}d`;
-    }
-  };
-
-  const addComment = async (content: string) => {
-    if (!user || !profile) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .insert({
-          content,
-          post_id: post!.id,
-          author_id: user.id,
-        })
-        .select(`
-          *,
-          profiles!fk_comments_author_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .single();
-
-      if (!error && data) {
-        setComments([...comments, data]);
-      }
-    } catch (error) {
-      console.error('Error adding comment:', error);
     }
   };
 
@@ -197,7 +133,6 @@ const PostDetail = () => {
   const isOwnPost = user?.id === post.author_id;
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
-  const commentsCount = comments.length;
   const isSaved = isPostSaved(post.id);
   const isReported = isPostReported(post.id);
 
@@ -246,7 +181,6 @@ const PostDetail = () => {
               isOwnPost={isOwnPost}
               isLiked={isLiked}
               likesCount={likesCount}
-              commentsCount={commentsCount}
               isSaved={isSaved}
               isReported={isReported}
               isAuthenticated={isAuthenticated}
@@ -255,13 +189,6 @@ const PostDetail = () => {
               onDelete={handleDelete}
               onMark={handleMark}
               onAuthorClick={handleAuthorClick}
-              formatTimeAgo={formatTimeAgo}
-            />
-
-            <CommentSection
-              comments={comments}
-              isAuthenticated={isAuthenticated}
-              onAddComment={addComment}
               formatTimeAgo={formatTimeAgo}
             />
           </div>

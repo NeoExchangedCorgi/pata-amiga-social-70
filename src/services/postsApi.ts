@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
@@ -14,7 +15,6 @@ export interface Post {
     avatar_url?: string;
   };
   post_likes: Array<{ user_id: string }>;
-  comments: Array<{ id: string }>;
 }
 
 export const postsApi = {
@@ -31,9 +31,6 @@ export const postsApi = {
         ),
         post_likes!fk_post_likes_post_id (
           user_id
-        ),
-        comments!fk_comments_post_id (
-          id
         )
       `)
       .order('created_at', { ascending: false });
@@ -78,9 +75,6 @@ export const postsApi = {
         ),
         post_likes!fk_post_likes_post_id (
           user_id
-        ),
-        comments!fk_comments_post_id (
-          id
         )
       `)
       .single();
