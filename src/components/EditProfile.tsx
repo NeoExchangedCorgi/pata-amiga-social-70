@@ -31,10 +31,7 @@ const EditProfile = () => {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const result = await uploadAvatar(file);
-      if (result.success) {
-        window.location.reload();
-      }
+      await uploadAvatar(file);
     }
   };
 
