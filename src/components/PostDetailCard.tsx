@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Heart, Bookmark } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import PostContent from '@/components/PostContent';
 import PostDetailActions from '@/components/PostDetailActions';
+import PostMetrics from '@/components/post/PostMetrics';
 import type { Post } from '@/hooks/usePosts';
 
 interface PostDetailCardProps {
@@ -80,28 +79,15 @@ const PostDetailCard = ({
           isReported={isReported}
         />
 
-        <div className="flex items-center space-x-4 pt-4 border-t border-foreground/10">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onLike}
-            disabled={isOwnPost || !isAuthenticated}
-            className={`${isLiked ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'} ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-            {likesCount}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMark}
-            disabled={isOwnPost || !isAuthenticated}
-            className={`${isSaved ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-blue-500'} ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <Bookmark className={`h-4 w-4 mr-1 ${isSaved ? 'fill-current' : ''}`} />
-            {isSaved ? 'Marcado' : 'Marcar'}
-          </Button>
-        </div>
+        <PostMetrics
+          likesCount={likesCount}
+          isLiked={isLiked}
+          isSaved={isSaved}
+          isOwnPost={isOwnPost}
+          isAuthenticated={isAuthenticated}
+          onLike={onLike}
+          onSave={onMark}
+        />
       </CardContent>
     </Card>
   );

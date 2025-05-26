@@ -5,41 +5,25 @@ import { postsApi, type Post } from '@/services/postsApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
+import { usePostsData } from './usePostsData';
 
 export const usePostsManager = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [allPosts, setAllPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const { isProfileHidden } = useHiddenProfiles();
+  const { posts: allPosts, isLoading, refetch, setPosts } = usePostsData();
 
-  const fetchPosts = async () => {
-    try {
-      const data = await postsApi.fetchPosts();
-      setAllPosts(data);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar posts. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Filtrar posts de perfis ocultos
+  // Filter posts from hidden profiles
   useEffect(() => {
     if (!user) {
-      setPosts(allPosts);
+      setFilteredPosts(allPosts);
       return;
     }
 
-    const filteredPosts = allPosts.filter(post => !isProfileHidden(post.author_id));
-    setPosts(filteredPosts);
+    const filtered = allPosts.filter(post => !isProfileHidden(post.author_id));
+    setFilteredPosts(filtered);
   }, [allPosts, isProfileHidden, user]);
 
   const createPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
@@ -56,7 +40,7 @@ export const usePostsManager = () => {
     try {
       const result = await postsApi.createPost(content, mediaUrl, mediaType, user.id);
       if (!result.error) {
-        await fetchPosts();
+        await refetch();
         toast({
           title: "Post criado!",
           description: "Seu post foi publicado com sucesso.",
@@ -76,11 +60,10 @@ export const usePostsManager = () => {
 
     // Optimistic update
     setPosts(prev => prev.filter(post => post.id !== postId));
-    setAllPosts(prev => prev.filter(post => post.id !== postId));
     
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {
-      await fetchPosts(); // Restore on failure
+      await refetch(); // Restore on failure
     }
     return success;
   };
@@ -110,32 +93,27 @@ export const usePostsManager = () => {
 
   // Set up realtime subscriptions
   useEffect(() => {
-    fetchPosts();
-
     const postsChannel = supabase
       .channel('posts-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-        fetchPosts();
+        refetch();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, () => {
-        fetchPosts();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
-        fetchPosts();
+        refetch();
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(postsChannel);
     };
-  }, []);
+  }, [refetch]);
 
   return {
-    posts,
+    posts: filteredPosts,
     isLoading: isLoading || isCreating,
     createPost,
     deletePost,
     toggleLike,
-    refetch: fetchPosts,
+    refetch,
   };
 };
