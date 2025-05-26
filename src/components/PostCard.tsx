@@ -17,7 +17,7 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { handleView } = usePostActions(post.id, post.author_id);
+  const { handleView, isReported } = usePostActions(post.id, post.author_id);
 
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
@@ -52,7 +52,7 @@ const PostCard = ({ post }: PostCardProps) => {
           content={post.content}
           mediaUrl={post.media_url}
           mediaType={post.media_type}
-          isReported={false}
+          isReported={isReported}
         />
         
         <PostActions

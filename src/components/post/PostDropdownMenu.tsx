@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,9 +24,11 @@ interface PostDropdownMenuProps {
   isOwnPost: boolean;
   isSaved: boolean;
   isProfileHidden: boolean;
+  isReported: boolean;
   onSave: (e: React.MouseEvent) => void;
   onHideProfile: (e: React.MouseEvent) => void;
   onReport: (e: React.MouseEvent) => void;
+  onRemoveReport: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
 }
 
@@ -36,13 +37,16 @@ const PostDropdownMenu = ({
   isOwnPost,
   isSaved,
   isProfileHidden,
+  isReported,
   onSave,
   onHideProfile,
   onReport,
+  onRemoveReport,
   onDelete
 }: PostDropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const handleItemClick = (action: (e: React.MouseEvent) => void, e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,11 +62,29 @@ const PostDropdownMenu = ({
     setIsOpen(false);
   };
 
+  const handleReportClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isReported) {
+      handleItemClick(onRemoveReport, e);
+    } else {
+      setShowReportDialog(true);
+      setIsOpen(false);
+    }
+  };
+
   const handleConfirmDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onDelete(e);
     setShowDeleteDialog(false);
+  };
+
+  const handleConfirmReport = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onReport(e);
+    setShowReportDialog(false);
   };
 
   return (
@@ -104,12 +126,21 @@ const PostDropdownMenu = ({
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={(e) => handleItemClick(onReport, e)}
+                    onClick={handleReportClick}
                     onSelect={(e) => e.preventDefault()}
-                    className="text-red-600 focus:text-red-600"
+                    className={isReported ? "text-orange-600 focus:text-orange-600" : "text-red-600 focus:text-red-600"}
                   >
-                    <Flag className="h-4 w-4 mr-2" />
-                    Denunciar post
+                    {isReported ? (
+                      <>
+                        <FlagOff className="h-4 w-4 mr-2" />
+                        Retirar denúncia
+                      </>
+                    ) : (
+                      <>
+                        <Flag className="h-4 w-4 mr-2" />
+                        Denunciar post
+                      </>
+                    )}
                   </DropdownMenuItem>
                 </>
               )}
@@ -152,6 +183,32 @@ const PostDropdownMenu = ({
               className="bg-red-600 hover:bg-red-700"
             >
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Denunciar post</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao denunciar este post, ele será ocultado do seu feed e você não verá mais posts deste autor. 
+              Esta ação pode ser desfeita posteriormente através do menu "Retirar denúncia".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmReport} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Confirmar denúncia
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

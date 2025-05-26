@@ -4,18 +4,19 @@ import { useToast } from '@/hooks/use-toast';
 import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
-import { useNavigate } from 'react-router-dom';
+import { usePostReports } from '@/hooks/usePostReports';
 
 export const usePostActions = (postId: string, authorId: string) => {
   const { user, isAuthenticated } = useAuth();
   const { toggleLike } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
+  const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const isOwnPost = user?.id === authorId;
   const isSaved = isPostSaved(postId);
+  const isReported = isPostReported(postId);
 
   const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
@@ -25,23 +26,22 @@ export const usePostActions = (postId: string, authorId: string) => {
 
   const handleReport = async () => {
     if (!isAuthenticated || isOwnPost) return false;
-    
-    // Copiar link do post para área de transferência
-    const postUrl = `${window.location.origin}/post/${postId}`;
-    await navigator.clipboard.writeText(postUrl);
-    
-    toast({
-      title: "Link copiado!",
-      description: "O link do post foi copiado. Redirecionando para o chat...",
-      className: "bg-green-500 text-white border-green-600",
-    });
-    
-    // Redirecionar para a página de chat
-    setTimeout(() => {
-      navigate('/chat');
-    }, 1500);
-    
-    return true;
+    const success = await reportPost(postId);
+    if (success) {
+      // Forçar atualização para garantir que a interface seja atualizada
+      setTimeout(() => refreshReports(), 100);
+    }
+    return success;
+  };
+
+  const handleRemoveReport = async () => {
+    if (!isAuthenticated || isOwnPost) return false;
+    const success = await removeReport(postId);
+    if (success) {
+      // Forçar atualização para garantir que a interface seja atualizada
+      setTimeout(() => refreshReports(), 100);
+    }
+    return success;
   };
 
   const handleSave = () => {
@@ -63,9 +63,11 @@ export const usePostActions = (postId: string, authorId: string) => {
   return {
     isOwnPost,
     isSaved,
+    isReported,
     isAuthenticated,
     handleLike,
     handleReport,
+    handleRemoveReport,
     handleSave,
     handleView,
   };

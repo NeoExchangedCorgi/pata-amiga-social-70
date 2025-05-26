@@ -1,11 +1,9 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePostActions } from '@/hooks/usePostActions';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
 import { usePosts } from '@/hooks/usePosts';
-import { useSavedPosts } from '@/hooks/useSavedPosts';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 import PostLikeButton from './post/PostLikeButton';
 import PostShareButton from './post/PostShareButton';
 import PostDropdownMenu from './post/PostDropdownMenu';
@@ -20,10 +18,8 @@ interface PostActionsProps {
 const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps) => {
   const { user, isAuthenticated } = useAuth();
   const { toggleLike, deletePost } = usePosts();
-  const { toggleSavePost, isPostSaved } = useSavedPosts();
+  const { handleReport, handleRemoveReport, handleSave, isSaved, isOwnPost, isReported } = usePostActions(postId, authorId);
   const { hideProfile, isProfileHidden } = useHiddenProfiles();
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -51,32 +47,24 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
   const handleSavePost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await toggleSavePost(postId);
+    await handleSave();
     window.location.reload();
   };
 
   const handleReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Copiar link do post para área de transferência
-    const postUrl = `${window.location.origin}/post/${postId}`;
-    await navigator.clipboard.writeText(postUrl);
-    
-    toast({
-      title: "Link copiado!",
-      description: "O link do post foi copiado. Redirecionando para o chat...",
-      className: "bg-green-500 text-white border-green-600",
-    });
-    
-    // Redirecionar para a página de chat
-    setTimeout(() => {
-      navigate('/chat');
-    }, 1500);
+    await handleReport();
+    window.location.reload();
   };
 
-  const isOwnPost = user?.id === authorId;
-  const isSaved = isPostSaved(postId);
+  const handleRemoveReportPost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleRemoveReport();
+    window.location.reload();
+  };
+
   const isProfileCurrentlyHidden = isProfileHidden(authorId);
 
   return (
@@ -96,9 +84,11 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
         isOwnPost={isOwnPost}
         isSaved={isSaved}
         isProfileHidden={isProfileCurrentlyHidden}
+        isReported={isReported}
         onSave={handleSavePost}
         onHideProfile={handleHideProfile}
         onReport={handleReportPost}
+        onRemoveReport={handleRemoveReportPost}
         onDelete={handleDeletePost}
       />
     </div>

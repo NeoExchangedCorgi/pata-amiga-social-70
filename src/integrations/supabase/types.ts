@@ -9,87 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      chat_conversations: {
-        Row: {
-          admin_id: string
-          has_unread_messages: boolean | null
-          id: string
-          last_message_at: string | null
-          user_id: string
-        }
-        Insert: {
-          admin_id: string
-          has_unread_messages?: boolean | null
-          id?: string
-          last_message_at?: string | null
-          user_id: string
-        }
-        Update: {
-          admin_id?: string
-          has_unread_messages?: boolean | null
-          id?: string
-          last_message_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_conversations_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_conversations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_messages: {
-        Row: {
-          created_at: string | null
-          id: string
-          message: string
-          read: boolean | null
-          recipient_id: string
-          sender_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          message: string
-          read?: boolean | null
-          recipient_id: string
-          sender_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          message?: string
-          read?: boolean | null
-          recipient_id?: string
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       comments: {
         Row: {
           author_id: string
@@ -307,6 +226,56 @@ export type Database = {
           },
         ]
       }
+      post_reports: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_post_reports_post_id"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_post_reports_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_views: {
         Row: {
           id: string
@@ -414,7 +383,6 @@ export type Database = {
           id: string
           phone: string | null
           updated_at: string | null
-          user_type: Database["public"]["Enums"]["user_type"] | null
           username: string
         }
         Insert: {
@@ -425,7 +393,6 @@ export type Database = {
           id: string
           phone?: string | null
           updated_at?: string | null
-          user_type?: Database["public"]["Enums"]["user_type"] | null
           username: string
         }
         Update: {
@@ -436,7 +403,6 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string | null
-          user_type?: Database["public"]["Enums"]["user_type"] | null
           username?: string
         }
         Relationships: []
@@ -500,7 +466,6 @@ export type Database = {
     }
     Enums: {
       media_type_enum: "image" | "video"
-      user_type: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -617,7 +582,6 @@ export const Constants = {
   public: {
     Enums: {
       media_type_enum: ["image", "video"],
-      user_type: ["user", "admin"],
     },
   },
 } as const

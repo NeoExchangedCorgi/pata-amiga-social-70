@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Moon, Sun, Home, Shield } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
@@ -159,17 +158,6 @@ const Login = () => {
             >
               Esqueci minha senha
             </Link>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/admin-login')}
-              className="w-full flex items-center space-x-2"
-            >
-              <Shield className="h-4 w-4" />
-              <span>Logar como Admin?</span>
-            </Button>
           </div>
 
           <div className="mt-6 text-center">

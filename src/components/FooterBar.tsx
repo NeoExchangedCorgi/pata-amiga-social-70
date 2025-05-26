@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Home, Bell, User, Heart, History, Menu, LogOut, Search, EyeOff, Bookmark, MessageCircle } from 'lucide-react';
+import { Home, Bell, User, Heart, History, Menu, LogOut, Search, EyeOff, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const FooterBar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, profile } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -63,15 +63,7 @@ const FooterBar = () => {
     }
   };
 
-  const adminMenuItems = [
-    { icon: MessageCircle, label: 'Chat', path: '/chat', requiresAuth: true },
-    { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
-    { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
-    ...(isAuthenticated ? [{ icon: LogOut, label: 'Logout', action: handleLogout, requiresAuth: false }] : [])
-  ];
-
-  const userMenuItems = [
-    { icon: MessageCircle, label: 'Chat com ONG', path: '/chat', requiresAuth: true },
+  const menuItems = [
     { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
     { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
@@ -80,8 +72,6 @@ const FooterBar = () => {
     { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
     ...(isAuthenticated ? [{ icon: LogOut, label: 'Logout', action: handleLogout, requiresAuth: false }] : [])
   ];
-
-  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   return (
     <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-foreground/20 p-2 z-50">
@@ -94,16 +84,6 @@ const FooterBar = () => {
         >
           <Home className="h-5 w-5" />
           <span className="text-xs">Home</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex flex-col items-center space-y-1 h-auto py-2 px-2 text-foreground hover:bg-foreground/10"
-          onClick={() => handleItemClick('Chat', true, '/chat')}
-        >
-          <MessageCircle className="h-5 w-5" />
-          <span className="text-xs">{isAdmin ? 'Chat' : 'ONG'}</span>
         </Button>
 
         <Button

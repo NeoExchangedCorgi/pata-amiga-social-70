@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -13,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
-import { useToast } from '@/hooks/use-toast';
+import { usePostReports } from '@/hooks/usePostReports';
 import type { Post } from '@/hooks/usePosts';
 
 const PostDetail = () => {
@@ -23,7 +22,7 @@ const PostDetail = () => {
   const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { toast } = useToast();
+  const { reportPost, removeReport, isPostReported } = usePostReports();
 
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,6 +133,7 @@ const PostDetail = () => {
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
   const isSaved = isPostSaved(post.id);
+  const isReported = isPostReported(post.id);
 
   const handleLike = async () => {
     if (!isOwnPost && isAuthenticated) {
@@ -144,20 +144,15 @@ const PostDetail = () => {
 
   const handleReport = async () => {
     if (isAuthenticated && !isOwnPost) {
-      // Copiar link do post para área de transferência
-      const postUrl = `${window.location.origin}/post/${post.id}`;
-      await navigator.clipboard.writeText(postUrl);
-      
-      toast({
-        title: "Link copiado!",
-        description: "O link do post foi copiado. Redirecionando para o chat...",
-        className: "bg-green-500 text-white border-green-600",
-      });
-      
-      // Redirecionar para a página de chat
-      setTimeout(() => {
-        navigate('/chat');
-      }, 1500);
+      await reportPost(post.id);
+      window.location.reload();
+    }
+  };
+
+  const handleRemoveReport = async () => {
+    if (isAuthenticated && !isOwnPost) {
+      await removeReport(post.id);
+      window.location.reload();
     }
   };
 
@@ -196,9 +191,11 @@ const PostDetail = () => {
               isLiked={isLiked}
               likesCount={likesCount}
               isSaved={isSaved}
+              isReported={isReported}
               isAuthenticated={isAuthenticated}
               onLike={handleLike}
               onReport={handleReport}
+              onRemoveReport={handleRemoveReport}
               onDelete={handleDelete}
               onMark={handleMark}
               onAuthorClick={handleAuthorClick}

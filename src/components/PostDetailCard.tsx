@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,9 +12,11 @@ interface PostDetailCardProps {
   isLiked: boolean;
   likesCount: number;
   isSaved: boolean;
+  isReported: boolean;
   isAuthenticated: boolean;
   onLike: () => void;
   onReport: () => void;
+  onRemoveReport: () => void;
   onDelete: () => void;
   onMark: () => void;
   onAuthorClick: () => void;
@@ -28,9 +29,11 @@ const PostDetailCard = ({
   isLiked,
   likesCount,
   isSaved,
+  isReported,
   isAuthenticated,
   onLike,
   onReport,
+  onRemoveReport,
   onDelete,
   onMark,
   onAuthorClick,
@@ -64,8 +67,10 @@ const PostDetailCard = ({
           
           <PostDetailActions
             isOwnPost={isOwnPost}
+            isReported={isReported}
             onDelete={onDelete}
             onReport={onReport}
+            onRemoveReport={onRemoveReport}
           />
         </div>
 
@@ -73,7 +78,7 @@ const PostDetailCard = ({
           content={post.content}
           mediaUrl={post.media_url}
           mediaType={post.media_type}
-          isReported={false}
+          isReported={isReported}
         />
 
         <PostMetrics
