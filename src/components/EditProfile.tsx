@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,17 +18,23 @@ const EditProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateProfile({
+    const result = await updateProfile({
       full_name: fullName,
       bio,
       phone,
     });
+    if (result.success) {
+      window.location.reload();
+    }
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      await uploadAvatar(file);
+      const result = await uploadAvatar(file);
+      if (result.success) {
+        window.location.reload();
+      }
     }
   };
 
