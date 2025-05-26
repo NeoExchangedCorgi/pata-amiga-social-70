@@ -13,9 +13,10 @@ interface PostActionsProps {
   authorId: string;
   likesCount: number;
   isLiked: boolean;
+  onEdit?: () => void;
 }
 
-const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps) => {
+const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActionsProps) => {
   const { user, isAuthenticated } = useAuth();
   const { toggleLike, deletePost } = usePosts();
   const { handleReport, handleRemoveReport, handleSave, isSaved, isOwnPost, isReported } = usePostActions(postId, authorId);
@@ -65,6 +66,14 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     window.location.reload();
   };
 
+  const handleEditPost = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit();
+    }
+  };
+
   const isProfileCurrentlyHidden = isProfileHidden(authorId);
 
   return (
@@ -90,6 +99,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
         onReport={handleReportPost}
         onRemoveReport={handleRemoveReportPost}
         onDelete={handleDeletePost}
+        onEdit={handleEditPost}
       />
     </div>
   );

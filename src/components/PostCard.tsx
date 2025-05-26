@@ -55,9 +55,6 @@ const PostCard = ({ post }: PostCardProps) => {
             author={post.profiles}
             createdAt={post.created_at}
             onAuthorClick={handleAuthorClick}
-            onEdit={handleEditClick}
-            postId={post.id}
-            authorId={post.author_id}
           />
         </CardHeader>
         
@@ -76,6 +73,7 @@ const PostCard = ({ post }: PostCardProps) => {
             authorId={post.author_id}
             likesCount={likesCount}
             isLiked={isLiked}
+            onEdit={handleEditClick}
           />
         </CardContent>
       </Card>
