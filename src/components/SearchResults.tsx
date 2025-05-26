@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { formatDateBR } from '@/utils/timeUtils';
+import { formatDateBR } from '@/utils/formatters';
 
 interface SearchResult {
   id: string;

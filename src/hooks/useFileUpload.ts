@@ -1,105 +1,71 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { uploadFile, convertFileToDataUrl } from '@/utils/fileUpload';
+import { uploadFile } from '@/utils/fileUpload';
 import { APP_CONFIG } from '@/constants/app';
-import { validateFileType, formatFileSize } from '@/utils/formatters';
+import { validateFileType } from '@/utils/formatters';
 
-interface FileUploadState {
+interface UseFileUploadReturn {
   isUploading: boolean;
-  previewUrl: string | null;
-  mediaType: 'image' | 'video' | null;
-  uploadedUrl: string | null;
+  uploadProgress: string;
+  uploadFile: (file: File, userId: string) => Promise<{ url?: string; error?: string }>;
+  validateFile: (file: File, type: 'image' | 'video') => { isValid: boolean; error?: string };
 }
 
-export const useFileUpload = (userId: string) => {
-  const { toast } = useToast();
-  const [uploadState, setUploadState] = useState<FileUploadState>({
-    isUploading: false,
-    previewUrl: null,
-    mediaType: null,
-    uploadedUrl: null,
-  });
+export const useFileUpload = (): UseFileUploadReturn => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
-  const validateFile = (file: File, type: 'image' | 'video'): boolean => {
+  const validateFile = (file: File, type: 'image' | 'video') => {
+    // Verificar tamanho
+    if (file.size > APP_CONFIG.MEDIA_UPLOAD.MAX_FILE_SIZE) {
+      return {
+        isValid: false,
+        error: `Arquivo muito grande. Tamanho máximo: ${APP_CONFIG.MEDIA_UPLOAD.MAX_FILE_SIZE / (1024 * 1024)}MB`
+      };
+    }
+
+    // Verificar tipo
     const allowedTypes = type === 'image' 
-      ? APP_CONFIG.MEDIA_UPLOAD.ALLOWED_IMAGE_TYPES 
-      : APP_CONFIG.MEDIA_UPLOAD.ALLOWED_VIDEO_TYPES;
+      ? [...APP_CONFIG.MEDIA_UPLOAD.ALLOWED_IMAGE_TYPES] // Converter readonly para array mutável
+      : [...APP_CONFIG.MEDIA_UPLOAD.ALLOWED_VIDEO_TYPES]; // Converter readonly para array mutável
 
     if (!validateFileType(file, allowedTypes)) {
-      toast({
-        title: "Arquivo inválido",
-        description: `Apenas arquivos de ${type} são permitidos.`,
-        variant: "destructive",
-      });
-      return false;
+      return {
+        isValid: false,
+        error: `Tipo de arquivo não suportado para ${type}`
+      };
     }
 
-    if (file.size > APP_CONFIG.MEDIA_UPLOAD.MAX_FILE_SIZE) {
-      toast({
-        title: "Arquivo muito grande",
-        description: `O arquivo deve ter no máximo ${formatFileSize(APP_CONFIG.MEDIA_UPLOAD.MAX_FILE_SIZE)}.`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
+    return { isValid: true };
   };
 
-  const handleFileUpload = async (file: File, type: 'image' | 'video') => {
-    if (!validateFile(file, type)) return;
-
-    setUploadState(prev => ({ ...prev, isUploading: true }));
+  const handleUpload = async (file: File, userId: string) => {
+    setIsUploading(true);
+    setUploadProgress('Iniciando upload...');
 
     try {
-      const previewUrl = await convertFileToDataUrl(file);
-      setUploadState(prev => ({
-        ...prev,
-        previewUrl,
-        mediaType: type,
-      }));
-
-      const { url, error } = await uploadFile(file, userId);
+      setUploadProgress('Fazendo upload...');
+      const result = await uploadFile(file, userId);
       
-      if (error) {
-        toast({
-          title: "Erro no upload",
-          description: error,
-          variant: "destructive",
-        });
-        resetUpload();
-        return;
+      if (result.error) {
+        return { error: result.error };
       }
 
-      setUploadState(prev => ({
-        ...prev,
-        uploadedUrl: url,
-        isUploading: false,
-      }));
+      setUploadProgress('Upload concluído!');
+      return { url: result.url };
     } catch (error) {
-      console.error('Error uploading file:', error);
-      toast({
-        title: "Erro no upload",
-        description: "Erro inesperado ao fazer upload do arquivo.",
-        variant: "destructive",
-      });
-      resetUpload();
+      console.error('Upload error:', error);
+      return { error: 'Erro durante o upload' };
+    } finally {
+      setIsUploading(false);
+      setUploadProgress('');
     }
-  };
-
-  const resetUpload = () => {
-    setUploadState({
-      isUploading: false,
-      previewUrl: null,
-      mediaType: null,
-      uploadedUrl: null,
-    });
   };
 
   return {
-    ...uploadState,
-    handleFileUpload,
-    resetUpload,
+    isUploading,
+    uploadProgress,
+    uploadFile: handleUpload,
+    validateFile,
   };
 };

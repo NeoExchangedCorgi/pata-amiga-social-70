@@ -19,6 +19,11 @@ const CreatePost = () => {
     return await createPost(content, mediaUrl, mediaType);
   };
 
+  const handleSuccess = () => {
+    // Callback executado após criação bem-sucedida do post
+    console.log('Post created successfully');
+  };
+
   return (
     <Card className="border-pata-blue-light/20 dark:border-pata-blue-dark/20">
       <CardContent className="p-4">
@@ -32,6 +37,7 @@ const CreatePost = () => {
           
           <PostForm
             onPostCreate={handlePostCreate}
+            onSuccess={handleSuccess}
             profileId={profile.id}
           />
         </div>
