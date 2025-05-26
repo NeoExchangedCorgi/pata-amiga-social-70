@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -23,36 +23,73 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar se há parâmetros de recuperação de senha na URL
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    const type = searchParams.get('type');
+    const checkSession = async () => {
+      try {
+        // Verificar se há parâmetros de recuperação de senha na URL
+        const accessToken = searchParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token');
+        const type = searchParams.get('type');
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
 
-    if (accessToken && refreshToken && type === 'recovery') {
-      setIsValidSession(true);
-      // Definir a sessão usando os tokens da URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-    } else {
-      // Verificar se já existe uma sessão válida
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setIsValidSession(true);
-        } else {
-          toast({
-            title: "Sessão inválida",
-            description: "Link de recuperação expirado ou inválido.",
-            variant: "destructive",
-          });
-          navigate('/forgot-password');
+        console.log('URL params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type, error, errorDescription });
+
+        // Se há erro nos parâmetros da URL
+        if (error) {
+          setSessionError(errorDescription || 'Link de recuperação inválido ou expirado');
+          setIsLoading(false);
+          return;
         }
-      });
-    }
-  }, [searchParams, navigate, toast]);
+
+        if (accessToken && refreshToken && type === 'recovery') {
+          try {
+            // Tentar definir a sessão usando os tokens da URL
+            const { data, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (sessionError) {
+              console.error('Session error:', sessionError);
+              setSessionError('Token de recuperação inválido ou expirado');
+            } else if (data.session) {
+              console.log('Session set successfully');
+              setIsValidSession(true);
+            } else {
+              setSessionError('Não foi possível estabelecer a sessão');
+            }
+          } catch (err) {
+            console.error('Error setting session:', err);
+            setSessionError('Erro ao processar o token de recuperação');
+          }
+        } else {
+          // Verificar se já existe uma sessão válida
+          const { data: { session }, error: getSessionError } = await supabase.auth.getSession();
+          
+          if (getSessionError) {
+            console.error('Get session error:', getSessionError);
+            setSessionError('Erro ao verificar a sessão');
+          } else if (session) {
+            console.log('Existing session found');
+            setIsValidSession(true);
+          } else {
+            setSessionError('Link de recuperação inválido ou expirado');
+          }
+        }
+      } catch (err) {
+        console.error('General error:', err);
+        setSessionError('Erro interno. Tente novamente.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -113,6 +150,7 @@ const ResetPassword = () => {
         }, 2000);
       }
     } catch (error) {
+      console.error('Update password error:', error);
       toast({
         title: "Erro",
         description: "Erro interno do servidor. Tente novamente.",
@@ -124,13 +162,73 @@ const ResetPassword = () => {
     }
   };
 
-  if (!isValidSession) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Verificando sessão...</p>
+          <p className="text-muted-foreground">Verificando link de recuperação...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (sessionError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="absolute top-4 right-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="text-foreground hover:bg-foreground/10"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+        </div>
+
+        <Card className="w-full max-w-md border-foreground/20">
+          <CardHeader className="text-center space-y-4">
+            <img 
+              src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
+              alt="Paraíso dos Focinhos" 
+              className="h-16 w-auto mx-auto"
+            />
+            <div className="flex items-center justify-center space-x-2 text-red-500">
+              <AlertCircle className="h-6 w-6" />
+              <CardTitle className="text-xl font-bold">
+                Link Inválido
+              </CardTitle>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              {sessionError}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Possíveis causas:
+            </p>
+            <ul className="text-sm text-muted-foreground text-left list-disc list-inside space-y-1">
+              <li>O link expirou (válido por 1 hora)</li>
+              <li>O link já foi usado</li>
+              <li>O link está mal formatado</li>
+            </ul>
+            
+            <div className="space-y-2 pt-4">
+              <Link to="/forgot-password">
+                <Button className="w-full">
+                  Solicitar novo link
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button variant="outline" className="w-full">
+                  Voltar ao login
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
