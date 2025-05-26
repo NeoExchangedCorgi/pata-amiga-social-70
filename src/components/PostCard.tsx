@@ -21,15 +21,9 @@ const PostCard = ({ post }: PostCardProps) => {
 
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
-  const commentsCount = post.comments?.length || 0;
 
   const handleAuthorClick = () => {
     navigate(ROUTES.USER_PROFILE(post.profiles.username));
-  };
-
-  const handleCommentClick = () => {
-    handleView();
-    navigate(ROUTES.POST_DETAIL(post.id));
   };
 
   const handlePostClick = (e: React.MouseEvent) => {
@@ -65,9 +59,7 @@ const PostCard = ({ post }: PostCardProps) => {
           postId={post.id}
           authorId={post.author_id}
           likesCount={likesCount}
-          commentsCount={commentsCount}
           isLiked={isLiked}
-          onCommentClick={handleCommentClick}
         />
       </CardContent>
     </Card>
