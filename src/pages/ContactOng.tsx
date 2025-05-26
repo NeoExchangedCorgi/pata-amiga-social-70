@@ -96,11 +96,13 @@ const ContactOng = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div>• <strong>+500</strong> animais resgatados</div>
-                  <div>• <strong>+400</strong> adoções realizadas</div>
-                  <div>• <strong>+50</strong> voluntários ativos</div>
-                  <div>• <strong>8 anos</strong> de trabalho dedicado</div>
-                  <div>• <strong>24/7</strong> atendimento emergencial</div>
+                  <div>• <strong>14 anos</strong> de dedicação aos animais</div>
+                  <div>• <strong>+500</strong> animais sob nossos cuidados</div>
+                  <div>• <strong>3 sítios</strong> com 7 mil m² cada</div>
+                  <div>• <strong>120 baias</strong> amplas com até 50 m²</div>
+                  <div>• <strong>4 gatis</strong> e 3 enfermarias equipadas</div>
+                  <div>• <strong>1 haras</strong> para cavalos resgatados</div>
+                  <div>• <strong>Centro médico</strong> completo</div>
                 </CardContent>
               </Card>
             </div>
