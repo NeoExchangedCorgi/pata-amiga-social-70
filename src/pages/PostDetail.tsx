@@ -196,11 +196,9 @@ const PostDetail = () => {
               isLiked={isLiked}
               likesCount={likesCount}
               isSaved={isSaved}
-              isReported={false}
               isAuthenticated={isAuthenticated}
               onLike={handleLike}
               onReport={handleReport}
-              onRemoveReport={() => {}}
               onDelete={handleDelete}
               onMark={handleMark}
               onAuthorClick={handleAuthorClick}
