@@ -2,14 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const PostDetailHeader = () => {
-  const navigate = useNavigate();
-
   const handleBackClick = () => {
-    navigate(-1);
-    window.location.reload();
+    window.location.href = '/';
   };
 
   return (
