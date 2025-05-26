@@ -4,7 +4,7 @@ export interface Post {
   id: string;
   content: string;
   media_url?: string;
-  media_type?: string;
+  media_type?: 'image' | 'video';
   created_at: string;
   author_id: string;
   profiles: {
@@ -59,7 +59,7 @@ export const postsApi = {
     return sortedData as Post[];
   },
 
-  async createPost(content: string, mediaUrl: string | undefined, mediaType: string | undefined, userId: string) {
+  async createPost(content: string, mediaUrl: string | undefined, mediaType: 'image' | 'video' | undefined, userId: string) {
     const { data, error } = await supabase
       .from('posts')
       .insert({

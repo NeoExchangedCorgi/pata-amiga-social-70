@@ -9,7 +9,7 @@ export const usePostCreate = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const createPost = async (content: string, mediaUrl?: string, mediaType?: string) => {
+  const createPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
     if (!user) {
       toast({
         title: "Erro",

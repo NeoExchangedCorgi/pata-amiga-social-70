@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
@@ -25,7 +26,7 @@ export const usePosts = () => {
     }
   };
 
-  const createPost = async (content: string, mediaUrl?: string, mediaType?: string) => {
+  const createPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
     const result = await createPostApi(content, mediaUrl, mediaType);
     if (!result.error) {
       await fetchPosts(); // Refresh posts after creation
