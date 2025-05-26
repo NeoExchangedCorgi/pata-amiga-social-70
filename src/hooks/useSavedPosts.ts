@@ -65,17 +65,13 @@ export const useSavedPosts = () => {
       const existingSave = savedPosts.find(save => save.post_id === postId);
       
       if (existingSave) {
-        // Optimistic update - remove immediately
-        setSavedPosts(prev => prev.filter(save => save.id !== existingSave.id));
-        
         const { error } = await supabase
           .from('saved_posts')
           .delete()
           .eq('id', existingSave.id);
 
         if (error) {
-          // Revert on error
-          await fetchSavedPosts();
+          console.error('Error removing saved post:', error);
           toast({
             title: "Erro",
             description: "Erro ao remover post dos salvos",
@@ -88,44 +84,24 @@ export const useSavedPosts = () => {
           });
         }
       } else {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('saved_posts')
           .insert({
             user_id: user.id,
             post_id: postId,
-          })
-          .select(`
-            *,
-            posts!fk_saved_posts_post_id (
-              *,
-              profiles!fk_posts_author_id (
-                id,
-                username,
-                full_name,
-                avatar_url
-              ),
-              post_likes!fk_post_likes_post_id (
-                user_id
-              ),
-              comments!fk_comments_post_id (
-                id
-              )
-            )
-          `)
-          .single();
-
-        if (!error && data) {
-          // Optimistic update - add immediately
-          setSavedPosts(prev => [data, ...prev]);
-          toast({
-            title: "Post salvo",
-            description: "Post adicionado aos salvos",
           });
-        } else {
+
+        if (error) {
+          console.error('Error saving post:', error);
           toast({
             title: "Erro",
             description: "Erro ao salvar post",
             variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Post salvo",
+            description: "Post adicionado aos salvos",
           });
         }
       }
@@ -149,7 +125,7 @@ export const useSavedPosts = () => {
       fetchSavedPosts();
 
       const channel = supabase
-        .channel('saved-posts-realtime')
+        .channel(`saved_posts_${user.id}`)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
@@ -159,13 +135,16 @@ export const useSavedPosts = () => {
           console.log('Saved posts changed:', payload);
           fetchSavedPosts();
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Saved posts subscription status:', status);
+        });
 
       return () => {
+        console.log('Removing saved posts channel');
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user?.id]);
 
   return {
     savedPosts,

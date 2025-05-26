@@ -73,12 +73,6 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      // Optimistic update
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
@@ -86,8 +80,6 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Error marking notification as read:', error);
-        // Revert on error
-        await fetchNotifications();
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -98,10 +90,6 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      // Optimistic update
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      setUnreadCount(0);
-
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
@@ -110,8 +98,6 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Error marking all notifications as read:', error);
-        // Revert on error
-        await fetchNotifications();
       } else {
         toast({
           title: "Notificações marcadas",
@@ -127,36 +113,30 @@ export const useNotifications = () => {
     if (user) {
       fetchNotifications();
 
-      // Configurar realtime para notificações
       const channel = supabase
-        .channel('notifications-realtime')
+        .channel(`notifications_${user.id}`)
         .on('postgres_changes', {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${user.id}`
         }, (payload) => {
-          console.log('New notification received:', payload);
+          console.log('Notification changed:', payload);
           fetchNotifications();
           
-          // Show toast for new notification
-          toast({
-            title: "Nova notificação",
-            description: "Você tem uma nova interação!",
-          });
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "Nova notificação",
+              description: "Você tem uma nova interação!",
+            });
+          }
         })
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('Notification updated:', payload);
-          fetchNotifications();
-        })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Notifications subscription status:', status);
+        });
 
       return () => {
+        console.log('Removing notifications channel');
         supabase.removeChannel(channel);
       };
     }

@@ -64,23 +64,6 @@ export const useComments = (postId: string) => {
     }
 
     try {
-      // Create optimistic comment
-      const optimisticComment: Comment = {
-        id: `temp-${Date.now()}`,
-        author_id: user.id,
-        content,
-        created_at: new Date().toISOString(),
-        post_id: postId,
-        profiles: {
-          username: profile.username || '',
-          full_name: profile.full_name || '',
-          avatar_url: profile.avatar_url || undefined,
-        }
-      };
-
-      // Add optimistic update
-      setComments(prev => [...prev, optimisticComment]);
-
       const { data, error } = await supabase
         .from('comments')
         .insert({
@@ -99,8 +82,7 @@ export const useComments = (postId: string) => {
         .single();
 
       if (error) {
-        // Remove optimistic comment on error
-        setComments(prev => prev.filter(c => c.id !== optimisticComment.id));
+        console.error('Error adding comment:', error);
         toast({
           title: "Erro",
           description: "Erro ao adicionar comentário",
@@ -108,11 +90,6 @@ export const useComments = (postId: string) => {
         });
         return;
       }
-
-      // Replace optimistic comment with real one
-      setComments(prev => 
-        prev.map(c => c.id === optimisticComment.id ? data : c)
-      );
 
       toast({
         title: "Comentário adicionado",
@@ -128,20 +105,29 @@ export const useComments = (postId: string) => {
     }
   };
 
-  // Set up realtime subscriptions
+  // Set up realtime subscriptions with proper channel configuration
   useEffect(() => {
     if (postId) {
       fetchComments();
 
       const channel = supabase
-        .channel(`comments-${postId}`)
+        .channel(`comments_${postId}`)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
           table: 'comments',
           filter: `post_id=eq.${postId}`
         }, (payload) => {
-          console.log('New comment added:', payload);
+          console.log('New comment received:', payload);
+          fetchComments(); // Refetch to get complete data with joins
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'comments',
+          filter: `post_id=eq.${postId}`
+        }, (payload) => {
+          console.log('Comment updated:', payload);
           fetchComments();
         })
         .on('postgres_changes', {
@@ -156,9 +142,12 @@ export const useComments = (postId: string) => {
             setComments(prev => prev.filter(c => c.id !== deletedId));
           }
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Comments subscription status:', status);
+        });
 
       return () => {
+        console.log('Removing comments channel');
         supabase.removeChannel(channel);
       };
     }
