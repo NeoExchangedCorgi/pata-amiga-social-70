@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,7 +49,7 @@ const DeleteProfile = () => {
       }
 
       // Call the Edge Function to delete the user account
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/delete-user-account`, {
+      const response = await fetch(`https://yreltrccpkraxsbmwlyg.supabase.co/functions/v1/delete-user-account`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
