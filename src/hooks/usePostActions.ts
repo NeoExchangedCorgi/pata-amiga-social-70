@@ -25,13 +25,13 @@ export const usePostActions = (postId: string, authorId: string) => {
   };
 
   const handleReport = async () => {
-    if (!isAuthenticated || isOwnPost) return;
-    await reportPost(postId);
+    if (!isAuthenticated || isOwnPost) return false;
+    return await reportPost(postId);
   };
 
   const handleRemoveReport = async () => {
-    if (!isAuthenticated || isOwnPost) return;
-    await removeReport(postId);
+    if (!isAuthenticated || isOwnPost) return false;
+    return await removeReport(postId);
   };
 
   const handleSave = () => {

@@ -150,8 +150,10 @@ const PostDetail = () => {
 
   const handleRemoveReport = async () => {
     if (isAuthenticated && !isOwnPost) {
-      await removeReport(post.id);
-      window.location.reload();
+      const success = await removeReport(post.id);
+      if (success) {
+        window.location.reload();
+      }
     }
   };
 
