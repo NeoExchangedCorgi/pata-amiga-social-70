@@ -82,6 +82,8 @@ export const useSavedPosts = () => {
             title: "Post removido",
             description: "Post removido dos salvos",
           });
+          // Refresh após remover
+          await fetchSavedPosts();
         }
       } else {
         const { error } = await supabase
@@ -103,6 +105,8 @@ export const useSavedPosts = () => {
             title: "Post salvo",
             description: "Post adicionado aos salvos",
           });
+          // Refresh após salvar
+          await fetchSavedPosts();
         }
       }
     } catch (error) {
@@ -119,30 +123,9 @@ export const useSavedPosts = () => {
     return savedPosts.some(save => save.post_id === postId);
   };
 
-  // Set up realtime subscriptions
   useEffect(() => {
     if (user) {
       fetchSavedPosts();
-
-      const channel = supabase
-        .channel(`saved_posts_${user.id}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'saved_posts',
-          filter: `user_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('Saved posts changed:', payload);
-          fetchSavedPosts();
-        })
-        .subscribe((status) => {
-          console.log('Saved posts subscription status:', status);
-        });
-
-      return () => {
-        console.log('Removing saved posts channel');
-        supabase.removeChannel(channel);
-      };
     }
   }, [user?.id]);
 

@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -67,7 +66,7 @@ export const usePostsManager = () => {
           description: "Seu post foi publicado com sucesso.",
         });
         
-        // Refresh imediatamente após criar o post
+        // Refresh dos posts após criar
         await fetchPosts();
       } else {
         console.error('PostsManager: Error creating post:', result.error);
@@ -107,7 +106,7 @@ export const usePostsManager = () => {
         title: "Post deletado",
         description: "Post removido com sucesso",
       });
-      // Refresh após deletar
+      // Refresh dos posts após deletar
       await fetchPosts();
     }
     return success;
@@ -133,7 +132,7 @@ export const usePostsManager = () => {
         await postsApi.addLike(postId, user.id);
       }
       
-      // Refresh para atualizar contagem de likes
+      // Refresh dos posts após curtir
       await fetchPosts();
     } catch (error) {
       console.error('PostsManager: Error toggling like:', error);
@@ -145,44 +144,8 @@ export const usePostsManager = () => {
     }
   };
 
-  // Set up realtime subscriptions
   useEffect(() => {
     fetchPosts();
-
-    const postsChannel = supabase
-      .channel('posts_and_interactions')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'posts' 
-      }, (payload) => {
-        console.log('PostsManager: Post change detected:', payload);
-        fetchPosts();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'post_likes' 
-      }, (payload) => {
-        console.log('PostsManager: Like change detected:', payload);
-        fetchPosts();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'comments' 
-      }, (payload) => {
-        console.log('PostsManager: Comment change detected:', payload);
-        fetchPosts();
-      })
-      .subscribe((status) => {
-        console.log('PostsManager: Realtime subscription status:', status);
-      });
-
-    return () => {
-      console.log('PostsManager: Removing posts channel');
-      supabase.removeChannel(postsChannel);
-    };
   }, []);
 
   return {

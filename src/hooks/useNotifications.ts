@@ -80,6 +80,9 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Error marking notification as read:', error);
+      } else {
+        // Refresh após marcar como lida
+        await fetchNotifications();
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -103,6 +106,8 @@ export const useNotifications = () => {
           title: "Notificações marcadas",
           description: "Todas as notificações foram marcadas como lidas",
         });
+        // Refresh após marcar todas como lidas
+        await fetchNotifications();
       }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -112,33 +117,6 @@ export const useNotifications = () => {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-
-      const channel = supabase
-        .channel(`notifications_${user.id}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('Notification changed:', payload);
-          fetchNotifications();
-          
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "Nova notificação",
-              description: "Você tem uma nova interação!",
-            });
-          }
-        })
-        .subscribe((status) => {
-          console.log('Notifications subscription status:', status);
-        });
-
-      return () => {
-        console.log('Removing notifications channel');
-        supabase.removeChannel(channel);
-      };
     }
   }, [user?.id]);
 

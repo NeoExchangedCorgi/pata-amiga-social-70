@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -17,19 +18,6 @@ import { usePostReports } from '@/hooks/usePostReports';
 import { useComments } from '@/hooks/useComments';
 import type { Post } from '@/hooks/usePosts';
 
-interface Comment {
-  id: string;
-  author_id: string;
-  content: string;
-  created_at: string;
-  profiles: {
-    username: string;
-    full_name: string;
-    avatar_url?: string;
-  };
-  replies?: Comment[];
-}
-
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -43,78 +31,50 @@ const PostDetail = () => {
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPostData = async () => {
-      if (!id) return;
+  const fetchPostData = async () => {
+    if (!id) return;
 
-      try {
-        const { data: postData, error: postError } = await supabase
-          .from('posts')
-          .select(`
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            ),
-            comments!fk_comments_post_id (
-              id
-            )
-          `)
-          .eq('id', id)
-          .single();
+    try {
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles!fk_posts_author_id (
+            id,
+            username,
+            full_name,
+            avatar_url
+          ),
+          post_likes!fk_post_likes_post_id (
+            user_id
+          ),
+          comments!fk_comments_post_id (
+            id
+          )
+        `)
+        .eq('id', id)
+        .single();
 
-        if (postError || !postData) {
-          console.error('Error fetching post:', postError);
-          setIsLoading(false);
-          return;
-        }
-
-        setPost(postData);
-
-        // Registrar visualização
-        if (user && postData) {
-          addPostView(postData.id);
-        }
-
-        // Set up realtime subscription for this specific post
-        const channel = supabase
-          .channel(`post-${id}`)
-          .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'posts',
-            filter: `id=eq.${id}`
-          }, (payload) => {
-            console.log('Post updated in real-time:', payload);
-            setPost(payload.new as Post);
-          })
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'post_likes',
-            filter: `post_id=eq.${id}`
-          }, () => {
-            // Refetch post data to get updated likes
-            fetchPostData();
-          })
-          .subscribe();
-
-        return () => {
-          supabase.removeChannel(channel);
-        };
-
-      } catch (error) {
-        console.error('Error fetching post data:', error);
-      } finally {
+      if (postError || !postData) {
+        console.error('Error fetching post:', postError);
         setIsLoading(false);
+        return;
       }
-    };
 
+      setPost(postData);
+
+      // Registrar visualização
+      if (user && postData) {
+        addPostView(postData.id);
+      }
+    } catch (error) {
+      console.error('Error fetching post data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPostData();
   }, [id, user, addPostView]);
 
@@ -181,9 +141,11 @@ const PostDetail = () => {
   const isSaved = isPostSaved(post.id);
   const isReported = isPostReported(post.id);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!isOwnPost && isAuthenticated) {
-      toggleLike(post.id);
+      await toggleLike(post.id);
+      // Refresh do post após curtir
+      await fetchPostData();
     }
   };
 
@@ -202,9 +164,9 @@ const PostDetail = () => {
     }
   };
 
-  const handleMark = () => {
+  const handleMark = async () => {
     if (isAuthenticated) {
-      toggleSavePost(post.id);
+      await toggleSavePost(post.id);
     }
   };
 

@@ -106,7 +106,7 @@ export const useComments = (postId: string) => {
         description: "Seu comentário foi publicado",
       });
 
-      // Fazer refresh para garantir sincronização
+      // Refresh dos comentários após adicionar
       await fetchComments();
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -118,30 +118,9 @@ export const useComments = (postId: string) => {
     }
   };
 
-  // Set up realtime subscriptions
   useEffect(() => {
     if (postId) {
       fetchComments();
-
-      const channel = supabase
-        .channel(`comments_for_post_${postId}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'comments',
-          filter: `post_id=eq.${postId}`
-        }, (payload) => {
-          console.log('Comment realtime event:', payload);
-          fetchComments(); // Refetch to get complete data with joins
-        })
-        .subscribe((status) => {
-          console.log('Comments subscription status:', status);
-        });
-
-      return () => {
-        console.log('Removing comments channel');
-        supabase.removeChannel(channel);
-      };
     }
   }, [postId]);
 
