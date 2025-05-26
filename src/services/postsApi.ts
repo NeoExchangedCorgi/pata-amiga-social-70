@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
@@ -20,32 +19,29 @@ export interface Post {
 
 export const postsApi = {
   async fetchPosts() {
-    console.log('PostsAPI: Fetching posts...');
     const { data, error } = await supabase
       .from('posts')
       .select(`
         *,
-        profiles!posts_author_id_fkey (
+        profiles!fk_posts_author_id (
           id,
           username,
           full_name,
           avatar_url
         ),
-        post_likes!post_likes_post_id_fkey (
+        post_likes!fk_post_likes_post_id (
           user_id
         ),
-        comments!comments_post_id_fkey (
+        comments!fk_comments_post_id (
           id
         )
       `)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('PostsAPI: Error fetching posts:', error);
+      console.error('Error fetching posts:', error);
       return [];
     }
-
-    console.log('PostsAPI: Posts fetched successfully:', data?.length, 'posts');
 
     // Sort by likes count (descending) then by creation date (descending)
     const sortedData = (data || []).sort((a, b) => {
@@ -64,8 +60,6 @@ export const postsApi = {
   },
 
   async createPost(content: string, mediaUrl: string | undefined, mediaType: 'image' | 'video' | undefined, userId: string) {
-    console.log('PostsAPI: Creating post...', { content, mediaUrl, mediaType, userId });
-    
     const { data, error } = await supabase
       .from('posts')
       .insert({
@@ -76,27 +70,26 @@ export const postsApi = {
       })
       .select(`
         *,
-        profiles!posts_author_id_fkey (
+        profiles!fk_posts_author_id (
           id,
           username,
           full_name,
           avatar_url
         ),
-        post_likes!post_likes_post_id_fkey (
+        post_likes!fk_post_likes_post_id (
           user_id
         ),
-        comments!comments_post_id_fkey (
+        comments!fk_comments_post_id (
           id
         )
       `)
       .single();
 
     if (error) {
-      console.error('PostsAPI: Error creating post:', error);
+      console.error('Error creating post:', error);
       return { error: error.message };
     }
 
-    console.log('PostsAPI: Post created successfully:', data);
     return { data };
   },
 
@@ -143,7 +136,6 @@ export const postsApi = {
   },
 
   async addLike(postId: string, userId: string) {
-    console.log('API: Adding like...', { postId, userId });
     const { error } = await supabase
       .from('post_likes')
       .insert({
@@ -155,12 +147,10 @@ export const postsApi = {
       console.error('Error adding like:', error);
       return false;
     }
-    console.log('Like added successfully');
     return true;
   },
 
   async removeLike(postId: string, userId: string) {
-    console.log('API: Removing like...', { postId, userId });
     const { error } = await supabase
       .from('post_likes')
       .delete()
@@ -171,7 +161,6 @@ export const postsApi = {
       console.error('Error removing like:', error);
       return false;
     }
-    console.log('Like removed successfully');
     return true;
   },
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -15,66 +14,98 @@ import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
-import { useComments } from '@/hooks/useComments';
 import type { Post } from '@/hooks/usePosts';
+
+interface Comment {
+  id: string;
+  author_id: string;
+  content: string;
+  created_at: string;
+  profiles: {
+    username: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+  replies?: Comment[];
+}
 
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, isPostReported } = usePostReports();
-  const { comments, addComment } = useComments(id || '');
 
   const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPostData = async () => {
-    if (!id) return;
-
-    try {
-      const { data: postData, error: postError } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles!fk_posts_author_id (
-            id,
-            username,
-            full_name,
-            avatar_url
-          ),
-          post_likes!fk_post_likes_post_id (
-            user_id
-          ),
-          comments!fk_comments_post_id (
-            id
-          )
-        `)
-        .eq('id', id)
-        .single();
-
-      if (postError || !postData) {
-        console.error('Error fetching post:', postError);
-        setIsLoading(false);
-        return;
-      }
-
-      setPost(postData);
-
-      // Registrar visualização
-      if (user && postData) {
-        addPostView(postData.id);
-      }
-    } catch (error) {
-      console.error('Error fetching post data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchPostData = async () => {
+      if (!id) return;
+
+      try {
+        // Buscar dados do post
+        const { data: postData, error: postError } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles!fk_posts_author_id (
+              id,
+              username,
+              full_name,
+              avatar_url
+            ),
+            post_likes!fk_post_likes_post_id (
+              user_id
+            ),
+            comments!fk_comments_post_id (
+              id
+            )
+          `)
+          .eq('id', id)
+          .single();
+
+        if (postError || !postData) {
+          console.error('Error fetching post:', postError);
+          setIsLoading(false);
+          return;
+        }
+
+        setPost(postData);
+
+        // Buscar comentários do post
+        const { data: commentsData, error: commentsError } = await supabase
+          .from('comments')
+          .select(`
+            *,
+            profiles!fk_comments_author_id (
+              username,
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('post_id', id)
+          .order('created_at', { ascending: true });
+
+        if (!commentsError && commentsData) {
+          setComments(commentsData);
+        }
+
+        // Registrar visualização
+        if (user && postData) {
+          addPostView(postData.id);
+        }
+
+      } catch (error) {
+        console.error('Error fetching post data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchPostData();
   }, [id, user, addPostView]);
 
@@ -90,6 +121,35 @@ const PostDetail = () => {
     } else {
       const diffInDays = Math.floor(diffInHours / 24);
       return `${diffInDays}d`;
+    }
+  };
+
+  const addComment = async (content: string) => {
+    if (!user || !profile) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          content,
+          post_id: post!.id,
+          author_id: user.id,
+        })
+        .select(`
+          *,
+          profiles!fk_comments_author_id (
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (!error && data) {
+        setComments([...comments, data]);
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
     }
   };
 
@@ -141,11 +201,9 @@ const PostDetail = () => {
   const isSaved = isPostSaved(post.id);
   const isReported = isPostReported(post.id);
 
-  const handleLike = async () => {
+  const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
-      await toggleLike(post.id);
-      // Refresh do post após curtir
-      await fetchPostData();
+      toggleLike(post.id);
     }
   };
 
@@ -164,9 +222,9 @@ const PostDetail = () => {
     }
   };
 
-  const handleMark = async () => {
+  const handleMark = () => {
     if (isAuthenticated) {
-      await toggleSavePost(post.id);
+      toggleSavePost(post.id);
     }
   };
 

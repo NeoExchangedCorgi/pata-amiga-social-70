@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -16,13 +17,10 @@ export const usePostsManager = () => {
 
   const fetchPosts = async () => {
     try {
-      console.log('PostsManager: Fetching posts...');
-      setIsLoading(true);
       const data = await postsApi.fetchPosts();
-      console.log('PostsManager: Posts fetched:', data);
       setAllPosts(data);
     } catch (error) {
-      console.error('PostsManager: Error fetching posts:', error);
+      console.error('Error fetching posts:', error);
       toast({
         title: "Erro",
         description: "Erro ao carregar posts. Tente novamente.",
@@ -55,35 +53,18 @@ export const usePostsManager = () => {
     }
 
     setIsCreating(true);
-    console.log('PostsManager: Creating post:', { content, mediaUrl, mediaType, userId: user.id });
-    
     try {
       const result = await postsApi.createPost(content, mediaUrl, mediaType, user.id);
       if (!result.error) {
-        console.log('PostsManager: Post created successfully:', result.data);
+        await fetchPosts();
         toast({
           title: "Post criado!",
           description: "Seu post foi publicado com sucesso.",
         });
-        
-        // Refresh dos posts após criar
-        await fetchPosts();
-      } else {
-        console.error('PostsManager: Error creating post:', result.error);
-        toast({
-          title: "Erro",
-          description: "Erro ao criar post",
-          variant: "destructive",
-        });
       }
       return result;
     } catch (error) {
-      console.error('PostsManager: Error creating post:', error);
-      toast({
-        title: "Erro",
-        description: "Erro interno do servidor",
-        variant: "destructive",
-      });
+      console.error('Error creating post:', error);
       return { error: 'Erro interno do servidor' };
     } finally {
       setIsCreating(false);
@@ -93,21 +74,13 @@ export const usePostsManager = () => {
   const deletePost = async (postId: string) => {
     if (!user) return false;
 
-    console.log('PostsManager: Deleting post:', postId);
+    // Optimistic update
+    setPosts(prev => prev.filter(post => post.id !== postId));
+    setAllPosts(prev => prev.filter(post => post.id !== postId));
+    
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {
-      toast({
-        title: "Erro",
-        description: "Erro ao deletar post",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Post deletado",
-        description: "Post removido com sucesso",
-      });
-      // Refresh dos posts após deletar
-      await fetchPosts();
+      await fetchPosts(); // Restore on failure
     }
     return success;
   };
@@ -123,7 +96,6 @@ export const usePostsManager = () => {
     }
 
     try {
-      console.log('PostsManager: Toggling like for post:', postId);
       const hasLiked = await postsApi.checkUserLike(postId, user.id);
       
       if (hasLiked) {
@@ -131,21 +103,31 @@ export const usePostsManager = () => {
       } else {
         await postsApi.addLike(postId, user.id);
       }
-      
-      // Refresh dos posts após curtir
-      await fetchPosts();
     } catch (error) {
-      console.error('PostsManager: Error toggling like:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao curtir post",
-        variant: "destructive",
-      });
+      console.error('Error toggling like:', error);
     }
   };
 
+  // Set up realtime subscriptions
   useEffect(() => {
     fetchPosts();
+
+    const postsChannel = supabase
+      .channel('posts-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+        fetchPosts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, () => {
+        fetchPosts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+        fetchPosts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(postsChannel);
+    };
   }, []);
 
   return {

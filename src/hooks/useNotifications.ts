@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
@@ -27,7 +26,6 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -55,6 +53,7 @@ export const useNotifications = () => {
         return;
       }
 
+      // Type assertion para garantir que o tipo seja correto
       const typedNotifications = (data || []).map(notification => ({
         ...notification,
         type: notification.type as 'like' | 'comment'
@@ -80,10 +79,13 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Error marking notification as read:', error);
-      } else {
-        // Refresh após marcar como lida
-        await fetchNotifications();
+        return;
       }
+
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -101,23 +103,39 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Error marking all notifications as read:', error);
-      } else {
-        toast({
-          title: "Notificações marcadas",
-          description: "Todas as notificações foram marcadas como lidas",
-        });
-        // Refresh após marcar todas como lidas
-        await fetchNotifications();
+        return;
       }
+
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
-    }
+    fetchNotifications();
+
+    // Configurar realtime para notificações
+    const channel = supabase
+      .channel('notifications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user?.id}`
+        },
+        () => {
+          fetchNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
 
   return {

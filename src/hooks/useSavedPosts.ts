@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import type { Post } from '@/hooks/usePosts';
 
 interface SavedPost {
@@ -16,7 +15,6 @@ export const useSavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const fetchSavedPosts = async () => {
     if (!user) return;
@@ -70,52 +68,42 @@ export const useSavedPosts = () => {
           .delete()
           .eq('id', existingSave.id);
 
-        if (error) {
-          console.error('Error removing saved post:', error);
-          toast({
-            title: "Erro",
-            description: "Erro ao remover post dos salvos",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Post removido",
-            description: "Post removido dos salvos",
-          });
-          // Refresh após remover
-          await fetchSavedPosts();
+        if (!error) {
+          setSavedPosts(prev => prev.filter(save => save.id !== existingSave.id));
         }
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('saved_posts')
           .insert({
             user_id: user.id,
             post_id: postId,
-          });
+          })
+          .select(`
+            *,
+            posts!fk_saved_posts_post_id (
+              *,
+              profiles!fk_posts_author_id (
+                id,
+                username,
+                full_name,
+                avatar_url
+              ),
+              post_likes!fk_post_likes_post_id (
+                user_id
+              ),
+              comments!fk_comments_post_id (
+                id
+              )
+            )
+          `)
+          .single();
 
-        if (error) {
-          console.error('Error saving post:', error);
-          toast({
-            title: "Erro",
-            description: "Erro ao salvar post",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Post salvo",
-            description: "Post adicionado aos salvos",
-          });
-          // Refresh após salvar
-          await fetchSavedPosts();
+        if (!error && data) {
+          setSavedPosts(prev => [data, ...prev]);
         }
       }
     } catch (error) {
       console.error('Error toggling save:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao processar solicitação",
-        variant: "destructive",
-      });
     }
   };
 
@@ -124,10 +112,8 @@ export const useSavedPosts = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchSavedPosts();
-    }
-  }, [user?.id]);
+    fetchSavedPosts();
+  }, [user]);
 
   return {
     savedPosts,
