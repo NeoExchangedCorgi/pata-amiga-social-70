@@ -61,7 +61,9 @@ const PostActions = ({
     setIsDropdownOpen(false);
   };
 
-  const handleHideProfile = async () => {
+  const handleHideProfile = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     await hideProfile(authorId);
     setIsDropdownOpen(false);
   };
@@ -134,13 +136,13 @@ const PostActions = ({
                 {isSaved ? 'Remover dos salvos' : 'Salvar post'}
               </DropdownMenuItem>
               
+              <DropdownMenuItem onClick={handleHideProfile}>
+                <EyeOff className="h-4 w-4 mr-2" />
+                {isProfileCurrentlyHidden ? 'Perfil já ocultado' : 'Ocultar perfil'}
+              </DropdownMenuItem>
+              
               {!isOwnPost && (
                 <>
-                  <DropdownMenuItem onClick={handleHideProfile}>
-                    <EyeOff className="h-4 w-4 mr-2" />
-                    {isProfileCurrentlyHidden ? 'Perfil já ocultado' : 'Ocultar perfil'}
-                  </DropdownMenuItem>
-                  
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem 

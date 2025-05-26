@@ -97,22 +97,22 @@ const HiddenProfiles = () => {
                     className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors"
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-4">
                         <div 
-                          className="flex items-center space-x-3 cursor-pointer flex-1"
+                          className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                           onClick={() => handleProfileClick(hiddenProfile.profiles.username)}
                         >
-                          <Avatar>
+                          <Avatar className="flex-shrink-0">
                             <AvatarImage src={hiddenProfile.profiles.avatar_url || "/placeholder.svg"} />
                             <AvatarFallback className="bg-pata-blue-light dark:bg-pata-blue-dark text-white">
                               {getUserInitials(hiddenProfile.profiles.full_name)}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <h3 className="font-semibold text-foreground">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-foreground truncate">
                               {hiddenProfile.profiles.full_name}
                             </h3>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground truncate">
                               @{hiddenProfile.profiles.username}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -125,10 +125,10 @@ const HiddenProfiles = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleUnhideProfile(hiddenProfile.hidden_profile_id)}
-                          className="border-pata-blue-light dark:border-pata-blue-dark text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
+                          className="flex-shrink-0 border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:border-border dark:bg-background dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          Desocultar
+                          <span className="hidden sm:inline">Desocultar</span>
                         </Button>
                       </div>
                     </CardContent>
