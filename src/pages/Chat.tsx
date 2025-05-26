@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,10 +6,8 @@ import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Send, MessageCircle, ArrowLeft } from 'lucide-react';
+import ChatMobileLayout from '@/components/chat/ChatMobileLayout';
+import ChatDesktopLayout from '@/components/chat/ChatDesktopLayout';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,7 +42,6 @@ const Chat = () => {
   const [showUsersList, setShowUsersList] = useState(true);
 
   useEffect(() => {
-    // Aguardar o carregamento da autenticação antes de verificar
     if (!isAuthenticated && !isLoading) {
       navigate('/login');
       return;
@@ -54,7 +52,6 @@ const Chat = () => {
     }
   }, [isAuthenticated, isAdmin, isLoading]);
 
-  // Aguardar o contexto de autenticação carregar
   useEffect(() => {
     if (profile !== null || user !== null) {
       setIsLoading(false);
@@ -75,7 +72,6 @@ const Chat = () => {
   const fetchUsers = async () => {
     try {
       if (isAdmin) {
-        // Admin vê todos os usuários
         const { data, error } = await supabase
           .from('profiles')
           .select('id, username, full_name, avatar_url')
@@ -84,7 +80,6 @@ const Chat = () => {
         if (error) throw error;
         setUsers(data || []);
       } else {
-        // Usuário comum só vê admins
         const { data, error } = await supabase
           .from('profiles')
           .select('id, username, full_name, avatar_url')
@@ -116,7 +111,6 @@ const Chat = () => {
       if (error) throw error;
       setMessages(data || []);
 
-      // Marcar mensagens como lidas
       await supabase
         .from('chat_messages')
         .update({ read: true })
@@ -157,7 +151,7 @@ const Chat = () => {
   const selectUser = (chatUser: ChatUser) => {
     setSelectedUser(chatUser);
     fetchMessages(chatUser.id);
-    setShowUsersList(false); // Hide users list on mobile when chat is selected
+    setShowUsersList(false);
   };
 
   const handleBackToUsers = () => {
@@ -165,15 +159,6 @@ const Chat = () => {
     setSelectedUser(null);
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
-  // Mostrar carregamento enquanto verifica autenticação
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -214,242 +199,37 @@ const Chat = () => {
               </p>
             </div>
 
-            {/* Mobile Layout */}
-            <div className="block lg:hidden">
-              {showUsersList ? (
-                /* Lista de usuários no mobile */
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 text-lg">
-                      <MessageCircle className="h-5 w-5" />
-                      <span>{isAdmin ? 'Usuários' : 'Administradores'}</span>
-                    </CardTitle>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Pesquisar..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="max-h-[60vh] overflow-y-auto">
-                      {filteredUsers.map((chatUser) => (
-                        <div
-                          key={chatUser.id}
-                          onClick={() => selectUser(chatUser)}
-                          className="p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                              <span className="text-primary font-medium text-lg">
-                                {chatUser.full_name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{chatUser.full_name}</p>
-                              <p className="text-sm text-muted-foreground truncate">@{chatUser.username}</p>
-                            </div>
-                            {chatUser.has_unread_messages && (
-                              <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                /* Chat área no mobile */
-                <Card>
-                  {selectedUser && (
-                    <>
-                      <CardHeader className="border-b">
-                        <CardTitle className="flex items-center space-x-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleBackToUsers}
-                            className="p-2"
-                          >
-                            <ArrowLeft className="h-4 w-4" />
-                          </Button>
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-primary font-medium">
-                              {selectedUser.full_name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate">{selectedUser.full_name}</p>
-                            <p className="text-sm text-muted-foreground truncate">@{selectedUser.username}</p>
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0 flex flex-col h-[60vh]">
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                          {messages.map((message) => (
-                            <div
-                              key={message.id}
-                              className={`flex ${
-                                message.sender_id === user?.id ? 'justify-end' : 'justify-start'
-                              }`}
-                            >
-                              <div
-                                className={`max-w-[85%] px-3 py-2 rounded-lg ${
-                                  message.sender_id === user?.id
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted'
-                                }`}
-                              >
-                                <p className="text-sm">{message.message}</p>
-                                <p className="text-xs opacity-75 mt-1">
-                                  {formatTime(message.created_at)}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="border-t p-4">
-                          <div className="flex space-x-2">
-                            <Input
-                              placeholder="Digite sua mensagem..."
-                              value={newMessage}
-                              onChange={(e) => setNewMessage(e.target.value)}
-                              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                              className="flex-1"
-                            />
-                            <Button onClick={sendMessage} size="icon">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </>
-                  )}
-                </Card>
-              )}
-            </div>
+            <ChatMobileLayout
+              showUsersList={showUsersList}
+              users={users}
+              filteredUsers={filteredUsers}
+              selectedUser={selectedUser}
+              messages={messages}
+              newMessage={newMessage}
+              searchTerm={searchTerm}
+              currentUserId={user?.id}
+              isAdmin={isAdmin}
+              onSearchChange={setSearchTerm}
+              onUserSelect={selectUser}
+              onBackToUsers={handleBackToUsers}
+              onMessageChange={setNewMessage}
+              onSendMessage={sendMessage}
+            />
 
-            {/* Desktop Layout */}
-            <div className="hidden lg:grid lg:grid-cols-3 gap-6 h-[600px]">
-              {/* Lista de usuários */}
-              <Card className="lg:col-span-1">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <MessageCircle className="h-5 w-5" />
-                    <span>{isAdmin ? 'Usuários' : 'Administradores'}</span>
-                  </CardTitle>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Pesquisar..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="max-h-96 overflow-y-auto">
-                    {filteredUsers.map((chatUser) => (
-                      <div
-                        key={chatUser.id}
-                        onClick={() => selectUser(chatUser)}
-                        className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
-                          selectedUser?.id === chatUser.id ? 'bg-muted' : ''
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-primary font-medium">
-                              {chatUser.full_name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium">{chatUser.full_name}</p>
-                            <p className="text-sm text-muted-foreground">@{chatUser.username}</p>
-                          </div>
-                          {chatUser.has_unread_messages && (
-                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Área de chat */}
-              <Card className="lg:col-span-2">
-                {selectedUser ? (
-                  <>
-                    <CardHeader className="border-b">
-                      <CardTitle className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-primary font-medium">
-                            {selectedUser.full_name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p>{selectedUser.full_name}</p>
-                          <p className="text-sm text-muted-foreground">@{selectedUser.username}</p>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0 flex flex-col h-96">
-                      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {messages.map((message) => (
-                          <div
-                            key={message.id}
-                            className={`flex ${
-                              message.sender_id === user?.id ? 'justify-end' : 'justify-start'
-                            }`}
-                          >
-                            <div
-                              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                                message.sender_id === user?.id
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              <p>{message.message}</p>
-                              <p className="text-xs opacity-75 mt-1">
-                                {formatTime(message.created_at)}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="border-t p-4">
-                        <div className="flex space-x-2">
-                          <Input
-                            placeholder="Digite sua mensagem..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                            className="flex-1"
-                          />
-                          <Button onClick={sendMessage} size="icon">
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </>
-                ) : (
-                  <CardContent className="flex items-center justify-center h-96">
-                    <div className="text-center">
-                      <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">
-                        Selecione um usuário para começar a conversar
-                      </p>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            </div>
+            <ChatDesktopLayout
+              users={users}
+              filteredUsers={filteredUsers}
+              selectedUser={selectedUser}
+              messages={messages}
+              newMessage={newMessage}
+              searchTerm={searchTerm}
+              currentUserId={user?.id}
+              isAdmin={isAdmin}
+              onSearchChange={setSearchTerm}
+              onUserSelect={selectUser}
+              onMessageChange={setNewMessage}
+              onSendMessage={sendMessage}
+            />
           </div>
         </main>
         <RightSidebar />
