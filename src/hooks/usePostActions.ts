@@ -11,7 +11,7 @@ export const usePostActions = (postId: string, authorId: string) => {
   const { toggleLike } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, removeReport, isPostReported } = usePostReports();
+  const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
   const { toast } = useToast();
 
   const isOwnPost = user?.id === authorId;
@@ -26,12 +26,22 @@ export const usePostActions = (postId: string, authorId: string) => {
 
   const handleReport = async () => {
     if (!isAuthenticated || isOwnPost) return false;
-    return await reportPost(postId);
+    const success = await reportPost(postId);
+    if (success) {
+      // Forçar atualização para garantir que a interface seja atualizada
+      setTimeout(() => refreshReports(), 100);
+    }
+    return success;
   };
 
   const handleRemoveReport = async () => {
     if (!isAuthenticated || isOwnPost) return false;
-    return await removeReport(postId);
+    const success = await removeReport(postId);
+    if (success) {
+      // Forçar atualização para garantir que a interface seja atualizada
+      setTimeout(() => refreshReports(), 100);
+    }
+    return success;
   };
 
   const handleSave = () => {

@@ -54,21 +54,13 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
   const handleReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const success = await handleReport();
-    if (success) {
-      // O estado já foi atualizado no hook, não precisamos recarregar
-      // A interface será atualizada automaticamente
-    }
+    await handleReport();
   };
 
   const handleRemoveReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const success = await handleRemoveReport();
-    if (success) {
-      // O estado já foi atualizado no hook, não precisamos recarregar
-      // A interface será atualizada automaticamente
-    }
+    await handleRemoveReport();
   };
 
   const isProfileCurrentlyHidden = isProfileHidden(authorId);

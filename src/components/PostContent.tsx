@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -13,6 +13,13 @@ interface PostContentProps {
 const PostContent = ({ content, mediaUrl, mediaType, isReported }: PostContentProps) => {
   const [showBlurredContent, setShowBlurredContent] = useState(false);
   const shouldBlur = isReported && !showBlurredContent;
+
+  // Reset showBlurredContent quando isReported muda
+  useEffect(() => {
+    if (!isReported) {
+      setShowBlurredContent(false);
+    }
+  }, [isReported]);
 
   if (shouldBlur) {
     return (
