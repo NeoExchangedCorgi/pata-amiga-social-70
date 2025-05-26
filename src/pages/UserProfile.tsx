@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -22,27 +23,11 @@ interface UserProfile {
   avatar_url?: string;
 }
 
-interface UserComment {
-  id: string;
-  content: string;
-  created_at: string;
-  posts: {
-    id: string;
-    content: string;
-    author_id: string;
-    profiles: {
-      username: string;
-      full_name: string;
-    };
-  };
-}
-
 const UserProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [comments, setComments] = useState<UserComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -78,9 +63,6 @@ const UserProfile = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           `)
           .eq('author_id', profileData.id)
@@ -88,28 +70,6 @@ const UserProfile = () => {
 
         if (!postsError && postsData) {
           setPosts(postsData);
-        }
-
-        // Buscar comentários do usuário
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('comments')
-          .select(`
-            *,
-            posts!fk_comments_post_id (
-              id,
-              content,
-              author_id,
-              profiles!fk_posts_author_id (
-                username,
-                full_name
-              )
-            )
-          `)
-          .eq('author_id', profileData.id)
-          .order('created_at', { ascending: false });
-
-        if (!commentsError && commentsData) {
-          setComments(commentsData);
         }
 
       } catch (error) {
@@ -222,18 +182,13 @@ const UserProfile = () => {
                     <p className="font-semibold text-foreground">{posts.length}</p>
                     <p className="text-sm text-muted-foreground">Posts</p>
                   </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground">{comments.length}</p>
-                    <p className="text-sm text-muted-foreground">Comentários</p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <Tabs defaultValue="posts">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-1">
                 <TabsTrigger value="posts">Posts ({posts.length})</TabsTrigger>
-                <TabsTrigger value="comments">Comentários ({comments.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="posts" className="space-y-4">
@@ -246,40 +201,6 @@ const UserProfile = () => {
                     <div key={post.id} className="animate-fade-in">
                       <PostCard post={post} />
                     </div>
-                  ))
-                )}
-              </TabsContent>
-
-              <TabsContent value="comments" className="space-y-4">
-                {comments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Nenhum comentário encontrado.</p>
-                  </div>
-                ) : (
-                  comments.map((comment) => (
-                    <Card key={comment.id} className="border-foreground/20">
-                      <CardContent className="p-4">
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">
-                            Comentário em post de @{comment.posts.profiles.username}
-                          </p>
-                          <p className="text-foreground">{comment.content}</p>
-                          <div className="flex justify-between items-center pt-2 border-t border-foreground/10">
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(comment.created_at).toLocaleDateString('pt-BR')}
-                            </p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => navigate(`/post/${comment.posts.id}`)}
-                              className="text-primary hover:text-primary/80"
-                            >
-                              Ver post
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
                   ))
                 )}
               </TabsContent>

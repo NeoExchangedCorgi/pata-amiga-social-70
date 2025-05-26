@@ -17,7 +17,7 @@ export const usePostReports = () => {
 
     try {
       const { data, error } = await supabase
-        .from('post_reports')
+        .from('post_global_reports')
         .select('post_id')
         .eq('user_id', user.id);
 
@@ -45,7 +45,7 @@ export const usePostReports = () => {
 
     try {
       const { error } = await supabase
-        .from('post_reports')
+        .from('post_global_reports')
         .insert({
           user_id: user.id,
           post_id: postId,
@@ -92,7 +92,7 @@ export const usePostReports = () => {
 
     try {
       const { error } = await supabase
-        .from('post_reports')
+        .from('post_global_reports')
         .delete()
         .eq('user_id', user.id)
         .eq('post_id', postId);
@@ -150,7 +150,7 @@ export const usePostReports = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'post_reports',
+          table: 'post_global_reports',
           filter: `user_id=eq.${user?.id}`
         },
         () => {
