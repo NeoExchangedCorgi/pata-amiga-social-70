@@ -10,6 +10,7 @@ interface Profile {
   bio?: string;
   avatar_url?: string;
   phone?: string;
+  user_type?: 'user' | 'admin';
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +20,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   signup: (userData: { fullName: string; username: string; email: string; phone: string; password: string }) => Promise<{ error?: string }>;
@@ -165,12 +167,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const isAdmin = profile?.user_type === 'admin';
+
   return (
     <AuthContext.Provider value={{
       user,
       profile,
       session,
       isAuthenticated: !!user,
+      isAdmin,
       isLoading,
       login,
       signup,

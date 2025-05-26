@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -22,6 +23,7 @@ import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
 import HiddenProfiles from "./pages/HiddenProfiles";
 import Marcacoes from "./pages/Marcacoes";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
@@ -49,6 +52,7 @@ const App = () => (
               <Route path="/user/:username" element={<UserProfile />} />
               <Route path="/hidden-profiles" element={<HiddenProfiles />} />
               <Route path="/marcacoes" element={<Marcacoes />} />
+              <Route path="/chat" element={<Chat />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

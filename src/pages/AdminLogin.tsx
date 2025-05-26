@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, Home, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
@@ -23,10 +23,17 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isAdmin) {
+      navigate('/');
+    } else if (isAuthenticated && !isAdmin) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para acessar a área administrativa",
+        variant: "destructive",
+      });
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isAdmin, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,10 +59,9 @@ const Login = () => {
     } else {
       toast({
         title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta!",
+        description: "Bem-vindo, administrador!",
         className: "bg-green-500 text-white border-green-600",
       });
-      navigate('/');
     }
     
     setIsSubmitting(false);
@@ -90,14 +96,20 @@ const Login = () => {
 
       <Card className="w-full max-w-md border-foreground/20">
         <CardHeader className="text-center space-y-4">
-          <img 
-            src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
-            alt="Paraíso dos Focinhos" 
-            className="h-16 w-auto mx-auto"
-          />
+          <div className="flex items-center justify-center space-x-2">
+            <Shield className="h-8 w-8 text-primary" />
+            <img 
+              src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
+              alt="Paraíso dos Focinhos" 
+              className="h-16 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Login - Pata Amiga
+            Login Administrativo
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Área restrita para administradores
+          </p>
         </CardHeader>
         
         <CardContent>
@@ -110,7 +122,7 @@ const Login = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Digite seu e-mail"
+                placeholder="Digite seu e-mail de administrador"
                 required
                 className="border-foreground/20"
               />
@@ -148,38 +160,18 @@ const Login = () => {
               disabled={isSubmitting}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {isSubmitting ? 'Entrando...' : 'Entrar'}
+              {isSubmitting ? 'Entrando...' : 'Entrar como Admin'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
-            <Link 
-              to="/forgot-password" 
-              className="text-sm text-primary hover:underline"
-            >
-              Esqueci minha senha
-            </Link>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/admin-login')}
-              className="w-full flex items-center space-x-2"
-            >
-              <Shield className="h-4 w-4" />
-              <span>Logar como Admin?</span>
-            </Button>
-          </div>
-
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Não é cadastrado?{' '}
+              Usuário comum?{' '}
               <Link 
-                to="/signup" 
+                to="/login" 
                 className="text-primary hover:underline font-medium"
               >
-                Clique aqui!
+                Clique aqui para login normal
               </Link>
             </p>
           </div>
@@ -189,4 +181,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Bell, User, Heart, History, LogOut, EyeOff, Bookmark } from 'lucide-react';
+import { Home, Bell, User, Heart, History, LogOut, EyeOff, Bookmark, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,11 +8,19 @@ import { useToast } from '@/hooks/use-toast';
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const { toast } = useToast();
 
-  const menuItems = [
-    { icon: Home, label: 'Home', path: '/', active: true, requiresAuth: false },
+  const adminMenuItems = [
+    { icon: Home, label: 'Home', path: '/', requiresAuth: false },
+    { icon: MessageCircle, label: 'Chat', path: '/chat', requiresAuth: true },
+    { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
+    { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
+  ];
+
+  const userMenuItems = [
+    { icon: Home, label: 'Home', path: '/', requiresAuth: false },
+    { icon: MessageCircle, label: 'Chat com ONG', path: '/chat', requiresAuth: true },
     { icon: Bell, label: 'Notificações', path: '/notifications', requiresAuth: true },
     { icon: User, label: 'Perfil', path: '/profile', requiresAuth: true },
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
@@ -20,6 +28,8 @@ const LeftSidebar = () => {
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
     { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
   ];
+
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   const handleItemClick = (item: any) => {
     if (item.requiresAuth && !isAuthenticated) {
