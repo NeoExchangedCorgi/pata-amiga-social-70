@@ -1,25 +1,44 @@
 
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usePostActions } from '@/hooks/usePostActions';
 
 interface PostContentProps {
   content: string;
   mediaUrl?: string;
   mediaType?: string;
   isReported: boolean;
+  postId: string;
+  authorId: string;
 }
 
-const PostContent = ({ content, mediaUrl, mediaType, isReported }: PostContentProps) => {
+const PostContent = ({ content, mediaUrl, mediaType, isReported, postId, authorId }: PostContentProps) => {
   const [showBlurredContent, setShowBlurredContent] = useState(false);
-  const shouldBlur = isReported && !showBlurredContent;
+  const { isCensored, handleGlobalReport, isGloballyReported } = usePostActions(postId, authorId);
+  
+  // Usar censura global como prioridade sobre denúncia pessoal
+  const shouldBlur = (isCensored || isReported) && !showBlurredContent;
+  const isCensoredGlobally = isCensored;
 
-  // Reset showBlurredContent quando isReported muda
+  // Reset showBlurredContent quando isReported ou isCensored muda
   useEffect(() => {
-    if (!isReported) {
+    if (!isReported && !isCensored) {
       setShowBlurredContent(false);
     }
-  }, [isReported]);
+  }, [isReported, isCensored]);
+
+  const handleViewContent = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowBlurredContent(true);
+  };
+
+  const handleReportContent = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isGloballyReported) {
+      await handleGlobalReport();
+    }
+  };
 
   if (shouldBlur) {
     return (
@@ -44,18 +63,28 @@ const PostContent = ({ content, mediaUrl, mediaType, isReported }: PostContentPr
             </div>
           )}
         </div>
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2">
           <Button
             variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowBlurredContent(true);
-            }}
+            onClick={handleViewContent}
             className="bg-background/80 backdrop-blur-sm"
           >
             <Eye className="h-4 w-4 mr-2" />
-            Possível conteúdo sensível! Clique para visualizar
+            {isCensoredGlobally 
+              ? "Possível conteúdo sensível! Deseja visualizar mesmo assim?" 
+              : "Possível conteúdo sensível! Clique para visualizar"
+            }
           </Button>
+          {isCensoredGlobally && !isGloballyReported && (
+            <Button
+              variant="outline"
+              onClick={handleReportContent}
+              className="bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800"
+            >
+              <Flag className="h-4 w-4 mr-2" />
+              Ajude a denunciar!
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -63,11 +92,14 @@ const PostContent = ({ content, mediaUrl, mediaType, isReported }: PostContentPr
 
   return (
     <>
-      {isReported && showBlurredContent && (
+      {(isReported || isCensored) && showBlurredContent && (
         <div className="mb-3 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded border border-yellow-300 dark:border-yellow-700">
           <div className="flex items-center justify-between">
             <p className="text-xs text-yellow-800 dark:text-yellow-200">
-              Conteúdo denunciado - visualizando mesmo assim
+              {isCensoredGlobally 
+                ? "Conteúdo com denúncias da comunidade - visualizando mesmo assim"
+                : "Conteúdo denunciado - visualizando mesmo assim"
+              }
             </p>
             <Button
               variant="ghost"

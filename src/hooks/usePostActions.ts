@@ -5,6 +5,7 @@ import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
+import { useGlobalReports } from '@/hooks/useGlobalReports';
 
 export const usePostActions = (postId: string, authorId: string) => {
   const { user, isAuthenticated } = useAuth();
@@ -12,11 +13,14 @@ export const usePostActions = (postId: string, authorId: string) => {
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
+  const { addGlobalReport, removeGlobalReport, isPostGloballyReported, isPostCensored } = useGlobalReports();
   const { toast } = useToast();
 
   const isOwnPost = user?.id === authorId;
   const isSaved = isPostSaved(postId);
   const isReported = isPostReported(postId);
+  const isGloballyReported = isPostGloballyReported(postId);
+  const isCensored = isPostCensored(postId);
 
   const handleLike = () => {
     if (!isOwnPost && isAuthenticated) {
@@ -28,7 +32,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await reportPost(postId);
     if (success) {
-      // Forçar atualização para garantir que a interface seja atualizada
       setTimeout(() => refreshReports(), 100);
     }
     return success;
@@ -38,10 +41,19 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await removeReport(postId);
     if (success) {
-      // Forçar atualização para garantir que a interface seja atualizada
       setTimeout(() => refreshReports(), 100);
     }
     return success;
+  };
+
+  const handleGlobalReport = async () => {
+    if (!isAuthenticated || isOwnPost) return false;
+    return await addGlobalReport(postId);
+  };
+
+  const handleRemoveGlobalReport = async () => {
+    if (!isAuthenticated || isOwnPost) return false;
+    return await removeGlobalReport(postId);
   };
 
   const handleSave = () => {
@@ -64,10 +76,14 @@ export const usePostActions = (postId: string, authorId: string) => {
     isOwnPost,
     isSaved,
     isReported,
+    isGloballyReported,
+    isCensored,
     isAuthenticated,
     handleLike,
     handleReport,
     handleRemoveReport,
+    handleGlobalReport,
+    handleRemoveGlobalReport,
     handleSave,
     handleView,
   };

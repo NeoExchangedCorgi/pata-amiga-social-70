@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -79,6 +80,8 @@ const PostDetailCard = ({
           mediaUrl={post.media_url}
           mediaType={post.media_type}
           isReported={isReported}
+          postId={post.id}
+          authorId={post.author_id}
         />
 
         <PostMetrics

@@ -9,58 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      comments: {
+      chat_conversations: {
         Row: {
-          author_id: string
-          content: string
-          created_at: string | null
+          admin_id: string
+          has_unread_messages: boolean | null
           id: string
-          post_id: string
-          updated_at: string | null
+          last_message_at: string | null
+          user_id: string
         }
         Insert: {
-          author_id: string
-          content: string
-          created_at?: string | null
+          admin_id: string
+          has_unread_messages?: boolean | null
           id?: string
-          post_id: string
-          updated_at?: string | null
+          last_message_at?: string | null
+          user_id: string
         }
         Update: {
-          author_id?: string
-          content?: string
-          created_at?: string | null
+          admin_id?: string
+          has_unread_messages?: boolean | null
           id?: string
-          post_id?: string
-          updated_at?: string | null
+          last_message_at?: string | null
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "comments_author_id_fkey"
-            columns: ["author_id"]
+            foreignKeyName: "chat_conversations_admin_id_fkey"
+            columns: ["admin_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
+            foreignKeyName: "chat_conversations_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "posts"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "fk_comments_author_id"
-            columns: ["author_id"]
+            foreignKeyName: "chat_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_comments_post_id"
-            columns: ["post_id"]
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
-            referencedRelation: "posts"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -126,13 +151,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_notifications_comment_id"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "comments"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_notifications_post_id"
             columns: ["post_id"]
             isOneToOne: false
@@ -154,13 +172,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "notifications_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "comments"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "notifications_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
@@ -172,6 +183,35 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_global_reports: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_global_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
@@ -219,56 +259,6 @@ export type Database = {
           },
           {
             foreignKeyName: "post_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      post_reports: {
-        Row: {
-          created_at: string | null
-          id: string
-          post_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          post_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          post_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_post_reports_post_id"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_post_reports_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_reports_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_reports_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -462,10 +452,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_post_report_count: {
+        Args: { post_id_param: string }
+        Returns: number
+      }
     }
     Enums: {
       media_type_enum: "image" | "video"
+      user_type: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -582,6 +576,7 @@ export const Constants = {
   public: {
     Enums: {
       media_type_enum: ["image", "video"],
+      user_type: ["user", "admin"],
     },
   },
 } as const

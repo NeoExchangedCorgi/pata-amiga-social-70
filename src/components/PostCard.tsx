@@ -53,6 +53,8 @@ const PostCard = ({ post }: PostCardProps) => {
           mediaUrl={post.media_url}
           mediaType={post.media_type}
           isReported={isReported}
+          postId={post.id}
+          authorId={post.author_id}
         />
         
         <PostActions
