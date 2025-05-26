@@ -22,7 +22,7 @@ const PostDetail = () => {
   const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, removeReport, isPostReported } = usePostReports();
+  const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
 
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -143,8 +143,10 @@ const PostDetail = () => {
 
   const handleReport = async () => {
     if (isAuthenticated && !isOwnPost) {
-      await reportPost(post.id);
-      window.location.reload();
+      const success = await reportPost(post.id);
+      if (success) {
+        refreshReports();
+      }
     }
   };
 
@@ -152,7 +154,7 @@ const PostDetail = () => {
     if (isAuthenticated && !isOwnPost) {
       const success = await removeReport(post.id);
       if (success) {
-        window.location.reload();
+        refreshReports();
       }
     }
   };

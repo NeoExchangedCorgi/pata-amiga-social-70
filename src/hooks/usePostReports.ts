@@ -10,7 +10,10 @@ export const usePostReports = () => {
   const { toast } = useToast();
 
   const fetchReportedPosts = async () => {
-    if (!user) return;
+    if (!user) {
+      setReportedPosts(new Set());
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -58,7 +61,9 @@ export const usePostReports = () => {
         return false;
       }
 
+      // Atualizar estado local imediatamente
       setReportedPosts(prev => new Set([...prev, postId]));
+      
       toast({
         title: "Post denunciado",
         description: "O post foi denunciado e será borrado para você",
@@ -102,11 +107,13 @@ export const usePostReports = () => {
         return false;
       }
 
+      // Atualizar estado local imediatamente
       setReportedPosts(prev => {
         const newSet = new Set(prev);
         newSet.delete(postId);
         return newSet;
       });
+
       toast({
         title: "Denúncia retirada",
         description: "A denúncia foi removida e o post voltará a aparecer",
@@ -125,6 +132,11 @@ export const usePostReports = () => {
 
   const isPostReported = (postId: string) => {
     return reportedPosts.has(postId);
+  };
+
+  // Função para forçar atualização do cache
+  const refreshReports = () => {
+    fetchReportedPosts();
   };
 
   useEffect(() => {
@@ -157,5 +169,6 @@ export const usePostReports = () => {
     removeReport,
     isPostReported,
     reportedPosts,
+    refreshReports,
   };
 };

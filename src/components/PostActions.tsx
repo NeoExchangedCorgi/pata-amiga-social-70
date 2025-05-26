@@ -56,7 +56,8 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     e.stopPropagation();
     const success = await handleReport();
     if (success) {
-      window.location.reload();
+      // O estado já foi atualizado no hook, não precisamos recarregar
+      // A interface será atualizada automaticamente
     }
   };
 
@@ -65,7 +66,8 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     e.stopPropagation();
     const success = await handleRemoveReport();
     if (success) {
-      window.location.reload();
+      // O estado já foi atualizado no hook, não precisamos recarregar
+      // A interface será atualizada automaticamente
     }
   };
 
