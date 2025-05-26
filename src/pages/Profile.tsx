@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
@@ -10,10 +11,11 @@ import ChangePassword from '@/components/ChangePassword';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Calendar, Mail, Phone, Settings, Lock } from 'lucide-react';
+import { User, Calendar, Mail, Phone, Settings, Lock, Trash2 } from 'lucide-react';
 
 const Profile = () => {
   const { profile, user, isLoading, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('view');
 
   if (isLoading) {
@@ -137,6 +139,14 @@ const Profile = () => {
                       </Button>
                       <Button variant="destructive" className="w-full" onClick={logout}>
                         Sair
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/20"
+                        onClick={() => navigate('/delete-profile')}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Deletar Perfil
                       </Button>
                     </div>
                   </CardContent>

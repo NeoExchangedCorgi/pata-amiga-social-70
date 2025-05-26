@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
+import DeleteProfile from "./pages/DeleteProfile";
 import Likes from "./pages/Likes";
 import History from "./pages/History";
 import Search from "./pages/Search";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/delete-profile" element={<DeleteProfile />} />
               <Route path="/likes" element={<Likes />} />
               <Route path="/history" element={<History />} />
               <Route path="/search" element={<Search />} />
