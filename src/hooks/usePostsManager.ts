@@ -55,6 +55,39 @@ export const usePostsManager = () => {
     }
   };
 
+  const updatePost = async (postId: string, content: string) => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para editar um post",
+        variant: "destructive",
+      });
+      return { error: 'Usuário não autenticado' };
+    }
+
+    try {
+      const result = await postsApi.updatePost(postId, content, user.id);
+      if (!result.error) {
+        // Update local state immediately
+        setFilteredPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, content } : post
+        ));
+        setPosts(prev => prev.map(post => 
+          post.id === postId ? { ...post, content } : post
+        ));
+        
+        toast({
+          title: "Post atualizado!",
+          description: "Seu post foi editado com sucesso.",
+        });
+      }
+      return result;
+    } catch (error) {
+      console.error('Error updating post:', error);
+      return { error: 'Erro interno do servidor' };
+    }
+  };
+
   const deletePost = async (postId: string) => {
     if (!user) return false;
 
@@ -135,6 +168,7 @@ export const usePostsManager = () => {
     posts: filteredPosts,
     isLoading: isLoading || isCreating,
     createPost,
+    updatePost,
     deletePost,
     toggleLike,
     refetch,

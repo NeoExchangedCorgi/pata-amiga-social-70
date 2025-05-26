@@ -87,6 +87,50 @@ export const postsApi = {
     return { data };
   },
 
+  async updatePost(postId: string, content: string, userId: string) {
+    // Check if post exists and belongs to user
+    const { data: existingPost, error: checkError } = await supabase
+      .from('posts')
+      .select('id, author_id')
+      .eq('id', postId)
+      .eq('author_id', userId)
+      .single();
+
+    if (checkError || !existingPost) {
+      console.error('Post not found or not owned by user:', checkError);
+      return { error: 'Post não encontrado ou você não tem permissão para editá-lo' };
+    }
+
+    const { data, error } = await supabase
+      .from('posts')
+      .update({ 
+        content,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', postId)
+      .eq('author_id', userId)
+      .select(`
+        *,
+        profiles!fk_posts_author_id (
+          id,
+          username,
+          full_name,
+          avatar_url
+        ),
+        post_likes!fk_post_likes_post_id (
+          user_id
+        )
+      `)
+      .single();
+
+    if (error) {
+      console.error('Error updating post:', error);
+      return { error: error.message };
+    }
+
+    return { data };
+  },
+
   async deletePost(postId: string, userId: string) {
     // Check if post exists and belongs to user
     const { data: existingPost, error: checkError } = await supabase

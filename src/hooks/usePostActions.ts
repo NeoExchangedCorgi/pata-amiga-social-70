@@ -6,10 +6,12 @@ import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
 import { useGlobalReports } from '@/hooks/useGlobalReports';
+import { usePostsManager } from '@/hooks/usePostsManager';
 
 export const usePostActions = (postId: string, authorId: string) => {
   const { user, isAuthenticated } = useAuth();
   const { toggleLike } = usePosts();
+  const { updatePost } = usePostsManager();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
@@ -26,6 +28,12 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isOwnPost && isAuthenticated) {
       toggleLike(postId);
     }
+  };
+
+  const handleEdit = async (newContent: string) => {
+    if (!isAuthenticated || !isOwnPost) return false;
+    const result = await updatePost(postId, newContent);
+    return !result.error;
   };
 
   const handleReport = async () => {
@@ -80,6 +88,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     isCensored,
     isAuthenticated,
     handleLike,
+    handleEdit,
     handleReport,
     handleRemoveReport,
     handleGlobalReport,

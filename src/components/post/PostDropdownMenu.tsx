@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff } from 'lucide-react';
+import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -30,6 +31,7 @@ interface PostDropdownMenuProps {
   onReport: (e: React.MouseEvent) => void;
   onRemoveReport: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
+  onEdit: (e: React.MouseEvent) => void;
 }
 
 const PostDropdownMenu = ({
@@ -42,7 +44,8 @@ const PostDropdownMenu = ({
   onHideProfile,
   onReport,
   onRemoveReport,
-  onDelete
+  onDelete,
+  onEdit
 }: PostDropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -59,6 +62,13 @@ const PostDropdownMenu = ({
     e.preventDefault();
     e.stopPropagation();
     setShowDeleteDialog(true);
+    setIsOpen(false);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(e);
     setIsOpen(false);
   };
 
@@ -122,7 +132,27 @@ const PostDropdownMenu = ({
                 {isProfileHidden ? 'Perfil já ocultado' : 'Ocultar perfil'}
               </DropdownMenuItem>
               
-              {!isOwnPost && (
+              {isOwnPost ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleEditClick}
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-blue-600 focus:text-blue-600"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar post
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleDeleteClick}
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir post
+                  </DropdownMenuItem>
+                </>
+              ) : (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
@@ -141,20 +171,6 @@ const PostDropdownMenu = ({
                         Denunciar post
                       </>
                     )}
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {isOwnPost && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleDeleteClick}
-                    onSelect={(e) => e.preventDefault()}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir post
                   </DropdownMenuItem>
                 </>
               )}

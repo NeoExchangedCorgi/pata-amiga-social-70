@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import { ROUTES } from '@/constants/app';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostActions from './PostActions';
+import EditPostDialog from './post/EditPostDialog';
 import type { Post } from '@/hooks/usePosts';
 
 interface PostCardProps {
@@ -17,7 +18,8 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { handleView, isReported } = usePostActions(post.id, post.author_id);
+  const { handleView, isReported, handleEdit } = usePostActions(post.id, post.author_id);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
@@ -34,37 +36,57 @@ const PostCard = ({ post }: PostCardProps) => {
     navigate(ROUTES.POST_DETAIL(post.id));
   };
 
+  const handleEditClick = () => {
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEdit = async (newContent: string) => {
+    return await handleEdit(newContent);
+  };
+
   return (
-    <Card 
-      className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors cursor-pointer"
-      onClick={handlePostClick}
-    >
-      <CardHeader className="pb-3">
-        <PostHeader 
-          author={post.profiles}
-          createdAt={post.created_at}
-          onAuthorClick={handleAuthorClick}
-        />
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <PostContent 
-          content={post.content}
-          mediaUrl={post.media_url}
-          mediaType={post.media_type}
-          isReported={isReported}
-          postId={post.id}
-          authorId={post.author_id}
-        />
+    <>
+      <Card 
+        className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors cursor-pointer"
+        onClick={handlePostClick}
+      >
+        <CardHeader className="pb-3">
+          <PostHeader 
+            author={post.profiles}
+            createdAt={post.created_at}
+            onAuthorClick={handleAuthorClick}
+            onEdit={handleEditClick}
+            postId={post.id}
+            authorId={post.author_id}
+          />
+        </CardHeader>
         
-        <PostActions
-          postId={post.id}
-          authorId={post.author_id}
-          likesCount={likesCount}
-          isLiked={isLiked}
-        />
-      </CardContent>
-    </Card>
+        <CardContent className="pt-0">
+          <PostContent 
+            content={post.content}
+            mediaUrl={post.media_url}
+            mediaType={post.media_type}
+            isReported={isReported}
+            postId={post.id}
+            authorId={post.author_id}
+          />
+          
+          <PostActions
+            postId={post.id}
+            authorId={post.author_id}
+            likesCount={likesCount}
+            isLiked={isLiked}
+          />
+        </CardContent>
+      </Card>
+
+      <EditPostDialog
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        onSave={handleSaveEdit}
+        initialContent={post.content}
+      />
+    </>
   );
 };
 
