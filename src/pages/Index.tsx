@@ -5,6 +5,7 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import MainFeed from '@/components/MainFeed';
 import FooterBar from '@/components/FooterBar';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
 
 const Index = () => {
   return (
@@ -16,6 +17,7 @@ const Index = () => {
         <RightSidebar />
       </div>
       <FooterBar />
+      <ScrollToTopButton />
     </div>
   );
 };
