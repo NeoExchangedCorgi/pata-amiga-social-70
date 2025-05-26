@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Eye, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
-import { formatDateBR, getUserInitials } from '@/utils/formatters';
+import { formatDateBR, getUserInitials, abbreviateName } from '@/utils/formatters';
 import { ROUTES } from '@/constants/app';
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
@@ -26,7 +25,9 @@ const HiddenProfiles = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
-  const handleUnhideProfile = async (profileId: string) => {
+  const handleUnhideProfile = async (e: React.MouseEvent, profileId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
     await unhideProfile(profileId);
   };
 
@@ -97,39 +98,40 @@ const HiddenProfiles = () => {
                     className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors"
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div 
-                          className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
-                          onClick={() => handleProfileClick(hiddenProfile.profiles.username)}
-                        >
-                          <Avatar className="flex-shrink-0">
-                            <AvatarImage src={hiddenProfile.profiles.avatar_url || "/placeholder.svg"} />
-                            <AvatarFallback className="bg-pata-blue-light dark:bg-pata-blue-dark text-white">
-                              {getUserInitials(hiddenProfile.profiles.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-foreground truncate">
-                              {hiddenProfile.profiles.full_name}
-                            </h3>
-                            <p className="text-sm text-muted-foreground truncate">
-                              @{hiddenProfile.profiles.username}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Ocultado em {formatDateBR(hiddenProfile.hidden_at)}
-                            </p>
+                      <div 
+                        className="flex items-center space-x-3 cursor-pointer group"
+                        onClick={() => handleProfileClick(hiddenProfile.profiles.username)}
+                      >
+                        <Avatar className="flex-shrink-0">
+                          <AvatarImage src={hiddenProfile.profiles.avatar_url || "/placeholder.svg"} />
+                          <AvatarFallback className="bg-pata-blue-light dark:bg-pata-blue-dark text-white">
+                            {getUserInitials(hiddenProfile.profiles.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-foreground truncate">
+                                {abbreviateName(hiddenProfile.profiles.full_name, 25)}
+                              </h3>
+                              <p className="text-sm text-muted-foreground truncate">
+                                @{hiddenProfile.profiles.username}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Ocultado em {formatDateBR(hiddenProfile.hidden_at)}
+                              </p>
+                            </div>
+                            
+                            <div 
+                              className="flex-shrink-0 ml-4 p-2 rounded-full hover:bg-accent transition-colors"
+                              onClick={(e) => handleUnhideProfile(e, hiddenProfile.hidden_profile_id)}
+                              title="Desocultar perfil"
+                            >
+                              <Eye className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+                            </div>
                           </div>
                         </div>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUnhideProfile(hiddenProfile.hidden_profile_id)}
-                          className="flex-shrink-0 border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:border-border dark:bg-background dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          <span className="hidden sm:inline">Desocultar</span>
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>

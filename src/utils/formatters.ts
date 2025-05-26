@@ -22,6 +22,30 @@ export const getUserInitials = (fullName: string): string => {
   return fullName.charAt(0).toUpperCase();
 };
 
+export const abbreviateName = (fullName: string, maxLength: number = 20): string => {
+  if (fullName.length <= maxLength) {
+    return fullName;
+  }
+
+  const nameParts = fullName.trim().split(' ');
+  
+  if (nameParts.length <= 1) {
+    return fullName.slice(0, maxLength - 3) + '...';
+  }
+
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+  
+  // Se primeiro + último nome cabem no limite
+  if ((firstName + ' ' + lastName).length <= maxLength) {
+    return `${firstName} ${lastName}`;
+  }
+  
+  // Se não cabem, abreviar o primeiro nome
+  const abbreviatedFirst = firstName.slice(0, Math.max(3, maxLength - lastName.length - 6)) + '...';
+  return `${abbreviatedFirst} ${lastName}`;
+};
+
 export const validateFileType = (file: File, allowedTypes: string[]): boolean => {
   return allowedTypes.some(type => file.type.startsWith(type));
 };
