@@ -75,6 +75,54 @@ export const usePostReports = () => {
     }
   };
 
+  const removeReport = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para retirar denúncias",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('post_reports')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('post_id', postId);
+
+      if (error) {
+        console.error('Error removing report:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao retirar denúncia",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      setReportedPosts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(postId);
+        return newSet;
+      });
+      toast({
+        title: "Denúncia retirada",
+        description: "A denúncia foi removida e o post voltará a aparecer",
+      });
+      return true;
+    } catch (error) {
+      console.error('Error removing report:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao retirar denúncia",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const isPostReported = (postId: string) => {
     return reportedPosts.has(postId);
   };
@@ -106,6 +154,7 @@ export const usePostReports = () => {
 
   return {
     reportPost,
+    removeReport,
     isPostReported,
     reportedPosts,
   };

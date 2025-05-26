@@ -11,7 +11,7 @@ export const usePostActions = (postId: string, authorId: string) => {
   const { toggleLike } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, isPostReported } = usePostReports();
+  const { reportPost, removeReport, isPostReported } = usePostReports();
   const { toast } = useToast();
 
   const isOwnPost = user?.id === authorId;
@@ -27,6 +27,11 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleReport = async () => {
     if (!isAuthenticated || isOwnPost) return;
     await reportPost(postId);
+  };
+
+  const handleRemoveReport = async () => {
+    if (!isAuthenticated || isOwnPost) return;
+    await removeReport(postId);
   };
 
   const handleSave = () => {
@@ -52,6 +57,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     isAuthenticated,
     handleLike,
     handleReport,
+    handleRemoveReport,
     handleSave,
     handleView,
   };

@@ -18,7 +18,7 @@ interface PostActionsProps {
 const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps) => {
   const { user, isAuthenticated } = useAuth();
   const { toggleLike, deletePost } = usePosts();
-  const { handleReport, handleSave, isSaved, isOwnPost } = usePostActions(postId, authorId);
+  const { handleReport, handleRemoveReport, handleSave, isSaved, isOwnPost, isReported } = usePostActions(postId, authorId);
   const { hideProfile, isProfileHidden } = useHiddenProfiles();
 
   const handleLikeClick = async (e: React.MouseEvent) => {
@@ -58,6 +58,13 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
     window.location.reload();
   };
 
+  const handleRemoveReportPost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleRemoveReport();
+    window.location.reload();
+  };
+
   const isProfileCurrentlyHidden = isProfileHidden(authorId);
 
   return (
@@ -77,9 +84,11 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
         isOwnPost={isOwnPost}
         isSaved={isSaved}
         isProfileHidden={isProfileCurrentlyHidden}
+        isReported={isReported}
         onSave={handleSavePost}
         onHideProfile={handleHideProfile}
         onReport={handleReportPost}
+        onRemoveReport={handleRemoveReportPost}
         onDelete={handleDeletePost}
       />
     </div>

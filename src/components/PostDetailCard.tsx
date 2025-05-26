@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +16,7 @@ interface PostDetailCardProps {
   isAuthenticated: boolean;
   onLike: () => void;
   onReport: () => void;
+  onRemoveReport: () => void;
   onDelete: () => void;
   onMark: () => void;
   onAuthorClick: () => void;
@@ -33,6 +33,7 @@ const PostDetailCard = ({
   isAuthenticated,
   onLike,
   onReport,
+  onRemoveReport,
   onDelete,
   onMark,
   onAuthorClick,
@@ -69,6 +70,7 @@ const PostDetailCard = ({
             isReported={isReported}
             onDelete={onDelete}
             onReport={onReport}
+            onRemoveReport={onRemoveReport}
           />
         </div>
 

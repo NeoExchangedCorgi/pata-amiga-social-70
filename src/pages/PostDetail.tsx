@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -23,7 +22,7 @@ const PostDetail = () => {
   const { toggleLike, deletePost } = usePosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, isPostReported } = usePostReports();
+  const { reportPost, removeReport, isPostReported } = usePostReports();
 
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,6 +144,14 @@ const PostDetail = () => {
   const handleReport = async () => {
     if (isAuthenticated && !isOwnPost) {
       await reportPost(post.id);
+      window.location.reload();
+    }
+  };
+
+  const handleRemoveReport = async () => {
+    if (isAuthenticated && !isOwnPost) {
+      await removeReport(post.id);
+      window.location.reload();
     }
   };
 
@@ -186,6 +193,7 @@ const PostDetail = () => {
               isAuthenticated={isAuthenticated}
               onLike={handleLike}
               onReport={handleReport}
+              onRemoveReport={handleRemoveReport}
               onDelete={handleDelete}
               onMark={handleMark}
               onAuthorClick={handleAuthorClick}
