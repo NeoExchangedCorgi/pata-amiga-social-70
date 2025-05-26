@@ -21,20 +21,38 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
   const { handleReport, handleSave, isSaved, isOwnPost } = usePostActions(postId, authorId);
   const { hideProfile, isProfileHidden } = useHiddenProfiles();
 
-  const handleLikeClick = () => {
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (isAuthenticated && !isOwnPost) {
-      toggleLike(postId);
+      await toggleLike(postId);
     }
   };
 
-  const handleDeletePost = async () => {
+  const handleDeletePost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (isOwnPost) {
       await deletePost(postId);
     }
   };
 
-  const handleHideProfile = async () => {
+  const handleHideProfile = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     await hideProfile(authorId);
+  };
+
+  const handleSavePost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleSave();
+  };
+
+  const handleReportPost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleReport();
   };
 
   const isProfileCurrentlyHidden = isProfileHidden(authorId);
@@ -56,9 +74,9 @@ const PostActions = ({ postId, authorId, likesCount, isLiked }: PostActionsProps
         isOwnPost={isOwnPost}
         isSaved={isSaved}
         isProfileHidden={isProfileCurrentlyHidden}
-        onSave={handleSave}
+        onSave={handleSavePost}
         onHideProfile={handleHideProfile}
-        onReport={handleReport}
+        onReport={handleReportPost}
         onDelete={handleDeletePost}
       />
     </div>

@@ -58,12 +58,20 @@ export const usePostsManager = () => {
   const deletePost = async (postId: string) => {
     if (!user) return false;
 
-    // Optimistic update
+    // Optimistic update - remove from local state immediately
+    const updatedPosts = filteredPosts.filter(post => post.id !== postId);
+    setFilteredPosts(updatedPosts);
     setPosts(prev => prev.filter(post => post.id !== postId));
     
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {
-      await refetch(); // Restore on failure
+      // Restore on failure
+      await refetch();
+    } else {
+      toast({
+        title: "Post excluído",
+        description: "O post foi excluído com sucesso.",
+      });
     }
     return success;
   };
@@ -78,6 +86,19 @@ export const usePostsManager = () => {
       return;
     }
 
+    // Optimistic update
+    setFilteredPosts(prev => prev.map(post => {
+      if (post.id === postId) {
+        const hasLiked = post.post_likes?.some(like => like.user_id === user.id);
+        const updatedLikes = hasLiked 
+          ? post.post_likes.filter(like => like.user_id !== user.id)
+          : [...(post.post_likes || []), { user_id: user.id }];
+        
+        return { ...post, post_likes: updatedLikes };
+      }
+      return post;
+    }));
+
     try {
       const hasLiked = await postsApi.checkUserLike(postId, user.id);
       
@@ -88,6 +109,8 @@ export const usePostsManager = () => {
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Revert optimistic update on error
+      await refetch();
     }
   };
 

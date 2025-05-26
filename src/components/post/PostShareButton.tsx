@@ -8,7 +8,10 @@ interface PostShareButtonProps {
 }
 
 const PostShareButton = ({ postId }: PostShareButtonProps) => {
-  const handleShare = () => {
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (navigator.share) {
       navigator.share({
         title: 'Post do Pata Amiga',

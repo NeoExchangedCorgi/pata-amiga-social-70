@@ -7,10 +7,18 @@ interface PostLikeButtonProps {
   likesCount: number;
   isLiked: boolean;
   isDisabled: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 const PostLikeButton = ({ likesCount, isLiked, isDisabled, onClick }: PostLikeButtonProps) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDisabled) {
+      onClick(e);
+    }
+  };
+
   return (
     <Button
       variant="ghost"
@@ -20,7 +28,7 @@ const PostLikeButton = ({ likesCount, isLiked, isDisabled, onClick }: PostLikeBu
           ? 'text-red-500 hover:text-red-600' 
           : 'text-muted-foreground hover:text-red-500'
       } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={isDisabled}
     >
       <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
