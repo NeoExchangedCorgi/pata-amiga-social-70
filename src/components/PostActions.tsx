@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePostActions } from '@/hooks/usePostActions';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
@@ -25,12 +25,20 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     handleSave, 
     handleHidePost,
     handleUnhidePost,
+    handleView,
     isSaved, 
     isOwnPost, 
     isReported,
     isHidden
   } = usePostActions(postId, authorId);
   const { hideProfile, isProfileHidden } = useHiddenProfiles();
+
+  // Registrar visualização automaticamente quando o componente é montado
+  useEffect(() => {
+    if (isAuthenticated && !isOwnPost) {
+      handleView();
+    }
+  }, [isAuthenticated, isOwnPost, handleView]);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.preventDefault();

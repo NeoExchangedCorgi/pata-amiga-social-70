@@ -81,7 +81,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isAuthenticated) {
       toast({
         title: "Acesso negado",
-        description: "Você precisa estar logado para salvar posts",
+        description: "Você precisa estar logado para marcar posts",
         variant: "destructive",
       });
       return;
@@ -90,7 +90,9 @@ export const usePostActions = (postId: string, authorId: string) => {
   };
 
   const handleView = () => {
-    addPostView(postId);
+    if (isAuthenticated) {
+      addPostView(postId);
+    }
   };
 
   return {
