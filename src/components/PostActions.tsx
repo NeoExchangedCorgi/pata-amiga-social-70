@@ -18,7 +18,7 @@ interface PostActionsProps {
 
 const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActionsProps) => {
   const { user, isAuthenticated } = useAuth();
-  const { toggleLike, deletePost } = usePosts();
+  const { deletePost } = usePosts();
   const { 
     handleReport, 
     handleRemoveReport, 
@@ -26,6 +26,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     handleHidePost,
     handleUnhidePost,
     handleView,
+    handleLike,
     isSaved, 
     isOwnPost, 
     isReported,
@@ -44,8 +45,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.preventDefault();
     e.stopPropagation();
     if (isAuthenticated && !isOwnPost) {
-      await toggleLike(postId);
-      window.location.reload();
+      await handleLike();
     }
   };
 
@@ -54,48 +54,41 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.stopPropagation();
     if (isOwnPost) {
       await deletePost(postId);
-      window.location.reload();
     }
   };
 
   const handleHideProfile = async () => {
     await hideProfile(authorId);
-    window.location.reload();
   };
 
   const handleSavePost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleSave();
-    window.location.reload();
   };
 
   const handleReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleReport();
-    window.location.reload();
   };
 
   const handleRemoveReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleRemoveReport();
-    window.location.reload();
   };
 
   const handleHidePostClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleHidePost();
-    window.location.reload();
   };
 
   const handleUnhidePostClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleUnhidePost();
-    window.location.reload();
   };
 
   const handleEditPost = (e: React.MouseEvent) => {

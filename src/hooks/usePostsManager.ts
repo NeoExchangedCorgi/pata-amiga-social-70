@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,11 +20,11 @@ export const usePostsManager = () => {
   const { isPostHidden } = useHiddenPosts();
   const { posts: allPosts, isLoading, refetch, setPosts } = usePostsData();
 
-  // Filter and sort posts
-  useEffect(() => {
+  // Memoize the filter and sort function
+  const filterAndSortPosts = useCallback((posts: Post[]) => {
     if (!user) {
       // For non-authenticated users, just apply sorting
-      const sorted = [...allPosts].sort((a, b) => {
+      return [...posts].sort((a, b) => {
         if (sortType === 'recent') {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         } else {
@@ -37,12 +38,10 @@ export const usePostsManager = () => {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         }
       });
-      setFilteredPosts(sorted);
-      return;
     }
 
     // For authenticated users, filter hidden profiles and posts, then sort
-    const filtered = allPosts
+    return posts
       .filter(post => !isProfileHidden(post.author_id))
       .filter(post => !isPostHidden(post.id))
       .sort((a, b) => {
@@ -59,9 +58,13 @@ export const usePostsManager = () => {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         }
       });
-    
+  }, [isProfileHidden, isPostHidden, user, sortType]);
+
+  // Filter and sort posts
+  useEffect(() => {
+    const filtered = filterAndSortPosts(allPosts);
     setFilteredPosts(filtered);
-  }, [allPosts, isProfileHidden, isPostHidden, user, sortType]);
+  }, [allPosts, filterAndSortPosts]);
 
   const createPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
     if (!user) {
@@ -127,12 +130,14 @@ export const usePostsManager = () => {
   const deletePost = async (postId: string) => {
     if (!user) return false;
 
+    // Update local state optimistically
     const updatedPosts = filteredPosts.filter(post => post.id !== postId);
     setFilteredPosts(updatedPosts);
     setPosts(prev => prev.filter(post => post.id !== postId));
     
     const success = await postsApi.deletePost(postId, user.id);
     if (!success) {
+      // Revert on failure
       await refetch();
     } else {
       toast({
@@ -153,6 +158,7 @@ export const usePostsManager = () => {
       return;
     }
 
+    // Update local state optimistically
     setFilteredPosts(prev => prev.map(post => {
       if (post.id === postId) {
         const hasLiked = post.post_likes?.some(like => like.user_id === user.id);
@@ -175,6 +181,7 @@ export const usePostsManager = () => {
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Revert on failure
       await refetch();
     }
   };

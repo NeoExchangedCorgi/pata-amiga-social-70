@@ -1,4 +1,5 @@
 
+import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { usePosts } from '@/hooks/usePosts';
@@ -27,57 +28,57 @@ export const usePostActions = (postId: string, authorId: string) => {
   const isCensored = isPostCensored(postId);
   const isHidden = isPostHidden(postId);
 
-  const handleLike = () => {
+  const handleLike = useCallback(async () => {
     if (!isOwnPost && isAuthenticated) {
-      toggleLike(postId);
+      await toggleLike(postId);
     }
-  };
+  }, [isOwnPost, isAuthenticated, toggleLike, postId]);
 
-  const handleEdit = async (newContent: string) => {
+  const handleEdit = useCallback(async (newContent: string) => {
     if (!isAuthenticated || !isOwnPost) return false;
     const result = await updatePost(postId, newContent);
     return !result.error;
-  };
+  }, [isAuthenticated, isOwnPost, updatePost, postId]);
 
-  const handleReport = async () => {
+  const handleReport = useCallback(async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await reportPost(postId);
     if (success) {
       setTimeout(() => refreshReports(), 100);
     }
     return success;
-  };
+  }, [isAuthenticated, isOwnPost, reportPost, postId, refreshReports]);
 
-  const handleRemoveReport = async () => {
+  const handleRemoveReport = useCallback(async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await removeReport(postId);
     if (success) {
       setTimeout(() => refreshReports(), 100);
     }
     return success;
-  };
+  }, [isAuthenticated, isOwnPost, removeReport, postId, refreshReports]);
 
-  const handleGlobalReport = async () => {
+  const handleGlobalReport = useCallback(async () => {
     if (!isAuthenticated || isOwnPost) return false;
     return await addGlobalReport(postId);
-  };
+  }, [isAuthenticated, isOwnPost, addGlobalReport, postId]);
 
-  const handleRemoveGlobalReport = async () => {
+  const handleRemoveGlobalReport = useCallback(async () => {
     if (!isAuthenticated || isOwnPost) return false;
     return await removeGlobalReport(postId);
-  };
+  }, [isAuthenticated, isOwnPost, removeGlobalReport, postId]);
 
-  const handleHidePost = async () => {
+  const handleHidePost = useCallback(async () => {
     if (!isAuthenticated || isOwnPost) return false;
     return await hidePost(postId);
-  };
+  }, [isAuthenticated, isOwnPost, hidePost, postId]);
 
-  const handleUnhidePost = async () => {
+  const handleUnhidePost = useCallback(async () => {
     if (!isAuthenticated || isOwnPost) return false;
     return await unhidePost(postId);
-  };
+  }, [isAuthenticated, isOwnPost, unhidePost, postId]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(async () => {
     if (!isAuthenticated) {
       toast({
         title: "Acesso negado",
@@ -86,14 +87,14 @@ export const usePostActions = (postId: string, authorId: string) => {
       });
       return;
     }
-    toggleSavePost(postId);
-  };
+    await toggleSavePost(postId);
+  }, [isAuthenticated, toggleSavePost, postId, toast]);
 
-  const handleView = () => {
+  const handleView = useCallback(() => {
     if (isAuthenticated) {
       addPostView(postId);
     }
-  };
+  }, [isAuthenticated, addPostView, postId]);
 
   return {
     isOwnPost,
