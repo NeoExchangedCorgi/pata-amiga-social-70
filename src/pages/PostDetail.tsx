@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -60,8 +59,8 @@ const PostDetail = () => {
         setPost(postData);
 
         // Registrar visualização
-        if (user && postData && user.id !== postData.author_id) {
-          await addPostView(postData.id);
+        if (user && postData) {
+          addPostView(postData.id);
         }
 
       } catch (error) {

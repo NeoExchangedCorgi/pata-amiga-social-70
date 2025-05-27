@@ -136,7 +136,7 @@ const PostDropdownMenu = ({
                 onSelect={(e) => e.preventDefault()}
               >
                 <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? 'fill-current' : ''}`} />
-                {isSaved ? 'Desmarcar' : 'Marcar'}
+                {isSaved ? 'Remover dos salvos' : 'Salvar post'}
               </DropdownMenuItem>
               
               {!isOwnPost && (
