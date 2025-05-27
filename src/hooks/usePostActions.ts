@@ -31,7 +31,9 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleLike = useCallback(async () => {
     if (!isOwnPost && isAuthenticated) {
       await toggleLike(postId);
+      return true;
     }
+    return false;
   }, [isOwnPost, isAuthenticated, toggleLike, postId]);
 
   const handleEdit = useCallback(async (newContent: string) => {
@@ -85,16 +87,19 @@ export const usePostActions = (postId: string, authorId: string) => {
         description: "Você precisa estar logado para marcar posts",
         variant: "destructive",
       });
-      return;
+      return false;
     }
     await toggleSavePost(postId);
+    return true;
   }, [isAuthenticated, toggleSavePost, postId, toast]);
 
-  const handleView = useCallback(() => {
-    if (isAuthenticated) {
-      addPostView(postId);
+  const handleView = useCallback(async () => {
+    if (isAuthenticated && !isOwnPost) {
+      await addPostView(postId);
+      return true;
     }
-  }, [isAuthenticated, addPostView, postId]);
+    return false;
+  }, [isAuthenticated, isOwnPost, addPostView, postId]);
 
   return {
     isOwnPost,

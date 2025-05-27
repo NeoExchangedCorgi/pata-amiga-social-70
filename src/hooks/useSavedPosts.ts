@@ -17,9 +17,13 @@ export const useSavedPosts = () => {
   const { user } = useAuth();
 
   const fetchSavedPosts = async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('saved_posts')
         .select(`
@@ -34,9 +38,6 @@ export const useSavedPosts = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           )
         `)
@@ -48,7 +49,9 @@ export const useSavedPosts = () => {
         return;
       }
 
-      setSavedPosts(data || []);
+      // Filtrar posts que ainda existem
+      const validSavedPosts = (data || []).filter(save => save.posts);
+      setSavedPosts(validSavedPosts);
     } catch (error) {
       console.error('Error fetching saved posts:', error);
     } finally {
@@ -90,15 +93,12 @@ export const useSavedPosts = () => {
               ),
               post_likes!fk_post_likes_post_id (
                 user_id
-              ),
-              comments!fk_comments_post_id (
-                id
               )
             )
           `)
           .single();
 
-        if (!error && data) {
+        if (!error && data && data.posts) {
           setSavedPosts(prev => [data, ...prev]);
         }
       }

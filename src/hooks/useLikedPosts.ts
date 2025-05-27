@@ -17,9 +17,13 @@ export const useLikedPosts = () => {
   const { user } = useAuth();
 
   const fetchLikedPosts = async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('post_likes')
         .select(`
@@ -34,9 +38,6 @@ export const useLikedPosts = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           )
         `)
@@ -48,7 +49,9 @@ export const useLikedPosts = () => {
         return;
       }
 
-      setLikedPosts(data || []);
+      // Filtrar posts que ainda existem
+      const validLikedPosts = (data || []).filter(like => like.posts);
+      setLikedPosts(validLikedPosts);
     } catch (error) {
       console.error('Error fetching liked posts:', error);
     } finally {
