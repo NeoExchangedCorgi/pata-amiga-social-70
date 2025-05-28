@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -10,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { usePosts } from '@/hooks/usePosts';
+import { useLikedPosts } from '@/hooks/useLikedPosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
@@ -19,7 +21,8 @@ const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, profile, isAuthenticated } = useAuth();
-  const { toggleLike, deletePost } = usePosts();
+  const { deletePost } = usePosts();
+  const { toggleLike } = useLikedPosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, removeReport, isPostReported } = usePostReports();
