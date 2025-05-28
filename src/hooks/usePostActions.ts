@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
-import { useReportedPosts } from '@/hooks/useReportedPosts';
+import { usePostReports } from '@/hooks/usePostReports';
 import { useHiddenPosts } from '@/hooks/useHiddenPosts';
 import { usePostsManager } from '@/hooks/usePostsManager';
 import { useUserHistory } from '@/hooks/useUserHistory';
@@ -15,7 +15,7 @@ export const usePostActions = (postId: string, authorId: string) => {
   const { updatePost } = usePostsManager();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, removeReport, isPostReported } = useReportedPosts();
+  const { reportPost, removeReport, isPostReported } = usePostReports();
   const { hidePost, unhidePost, isPostHidden } = useHiddenPosts();
   const { addToHistory } = useUserHistory();
   const { toast } = useToast();
@@ -29,7 +29,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isOwnPost && isAuthenticated) {
       await toggleLike(postId);
       await addToHistory(postId, 'like');
-      window.location.reload();
     }
   };
 
@@ -47,7 +46,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     const success = await reportPost(postId);
     if (success) {
       await addToHistory(postId, 'report');
-      window.location.reload();
     }
     return success;
   };
@@ -55,9 +53,6 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleRemoveReport = async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await removeReport(postId);
-    if (success) {
-      window.location.reload();
-    }
     return success;
   };
 
@@ -66,7 +61,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     const success = await hidePost(postId);
     if (success) {
       await addToHistory(postId, 'hide');
-      window.location.reload();
     }
     return success;
   };
@@ -74,9 +68,6 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleUnhidePost = async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await unhidePost(postId);
-    if (success) {
-      window.location.reload();
-    }
     return success;
   };
 
@@ -91,7 +82,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     }
     await toggleSavePost(postId);
     await addToHistory(postId, 'save');
-    window.location.reload();
   };
 
   const handleView = async () => {

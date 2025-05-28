@@ -14,7 +14,7 @@ const MainFeed = () => {
   if (authLoading) {
     return (
       <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
-        <div className="max-w-2xl mx-auto p-4">
+        <div className="max-w-2xl mx-auto p-2 sm:p-4">
           <div className="animate-pulse">
             <div className="h-32 bg-gray-200 rounded-lg mb-4"></div>
           </div>
@@ -24,15 +24,15 @@ const MainFeed = () => {
   }
 
   const renderEmptyState = () => (
-    <div className="text-center py-8">
-      <p className="text-muted-foreground">
+    <div className="text-center py-8 px-4">
+      <p className="text-muted-foreground text-sm sm:text-base">
         {isAuthenticated 
           ? "Nenhum post encontrado. Seja o primeiro a postar!" 
           : "Faça login para ver e criar posts sobre animais em situações críticas."
         }
       </p>
       {!isAuthenticated && (
-        <div className="mt-4">
+        <div className="mt-4 text-sm sm:text-base">
           <a href={ROUTES.SIGNUP} className="text-primary hover:underline">
             Criar conta
           </a>
@@ -60,7 +60,7 @@ const MainFeed = () => {
       <div className="max-w-2xl mx-auto">
         {isAuthenticated && (
           <div className="sticky top-16 z-40 bg-background/95 backdrop-blur">
-            <div className="p-4 pb-0">
+            <div className="p-2 sm:p-4 pb-0">
               <CreatePost />
             </div>
           </div>
@@ -68,7 +68,7 @@ const MainFeed = () => {
         
         <PostFilter currentSort={sortType} onSortChange={setSortType} />
         
-        <div className="p-4 space-y-4">
+        <div className="p-2 sm:p-4 space-y-4">
           {postsLoading ? renderLoadingState() : (
             posts.length === 0 ? renderEmptyState() : (
               posts.map((post) => (

@@ -37,7 +37,6 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.stopPropagation();
     if (isAuthenticated && !isOwnPost) {
       await toggleLike(postId);
-      window.location.reload();
     }
   };
 
@@ -59,35 +58,30 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.preventDefault();
     e.stopPropagation();
     await handleSave();
-    window.location.reload();
   };
 
   const handleReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleReport();
-    window.location.reload();
   };
 
   const handleRemoveReportPost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleRemoveReport();
-    window.location.reload();
   };
 
   const handleHidePostClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleHidePost();
-    window.location.reload();
   };
 
   const handleUnhidePostClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await handleUnhidePost();
-    window.location.reload();
   };
 
   const handleEditPost = (e: React.MouseEvent) => {
