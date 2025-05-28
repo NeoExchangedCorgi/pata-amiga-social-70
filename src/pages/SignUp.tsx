@@ -21,6 +21,15 @@ const SignUp = () => {
   const { signup, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
+  // Force refresh if user lands here after profile deletion
+  useEffect(() => {
+    const hasDeletedProfile = sessionStorage.getItem('profile_deleted');
+    if (hasDeletedProfile) {
+      sessionStorage.removeItem('profile_deleted');
+      window.location.reload();
+    }
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -55,20 +64,17 @@ const SignUp = () => {
 
   if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
-      <div>Carregando...</div>
+      <div className="animate-pulse text-lg">Carregando...</div>
     </div>;
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-foreground/20">
-        <CardHeader>
-          <AuthHeader title="Cadastro - Pata Amiga" />
-        </CardHeader>
-        
-        <CardContent>
+    <div className="min-h-screen bg-background">
+      <AuthHeader title="Cadastro - Pata Amiga" />
+      <div className="flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-4xl">
           <SignUpForm onSubmit={handleFormSubmit} />
-
+          
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Possui cadastro?{' '}
@@ -80,8 +86,8 @@ const SignUp = () => {
               </Link>
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

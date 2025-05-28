@@ -4,10 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Post } from '@/hooks/usePosts';
 
+type ActionType = 'like' | 'save' | 'report' | 'hide' | 'view';
+
 interface HistoryEntry {
   id: string;
   post_id: string;
-  action_type: 'like' | 'save' | 'report' | 'hide' | 'view';
+  action_type: ActionType;
   created_at: string;
   posts: Post;
 }
@@ -17,7 +19,7 @@ export const useUserHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  const addToHistory = async (postId: string, actionType: 'like' | 'save' | 'report' | 'hide' | 'view') => {
+  const addToHistory = async (postId: string, actionType: ActionType) => {
     if (!user) return;
 
     try {
@@ -68,7 +70,13 @@ export const useUserHistory = () => {
         return;
       }
 
-      setHistory(data || []);
+      // Type the data properly
+      const typedData = data?.map(item => ({
+        ...item,
+        action_type: item.action_type as ActionType
+      })) as HistoryEntry[];
+
+      setHistory(typedData || []);
     } catch (error) {
       console.error('Error fetching history:', error);
     } finally {
