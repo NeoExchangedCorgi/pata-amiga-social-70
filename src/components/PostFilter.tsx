@@ -38,11 +38,7 @@ const PostFilter = ({ currentSort, onSortChange }: PostFilterProps) => {
           variant={currentSort === 'reported' ? 'default' : 'outline'}
           size="sm"
           onClick={() => onSortChange('reported')}
-          className={`flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 min-w-0 flex-1 ${
-            currentSort === 'reported' 
-              ? 'bg-red-100 text-black border-red-300 hover:bg-red-200' 
-              : 'text-red-600 border-red-200 hover:bg-red-50'
-          }`}
+          className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 min-w-0 flex-1"
         >
           <Flag className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
           <span className="truncate">Denúncias</span>

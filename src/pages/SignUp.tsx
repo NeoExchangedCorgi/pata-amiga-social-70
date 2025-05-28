@@ -73,19 +73,28 @@ const SignUp = () => {
       <AuthHeader title="Cadastro - Pata Amiga" />
       <div className="flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-4xl">
-          <SignUpForm onSubmit={handleFormSubmit} />
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Possui cadastro?{' '}
-              <Link 
-                to="/login" 
-                className="text-primary hover:underline font-medium"
-              >
-                Faça o Login aqui!
-              </Link>
-            </p>
-          </div>
+          <Card className="border-foreground/20 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold text-foreground">
+                Cadastro - Pata Amiga
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SignUpForm onSubmit={handleFormSubmit} />
+              
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Possui cadastro?{' '}
+                  <Link 
+                    to="/login" 
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Faça o Login aqui!
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

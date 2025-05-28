@@ -30,6 +30,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isOwnPost && isAuthenticated) {
       const result = await toggleLike(postId);
       await addToHistory(postId, 'like');
+      window.location.reload();
       return result;
     }
   };
@@ -48,6 +49,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     const success = await reportPost(postId);
     if (success) {
       await addToHistory(postId, 'report');
+      window.location.reload();
     }
     return success;
   };
@@ -55,6 +57,9 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleRemoveReport = async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await removeReport(postId);
+    if (success) {
+      window.location.reload();
+    }
     return success;
   };
 
@@ -63,6 +68,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     const success = await hidePost(postId);
     if (success) {
       await addToHistory(postId, 'hide');
+      window.location.reload();
     }
     return success;
   };
@@ -70,6 +76,9 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleUnhidePost = async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await unhidePost(postId);
+    if (success) {
+      window.location.reload();
+    }
     return success;
   };
 
@@ -84,6 +93,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     }
     const result = await toggleSavePost(postId);
     await addToHistory(postId, 'save');
+    window.location.reload();
     return result;
   };
 
