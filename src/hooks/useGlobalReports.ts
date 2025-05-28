@@ -5,14 +5,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useGlobalReports = () => {
-  const [globalReportedPosts, setGlobalReportedPosts] = useState<Set<string>>(new Set());
+  const [reportedPosts, setReportedPosts] = useState<Set<string>>(new Set());
   const [postReportCounts, setPostReportCounts] = useState<Map<string, number>>(new Map());
   const { user } = useAuth();
   const { toast } = useToast();
 
   const fetchGlobalReports = async () => {
     if (!user) {
-      setGlobalReportedPosts(new Set());
+      setReportedPosts(new Set());
       setPostReportCounts(new Map());
       return;
     }
@@ -20,25 +20,25 @@ export const useGlobalReports = () => {
     try {
       // Buscar posts denunciados pelo usuário atual
       const { data: userReports, error: userReportsError } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .select('post_id')
         .eq('user_id', user.id);
 
       if (userReportsError) {
-        console.error('Error fetching user global reports:', userReportsError);
+        console.error('Error fetching user reports:', userReportsError);
         return;
       }
 
       const userReportedPostIds = new Set(userReports?.map(report => report.post_id) || []);
-      setGlobalReportedPosts(userReportedPostIds);
+      setReportedPosts(userReportedPostIds);
 
       // Buscar contagem de denúncias para todos os posts
       const { data: allReports, error: allReportsError } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .select('post_id');
 
       if (allReportsError) {
-        console.error('Error fetching all global reports:', allReportsError);
+        console.error('Error fetching all reports:', allReportsError);
         return;
       }
 
@@ -67,14 +67,14 @@ export const useGlobalReports = () => {
 
     try {
       const { error } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .insert({
           user_id: user.id,
           post_id: postId,
         });
 
       if (error) {
-        console.error('Error creating global report:', error);
+        console.error('Error creating report:', error);
         toast({
           title: "Erro",
           description: "Erro ao denunciar post",
@@ -83,8 +83,7 @@ export const useGlobalReports = () => {
         return false;
       }
 
-      // Atualizar estado local
-      setGlobalReportedPosts(prev => new Set([...prev, postId]));
+      setReportedPosts(prev => new Set([...prev, postId]));
       setPostReportCounts(prev => {
         const newCounts = new Map(prev);
         const currentCount = newCounts.get(postId) || 0;
@@ -98,7 +97,7 @@ export const useGlobalReports = () => {
       });
       return true;
     } catch (error) {
-      console.error('Error creating global report:', error);
+      console.error('Error creating report:', error);
       toast({
         title: "Erro",
         description: "Erro ao denunciar post",
@@ -120,13 +119,13 @@ export const useGlobalReports = () => {
 
     try {
       const { error } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .delete()
         .eq('user_id', user.id)
         .eq('post_id', postId);
 
       if (error) {
-        console.error('Error removing global report:', error);
+        console.error('Error removing report:', error);
         toast({
           title: "Erro",
           description: "Erro ao retirar denúncia",
@@ -135,8 +134,7 @@ export const useGlobalReports = () => {
         return false;
       }
 
-      // Atualizar estado local
-      setGlobalReportedPosts(prev => {
+      setReportedPosts(prev => {
         const newSet = new Set(prev);
         newSet.delete(postId);
         return newSet;
@@ -159,7 +157,7 @@ export const useGlobalReports = () => {
       });
       return true;
     } catch (error) {
-      console.error('Error removing global report:', error);
+      console.error('Error removing report:', error);
       toast({
         title: "Erro",
         description: "Erro ao retirar denúncia",
@@ -170,7 +168,7 @@ export const useGlobalReports = () => {
   };
 
   const isPostGloballyReported = (postId: string) => {
-    return globalReportedPosts.has(postId);
+    return reportedPosts.has(postId);
   };
 
   const getPostReportCount = (postId: string) => {
@@ -178,13 +176,12 @@ export const useGlobalReports = () => {
   };
 
   const isPostCensored = (postId: string) => {
-    return getPostReportCount(postId) >= 1; // Censurado a partir da primeira denúncia
+    return getPostReportCount(postId) >= 1;
   };
 
   useEffect(() => {
     fetchGlobalReports();
 
-    // Configurar realtime para denúncias globais
     const channel = supabase
       .channel('global-reports-changes')
       .on(
@@ -192,7 +189,7 @@ export const useGlobalReports = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'post_global_reports'
+          table: 'post_reports'
         },
         () => {
           fetchGlobalReports();

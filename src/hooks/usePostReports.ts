@@ -17,7 +17,7 @@ export const usePostReports = () => {
 
     try {
       const { data, error } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .select('post_id')
         .eq('user_id', user.id);
 
@@ -45,7 +45,7 @@ export const usePostReports = () => {
 
     try {
       const { error } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .insert({
           user_id: user.id,
           post_id: postId,
@@ -61,12 +61,11 @@ export const usePostReports = () => {
         return false;
       }
 
-      // Atualizar estado local imediatamente
       setReportedPosts(prev => new Set([...prev, postId]));
       
       toast({
         title: "Post denunciado",
-        description: "O post foi denunciado e será borrado para você",
+        description: "O post foi denunciado e será movido para a seção de posts denunciados",
       });
       return true;
     } catch (error) {
@@ -92,7 +91,7 @@ export const usePostReports = () => {
 
     try {
       const { error } = await supabase
-        .from('post_global_reports')
+        .from('post_reports')
         .delete()
         .eq('user_id', user.id)
         .eq('post_id', postId);
@@ -107,7 +106,6 @@ export const usePostReports = () => {
         return false;
       }
 
-      // Atualizar estado local imediatamente
       setReportedPosts(prev => {
         const newSet = new Set(prev);
         newSet.delete(postId);
@@ -134,7 +132,6 @@ export const usePostReports = () => {
     return reportedPosts.has(postId);
   };
 
-  // Função para forçar atualização do cache
   const refreshReports = () => {
     fetchReportedPosts();
   };
@@ -142,7 +139,6 @@ export const usePostReports = () => {
   useEffect(() => {
     fetchReportedPosts();
 
-    // Configurar realtime para denúncias
     const channel = supabase
       .channel('reports-changes')
       .on(
@@ -150,7 +146,7 @@ export const usePostReports = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'post_global_reports',
+          table: 'post_reports',
           filter: `user_id=eq.${user?.id}`
         },
         () => {

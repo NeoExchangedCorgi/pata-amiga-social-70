@@ -40,6 +40,20 @@ const PostDetailCard = ({
   onAuthorClick,
   formatTimeAgo
 }: PostDetailCardProps) => {
+  const postActions = {
+    isOwnPost,
+    isSaved,
+    isReported,
+    isHidden: false,
+    isAuthenticated,
+    handleSave: onMark,
+    handleReport: onReport,
+    handleRemoveReport: onRemoveReport,
+    handleHidePost: () => {},
+    handleUnhidePost: () => {},
+    handleEdit: () => {}
+  };
+
   return (
     <Card className="border-foreground/20">
       <CardContent className="p-6">
@@ -79,9 +93,9 @@ const PostDetailCard = ({
           content={post.content}
           mediaUrl={post.media_url}
           mediaType={post.media_type}
-          isReported={isReported}
           postId={post.id}
           authorId={post.author_id}
+          postActions={postActions}
         />
 
         <PostMetrics
