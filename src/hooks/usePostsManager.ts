@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
@@ -7,23 +8,80 @@ import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
 import { useHiddenPosts } from '@/hooks/useHiddenPosts';
 import { usePostsData } from './usePostsData';
 
-export type SortType = 'likes' | 'recent';
+export type SortType = 'likes' | 'recent' | 'reported';
 
 export const usePostsManager = () => {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [sortType, setSortType] = useState<SortType>('likes');
+  const [reportedPosts, setReportedPosts] = useState<Post[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const { isProfileHidden } = useHiddenProfiles();
   const { isPostHidden } = useHiddenPosts();
   const { posts: allPosts, isLoading, refetch, setPosts } = usePostsData();
 
+  // Fetch reported posts
+  const fetchReportedPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('post_reports')
+        .select(`
+          *,
+          posts!fk_post_reports_post_id (
+            *,
+            profiles!fk_posts_author_id (
+              id,
+              username,
+              full_name,
+              avatar_url
+            ),
+            post_likes!fk_post_likes_post_id (
+              user_id
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching reported posts:', error);
+        return;
+      }
+
+      // Get unique posts from reports
+      const uniquePosts = data?.reduce((acc, report) => {
+        if (report.posts && !acc.find(p => p.id === report.posts.id)) {
+          acc.push(report.posts);
+        }
+        return acc;
+      }, [] as Post[]) || [];
+
+      setReportedPosts(uniquePosts);
+    } catch (error) {
+      console.error('Error fetching reported posts:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchReportedPosts();
+  }, []);
+
   // Filter and sort posts
   useEffect(() => {
+    if (sortType === 'reported') {
+      setFilteredPosts(reportedPosts);
+      return;
+    }
+
+    let postsToFilter = allPosts;
+
+    // Remove reported posts from main feed
+    const reportedPostIds = new Set(reportedPosts.map(p => p.id));
+    postsToFilter = allPosts.filter(post => !reportedPostIds.has(post.id));
+
     if (!user) {
       // For non-authenticated users, just apply sorting
-      const sorted = [...allPosts].sort((a, b) => {
+      const sorted = [...postsToFilter].sort((a, b) => {
         if (sortType === 'recent') {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         } else {
@@ -42,7 +100,7 @@ export const usePostsManager = () => {
     }
 
     // For authenticated users, filter hidden profiles and posts, then sort
-    const filtered = allPosts
+    const filtered = postsToFilter
       .filter(post => !isProfileHidden(post.author_id))
       .filter(post => !isPostHidden(post.id))
       .sort((a, b) => {
@@ -61,7 +119,7 @@ export const usePostsManager = () => {
       });
     
     setFilteredPosts(filtered);
-  }, [allPosts, isProfileHidden, isPostHidden, user, sortType]);
+  }, [allPosts, reportedPosts, isProfileHidden, isPostHidden, user, sortType]);
 
   const createPost = async (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => {
     if (!user) {
@@ -189,6 +247,9 @@ export const usePostsManager = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, () => {
         refetch();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_reports' }, () => {
+        fetchReportedPosts();
+      })
       .subscribe();
 
     return () => {
@@ -205,6 +266,9 @@ export const usePostsManager = () => {
     updatePost,
     deletePost,
     toggleLike,
-    refetch,
+    refetch: () => {
+      refetch();
+      fetchReportedPosts();
+    },
   };
 };

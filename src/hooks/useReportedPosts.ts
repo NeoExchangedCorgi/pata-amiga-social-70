@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import type { Post } from '@/hooks/usePosts';
 
 interface ReportedPost {
@@ -16,6 +17,7 @@ export const useReportedPosts = () => {
   const [reportedPosts, setReportedPosts] = useState<ReportedPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchReportedPosts = async () => {
     try {
@@ -33,9 +35,6 @@ export const useReportedPosts = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           )
         `)
@@ -55,7 +54,14 @@ export const useReportedPosts = () => {
   };
 
   const reportPost = async (postId: string) => {
-    if (!user) return false;
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para denunciar posts",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     try {
       const { error } = await supabase
@@ -65,19 +71,42 @@ export const useReportedPosts = () => {
           post_id: postId,
         });
 
-      if (!error) {
-        await fetchReportedPosts();
-        return true;
+      if (error) {
+        console.error('Error reporting post:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao denunciar post",
+          variant: "destructive",
+        });
+        return false;
       }
-      return false;
+
+      toast({
+        title: "Post denunciado",
+        description: "O post foi denunciado e movido para a seção 'Denunciados'",
+      });
+      await fetchReportedPosts();
+      return true;
     } catch (error) {
       console.error('Error reporting post:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao denunciar post",
+        variant: "destructive",
+      });
       return false;
     }
   };
 
   const removeReport = async (postId: string) => {
-    if (!user) return false;
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para retirar denúncias",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     try {
       const { error } = await supabase
@@ -86,13 +115,29 @@ export const useReportedPosts = () => {
         .eq('user_id', user.id)
         .eq('post_id', postId);
 
-      if (!error) {
-        await fetchReportedPosts();
-        return true;
+      if (error) {
+        console.error('Error removing report:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao retirar denúncia",
+          variant: "destructive",
+        });
+        return false;
       }
-      return false;
+
+      toast({
+        title: "Denúncia retirada",
+        description: "A denúncia foi removida",
+      });
+      await fetchReportedPosts();
+      return true;
     } catch (error) {
       console.error('Error removing report:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao retirar denúncia",
+        variant: "destructive",
+      });
       return false;
     }
   };

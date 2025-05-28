@@ -69,15 +69,12 @@ const DeleteProfile = () => {
 
       toast({
         title: "Perfil deletado",
-        description: "Seu perfil foi deletado com sucesso. Redirecionando...",
+        description: "Seu perfil foi deletado com sucesso.",
       });
 
-      // Redirecionar imediatamente para a página de cadastro
-      navigate('/signup');
-      // Forçar reload para garantir que não há conflitos
-      setTimeout(() => {
-        window.location.href = '/signup';
-      }, 1000);
+      // Mark that profile was deleted and redirect immediately
+      sessionStorage.setItem('profile_deleted', 'true');
+      window.location.href = '/signup';
 
     } catch (error) {
       console.error('Error deleting profile:', error);

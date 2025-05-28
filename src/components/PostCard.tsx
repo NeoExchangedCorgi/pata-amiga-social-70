@@ -18,15 +18,15 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { handleView, isReported, handleEdit } = usePostActions(post.id, post.author_id);
+  const postActions = usePostActions(post.id, post.author_id);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
 
-  // Registrar visualização quando o card é montado
+  // Register view when card is mounted
   useEffect(() => {
-    handleView();
+    postActions.handleView();
   }, []);
 
   const handleAuthorClick = () => {
@@ -45,7 +45,7 @@ const PostCard = ({ post }: PostCardProps) => {
   };
 
   const handleSaveEdit = async (newContent: string) => {
-    return await handleEdit(newContent);
+    return await postActions.handleEdit(newContent);
   };
 
   return (
@@ -67,9 +67,9 @@ const PostCard = ({ post }: PostCardProps) => {
             content={post.content}
             mediaUrl={post.media_url}
             mediaType={post.media_type}
-            isReported={isReported}
             postId={post.id}
             authorId={post.author_id}
+            postActions={postActions}
           />
           
           <PostActions

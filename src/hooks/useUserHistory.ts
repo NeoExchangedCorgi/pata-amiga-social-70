@@ -57,9 +57,6 @@ export const useUserHistory = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           )
         `)
