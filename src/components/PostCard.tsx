@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePostActions } from '@/hooks/usePostActions';
+import { useLikedPosts } from '@/hooks/useLikedPosts';
 import { ROUTES } from '@/constants/app';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
@@ -19,9 +20,10 @@ const PostCard = ({ post }: PostCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const postActions = usePostActions(post.id, post.author_id);
+  const { isPostLiked } = useLikedPosts();
   const [showEditDialog, setShowEditDialog] = useState(false);
 
-  const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
+  const isLiked = isPostLiked(post.id);
   const likesCount = post.post_likes?.length || 0;
 
   // Register view when card is mounted

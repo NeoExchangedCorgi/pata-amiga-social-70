@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePostActions } from '@/hooks/usePostActions';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
 import { usePosts } from '@/hooks/usePosts';
+import { useLikedPosts } from '@/hooks/useLikedPosts';
 import PostLikeButton from './post/PostLikeButton';
 import PostShareButton from './post/PostShareButton';
 import PostDropdownMenu from './post/PostDropdownMenu';
@@ -18,7 +19,8 @@ interface PostActionsProps {
 
 const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActionsProps) => {
   const { user, isAuthenticated } = useAuth();
-  const { toggleLike, deletePost } = usePosts();
+  const { deletePost } = usePosts();
+  const { toggleLike } = useLikedPosts();
   const { 
     handleReport, 
     handleRemoveReport, 

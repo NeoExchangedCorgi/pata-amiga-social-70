@@ -14,7 +14,7 @@ const MainFeed = () => {
   if (authLoading) {
     return (
       <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
-        <div className="max-w-2xl mx-auto p-2 sm:p-4">
+        <div className="max-w-2xl mx-auto p-1 sm:p-2">
           <div className="animate-pulse">
             <div className="h-32 bg-gray-200 rounded-lg mb-4"></div>
           </div>
@@ -24,15 +24,15 @@ const MainFeed = () => {
   }
 
   const renderEmptyState = () => (
-    <div className="text-center py-8 px-4">
-      <p className="text-muted-foreground text-sm sm:text-base">
+    <div className="text-center py-6 px-2 sm:px-4">
+      <p className="text-muted-foreground text-sm">
         {isAuthenticated 
           ? "Nenhum post encontrado. Seja o primeiro a postar!" 
           : "Faça login para ver e criar posts sobre animais em situações críticas."
         }
       </p>
       {!isAuthenticated && (
-        <div className="mt-4 text-sm sm:text-base">
+        <div className="mt-3 text-sm">
           <a href={ROUTES.SIGNUP} className="text-primary hover:underline">
             Criar conta
           </a>
@@ -46,10 +46,10 @@ const MainFeed = () => {
   );
 
   const renderLoadingState = () => (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {[1, 2, 3].map((i) => (
         <div key={i} className="animate-pulse">
-          <div className="bg-gray-200 rounded-lg h-48"></div>
+          <div className="bg-gray-200 rounded-lg h-40 sm:h-48"></div>
         </div>
       ))}
     </div>
@@ -60,7 +60,7 @@ const MainFeed = () => {
       <div className="max-w-2xl mx-auto">
         {isAuthenticated && (
           <div className="sticky top-16 z-40 bg-background/95 backdrop-blur">
-            <div className="p-2 sm:p-4 pb-0">
+            <div className="p-1 sm:p-2 pb-0">
               <CreatePost />
             </div>
           </div>
@@ -68,7 +68,7 @@ const MainFeed = () => {
         
         <PostFilter currentSort={sortType} onSortChange={setSortType} />
         
-        <div className="p-2 sm:p-4 space-y-4">
+        <div className="p-1 sm:p-2 space-y-3 sm:space-y-4">
           {postsLoading ? renderLoadingState() : (
             posts.length === 0 ? renderEmptyState() : (
               posts.map((post) => (

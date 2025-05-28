@@ -201,42 +201,6 @@ export const usePostsManager = () => {
     return success;
   };
 
-  const toggleLike = async (postId: string) => {
-    if (!user) {
-      toast({
-        title: "Erro",
-        description: "Você precisa estar logado para curtir posts",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setFilteredPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        const hasLiked = post.post_likes?.some(like => like.user_id === user.id);
-        const updatedLikes = hasLiked 
-          ? post.post_likes.filter(like => like.user_id !== user.id)
-          : [...(post.post_likes || []), { user_id: user.id }];
-        
-        return { ...post, post_likes: updatedLikes };
-      }
-      return post;
-    }));
-
-    try {
-      const hasLiked = await postsApi.checkUserLike(postId, user.id);
-      
-      if (hasLiked) {
-        await postsApi.removeLike(postId, user.id);
-      } else {
-        await postsApi.addLike(postId, user.id);
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      await refetch();
-    }
-  };
-
   // Set up realtime subscriptions
   useEffect(() => {
     const postsChannel = supabase
@@ -265,7 +229,6 @@ export const usePostsManager = () => {
     createPost,
     updatePost,
     deletePost,
-    toggleLike,
     refetch: () => {
       refetch();
       fetchReportedPosts();

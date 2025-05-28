@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import type { Post } from '@/hooks/usePosts';
 
 interface SavedPost {
@@ -15,9 +16,14 @@ export const useSavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchSavedPosts = async () => {
-    if (!user) return;
+    if (!user) {
+      setSavedPosts([]);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -34,9 +40,6 @@ export const useSavedPosts = () => {
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           )
         `)
@@ -45,6 +48,11 @@ export const useSavedPosts = () => {
 
       if (error) {
         console.error('Error fetching saved posts:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar posts marcados",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -57,53 +65,61 @@ export const useSavedPosts = () => {
   };
 
   const toggleSavePost = async (postId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa estar logado para marcar posts",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     try {
       const existingSave = savedPosts.find(save => save.post_id === postId);
       
       if (existingSave) {
+        // Remove save
         const { error } = await supabase
           .from('saved_posts')
           .delete()
-          .eq('id', existingSave.id);
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
 
-        if (!error) {
-          setSavedPosts(prev => prev.filter(save => save.id !== existingSave.id));
+        if (error) {
+          console.error('Error removing save:', error);
+          return false;
         }
+
+        setSavedPosts(prev => prev.filter(save => save.post_id !== postId));
+        toast({
+          title: "Post desmarcado",
+          description: "O post foi removido das suas marcações",
+        });
+        return false; // unsaved
       } else {
-        const { data, error } = await supabase
+        // Add save
+        const { error } = await supabase
           .from('saved_posts')
           .insert({
-            user_id: user.id,
             post_id: postId,
-          })
-          .select(`
-            *,
-            posts!fk_saved_posts_post_id (
-              *,
-              profiles!fk_posts_author_id (
-                id,
-                username,
-                full_name,
-                avatar_url
-              ),
-              post_likes!fk_post_likes_post_id (
-                user_id
-              ),
-              comments!fk_comments_post_id (
-                id
-              )
-            )
-          `)
-          .single();
+            user_id: user.id,
+          });
 
-        if (!error && data) {
-          setSavedPosts(prev => [data, ...prev]);
+        if (error) {
+          console.error('Error adding save:', error);
+          return false;
         }
+
+        await fetchSavedPosts(); // Refresh to get the complete data
+        toast({
+          title: "Post marcado",
+          description: "O post foi adicionado às suas marcações",
+        });
+        return true; // saved
       }
     } catch (error) {
       console.error('Error toggling save:', error);
+      return false;
     }
   };
 
@@ -113,6 +129,27 @@ export const useSavedPosts = () => {
 
   useEffect(() => {
     fetchSavedPosts();
+  }, [user]);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('saved_posts_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'saved_posts',
+        filter: `user_id=eq.${user.id}`
+      }, () => {
+        fetchSavedPosts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return {

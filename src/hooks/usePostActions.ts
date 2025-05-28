@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { usePosts } from '@/hooks/usePosts';
+import { useLikedPosts } from '@/hooks/useLikedPosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
@@ -11,8 +11,8 @@ import { useUserHistory } from '@/hooks/useUserHistory';
 
 export const usePostActions = (postId: string, authorId: string) => {
   const { user, isAuthenticated } = useAuth();
-  const { toggleLike } = usePosts();
   const { updatePost } = usePostsManager();
+  const { toggleLike, isPostLiked } = useLikedPosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
   const { reportPost, removeReport, isPostReported } = usePostReports();
@@ -24,11 +24,13 @@ export const usePostActions = (postId: string, authorId: string) => {
   const isSaved = isPostSaved(postId);
   const isReported = isPostReported(postId);
   const isHidden = isPostHidden(postId);
+  const isLiked = isPostLiked(postId);
 
   const handleLike = async () => {
     if (!isOwnPost && isAuthenticated) {
-      await toggleLike(postId);
+      const result = await toggleLike(postId);
       await addToHistory(postId, 'like');
+      return result;
     }
   };
 
@@ -80,8 +82,9 @@ export const usePostActions = (postId: string, authorId: string) => {
       });
       return;
     }
-    await toggleSavePost(postId);
+    const result = await toggleSavePost(postId);
     await addToHistory(postId, 'save');
+    return result;
   };
 
   const handleView = async () => {
@@ -94,6 +97,7 @@ export const usePostActions = (postId: string, authorId: string) => {
     isSaved,
     isReported,
     isHidden,
+    isLiked,
     isAuthenticated,
     handleLike,
     handleEdit,
