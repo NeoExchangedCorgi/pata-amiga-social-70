@@ -5,10 +5,10 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostCard from '@/components/PostCard';
-import { useUserHistory } from '@/hooks/useUserHistory';
+import { useReportedPosts } from '@/hooks/useReportedPosts';
 
-const History = () => {
-  const { history, isLoading } = useUserHistory();
+const ReportedPosts = () => {
+  const { reportedPosts, isLoading } = useReportedPosts();
 
   if (isLoading) {
     return (
@@ -35,31 +35,13 @@ const History = () => {
     );
   }
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      return 'agora';
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h atrás`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d atrás`;
+  // Agrupar posts por ID para evitar duplicatas
+  const uniquePosts = reportedPosts.reduce((acc, report) => {
+    if (!acc.find(item => item.posts.id === report.posts.id)) {
+      acc.push(report);
     }
-  };
-
-  const getActionLabel = (actionType: string) => {
-    switch (actionType) {
-      case 'like': return 'Curtiu';
-      case 'save': return 'Marcou';
-      case 'report': return 'Denunciou';
-      case 'hide': return 'Ocultou';
-      case 'view': return 'Visualizou';
-      default: return 'Interagiu';
-    }
-  };
+    return acc;
+  }, [] as typeof reportedPosts);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,24 +50,19 @@ const History = () => {
         <LeftSidebar />
         <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
           <div className="max-w-2xl mx-auto p-4 space-y-4">
-            <h1 className="text-2xl font-bold text-foreground mb-6">Histórico</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-6">Posts Denunciados</h1>
             
             <div className="space-y-4">
-              {history.length === 0 ? (
+              {uniquePosts.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">
-                    Nenhuma interação registrada ainda.
+                    Nenhum post foi denunciado ainda.
                   </p>
                 </div>
               ) : (
-                history.map(entry => (
-                  <div key={entry.id} className="animate-fade-in">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs text-muted-foreground">
-                        {getActionLabel(entry.action_type)} • {formatTimeAgo(entry.created_at)}
-                      </div>
-                    </div>
-                    <PostCard post={entry.posts} />
+                uniquePosts.map(report => (
+                  <div key={report.id} className="animate-fade-in">
+                    <PostCard post={report.posts} />
                   </div>
                 ))
               )}
@@ -99,4 +76,4 @@ const History = () => {
   );
 };
 
-export default History;
+export default ReportedPosts;

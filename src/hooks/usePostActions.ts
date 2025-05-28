@@ -4,10 +4,10 @@ import { useToast } from '@/hooks/use-toast';
 import { usePosts } from '@/hooks/usePosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
-import { usePostReports } from '@/hooks/usePostReports';
-import { useGlobalReports } from '@/hooks/useGlobalReports';
+import { useReportedPosts } from '@/hooks/useReportedPosts';
 import { useHiddenPosts } from '@/hooks/useHiddenPosts';
 import { usePostsManager } from '@/hooks/usePostsManager';
+import { useUserHistory } from '@/hooks/useUserHistory';
 
 export const usePostActions = (postId: string, authorId: string) => {
   const { user, isAuthenticated } = useAuth();
@@ -15,27 +15,30 @@ export const usePostActions = (postId: string, authorId: string) => {
   const { updatePost } = usePostsManager();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
-  const { reportPost, removeReport, isPostReported, refreshReports } = usePostReports();
-  const { addGlobalReport, removeGlobalReport, isPostGloballyReported, isPostCensored } = useGlobalReports();
+  const { reportPost, removeReport, isPostReported } = useReportedPosts();
   const { hidePost, unhidePost, isPostHidden } = useHiddenPosts();
+  const { addToHistory } = useUserHistory();
   const { toast } = useToast();
 
   const isOwnPost = user?.id === authorId;
   const isSaved = isPostSaved(postId);
   const isReported = isPostReported(postId);
-  const isGloballyReported = isPostGloballyReported(postId);
-  const isCensored = isPostCensored(postId);
   const isHidden = isPostHidden(postId);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!isOwnPost && isAuthenticated) {
-      toggleLike(postId);
+      await toggleLike(postId);
+      await addToHistory(postId, 'like');
+      window.location.reload();
     }
   };
 
   const handleEdit = async (newContent: string) => {
     if (!isAuthenticated || !isOwnPost) return false;
     const result = await updatePost(postId, newContent);
+    if (!result.error) {
+      window.location.reload();
+    }
     return !result.error;
   };
 
@@ -43,7 +46,8 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await reportPost(postId);
     if (success) {
-      setTimeout(() => refreshReports(), 100);
+      await addToHistory(postId, 'report');
+      window.location.reload();
     }
     return success;
   };
@@ -52,61 +56,59 @@ export const usePostActions = (postId: string, authorId: string) => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await removeReport(postId);
     if (success) {
-      setTimeout(() => refreshReports(), 100);
+      window.location.reload();
     }
     return success;
   };
 
-  const handleGlobalReport = async () => {
-    if (!isAuthenticated || isOwnPost) return false;
-    return await addGlobalReport(postId);
-  };
-
-  const handleRemoveGlobalReport = async () => {
-    if (!isAuthenticated || isOwnPost) return false;
-    return await removeGlobalReport(postId);
-  };
-
   const handleHidePost = async () => {
     if (!isAuthenticated || isOwnPost) return false;
-    return await hidePost(postId);
+    const success = await hidePost(postId);
+    if (success) {
+      await addToHistory(postId, 'hide');
+      window.location.reload();
+    }
+    return success;
   };
 
   const handleUnhidePost = async () => {
     if (!isAuthenticated || isOwnPost) return false;
-    return await unhidePost(postId);
+    const success = await unhidePost(postId);
+    if (success) {
+      window.location.reload();
+    }
+    return success;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isAuthenticated) {
       toast({
         title: "Acesso negado",
-        description: "Você precisa estar logado para salvar posts",
+        description: "Você precisa estar logado para marcar posts",
         variant: "destructive",
       });
       return;
     }
-    toggleSavePost(postId);
+    await toggleSavePost(postId);
+    await addToHistory(postId, 'save');
+    window.location.reload();
   };
 
-  const handleView = () => {
-    addPostView(postId);
+  const handleView = async () => {
+    await addPostView(postId);
+    await addToHistory(postId, 'view');
   };
 
   return {
     isOwnPost,
     isSaved,
     isReported,
-    isGloballyReported,
-    isCensored,
     isHidden,
     isAuthenticated,
     handleLike,
     handleEdit,
     handleReport,
     handleRemoveReport,
-    handleGlobalReport,
-    handleRemoveGlobalReport,
     handleHidePost,
     handleUnhidePost,
     handleSave,

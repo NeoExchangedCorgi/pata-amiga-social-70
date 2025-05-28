@@ -3,60 +3,48 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import Notifications from "./pages/Notifications";
+import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
-import DeleteProfile from "./pages/DeleteProfile";
-import Likes from "./pages/Likes";
-import History from "./pages/History";
-import Search from "./pages/Search";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
-import HiddenProfiles from "./pages/HiddenProfiles";
+import Likes from "./pages/Likes";
 import Marcacoes from "./pages/Marcacoes";
-import ContactOng from "./pages/ContactOng";
+import History from "./pages/History";
+import HiddenProfiles from "./pages/HiddenProfiles";
+import DeleteProfile from "./pages/DeleteProfile";
+import ReportedPosts from "./pages/ReportedPosts";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/delete-profile" element={<DeleteProfile />} />
-              <Route path="/likes" element={<Likes />} />
-              <Route path="/history" element={<History />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/post/:id" element={<PostDetail />} />
-              <Route path="/user/:username" element={<UserProfile />} />
-              <Route path="/hidden-profiles" element={<HiddenProfiles />} />
-              <Route path="/marcacoes" element={<Marcacoes />} />
-              <Route path="/contact-ong" element={<ContactOng />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/delete-profile" element={<DeleteProfile />} />
+            <Route path="/post/:id" element={<PostDetail />} />
+            <Route path="/user/:username" element={<UserProfile />} />
+            <Route path="/likes" element={<Likes />} />
+            <Route path="/marcacoes" element={<Marcacoes />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/hidden" element={<HiddenProfiles />} />
+            <Route path="/reported-posts" element={<ReportedPosts />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

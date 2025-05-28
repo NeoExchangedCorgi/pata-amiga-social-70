@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +24,11 @@ const PostCard = ({ post }: PostCardProps) => {
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
 
+  // Registrar visualização quando o card é montado
+  useEffect(() => {
+    handleView();
+  }, []);
+
   const handleAuthorClick = () => {
     navigate(ROUTES.USER_PROFILE(post.profiles.username));
   };
@@ -32,7 +37,6 @@ const PostCard = ({ post }: PostCardProps) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
       return;
     }
-    handleView();
     navigate(ROUTES.POST_DETAIL(post.id));
   };
 
@@ -47,7 +51,7 @@ const PostCard = ({ post }: PostCardProps) => {
   return (
     <>
       <Card 
-        className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors cursor-pointer"
+        className="border-border/50 hover:border-pata-blue-light/30 dark:hover:border-pata-blue-dark/30 transition-colors cursor-pointer relative"
         onClick={handlePostClick}
       >
         <CardHeader className="pb-3">

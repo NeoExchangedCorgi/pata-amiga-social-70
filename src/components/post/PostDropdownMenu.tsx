@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,7 @@ const PostDropdownMenu = ({
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground absolute top-3 right-3"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -136,7 +137,7 @@ const PostDropdownMenu = ({
                 onSelect={(e) => e.preventDefault()}
               >
                 <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? 'fill-current' : ''}`} />
-                {isSaved ? 'Remover dos salvos' : 'Salvar post'}
+                {isSaved ? 'Desmarcar post' : 'Marcar post'}
               </DropdownMenuItem>
               
               {!isOwnPost && (
@@ -245,7 +246,7 @@ const PostDropdownMenu = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Denunciar post</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao denunciar este post, ele será ocultado do seu feed e você não verá mais posts deste autor. 
+              Ao denunciar este post, ele será movido para a seção "Denunciados" onde ficará visível publicamente. 
               Esta ação pode ser desfeita posteriormente através do menu "Retirar denúncia".
             </AlertDialogDescription>
           </AlertDialogHeader>

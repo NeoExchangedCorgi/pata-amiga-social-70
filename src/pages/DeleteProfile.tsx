@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,7 +36,6 @@ const DeleteProfile = () => {
     setIsDeleting(true);
 
     try {
-      // Get the current session to include the JWT token
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -47,7 +47,6 @@ const DeleteProfile = () => {
         return;
       }
 
-      // Call the Edge Function to delete the user account
       const response = await fetch(`https://yreltrccpkraxsbmwlyg.supabase.co/functions/v1/delete-user-account`, {
         method: 'POST',
         headers: {
@@ -70,13 +69,15 @@ const DeleteProfile = () => {
 
       toast({
         title: "Perfil deletado",
-        description: "Seu perfil foi deletado com sucesso. Você será redirecionado para o cadastro.",
+        description: "Seu perfil foi deletado com sucesso. Redirecionando...",
       });
 
-      // Redirect to signup page after a short delay
+      // Redirecionar imediatamente para a página de cadastro
+      navigate('/signup');
+      // Forçar reload para garantir que não há conflitos
       setTimeout(() => {
-        navigate('/signup');
-      }, 2000);
+        window.location.href = '/signup';
+      }, 1000);
 
     } catch (error) {
       console.error('Error deleting profile:', error);
