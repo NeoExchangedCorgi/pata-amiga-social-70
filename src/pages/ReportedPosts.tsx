@@ -5,6 +5,7 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostCard from '@/components/PostCard';
+import PostFilter from '@/components/PostFilter';
 import { useReportedPostsData } from '@/hooks/useReportedPostsData';
 
 const ReportedPosts = () => {
@@ -17,10 +18,10 @@ const ReportedPosts = () => {
         <div className="flex w-full">
           <LeftSidebar />
           <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
-            <div className="max-w-2xl mx-auto p-1 sm:p-2">
-              <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded mb-6"></div>
-                <div className="space-y-3 sm:space-y-4">
+            <div className="max-w-2xl mx-auto">
+              <PostFilter currentSort="reported" onSortChange={() => {}} />
+              <div className="p-1 sm:p-2 space-y-3 sm:space-y-4">
+                <div className="animate-pulse space-y-3 sm:space-y-4">
                   {[1, 2, 3].map(i => (
                     <div key={i} className="h-40 sm:h-48 bg-gray-200 rounded"></div>
                   ))}
@@ -42,9 +43,9 @@ const ReportedPosts = () => {
         <LeftSidebar />
         <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
           <div className="max-w-2xl mx-auto">
+            <PostFilter currentSort="reported" onSortChange={() => {}} />
+            
             <div className="p-1 sm:p-2 space-y-3 sm:space-y-4">
-              <h1 className="text-2xl font-bold text-foreground mb-6 px-1 sm:px-2">Posts Denunciados</h1>
-              
               {reportedPosts.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">
