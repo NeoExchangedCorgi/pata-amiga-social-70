@@ -91,6 +91,8 @@ export const useLikedPosts = () => {
         }
 
         setLikedPosts(prev => prev.filter(like => like.post_id !== postId));
+        // Force page reload after like action
+        window.location.reload();
         return false; // unliked
       } else {
         // Add like
@@ -106,7 +108,8 @@ export const useLikedPosts = () => {
           return false;
         }
 
-        await fetchLikedPosts(); // Refresh to get the complete data
+        // Force page reload after like action
+        window.location.reload();
         return true; // liked
       }
     } catch (error) {
