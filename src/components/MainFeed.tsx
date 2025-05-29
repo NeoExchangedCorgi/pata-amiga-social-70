@@ -59,8 +59,8 @@ const MainFeed = () => {
     <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
       <div className="max-w-2xl mx-auto">
         {isAuthenticated && (
-          <div className="sticky top-16 z-40 bg-background/95 backdrop-blur">
-            <div className="p-1 sm:p-2 pb-0">
+          <div className="sticky top-16 z-30 bg-background/95 backdrop-blur pb-2 sm:pb-3">
+            <div className="p-1 sm:p-2">
               <CreatePost />
             </div>
           </div>

@@ -12,7 +12,7 @@ interface PostFilterProps {
 
 const PostFilter = ({ currentSort, onSortChange }: PostFilterProps) => {
   return (
-    <div className="sticky top-32 z-30 bg-background/95 backdrop-blur border-b border-border/50 px-2 sm:px-4 py-2 sm:py-3">
+    <div className="sticky top-16 z-20 bg-background/95 backdrop-blur border-b border-border/50 px-1 sm:px-2 py-2 sm:py-3 mb-3 sm:mb-4">
       <div className="flex items-center justify-center gap-1 sm:gap-2 w-full max-w-sm mx-auto">
         <Button
           variant={currentSort === 'likes' ? 'default' : 'outline'}
