@@ -11,11 +11,13 @@ interface PostLikeButtonProps {
 }
 
 const PostLikeButton = ({ likesCount, isLiked, isDisabled, onClick }: PostLikeButtonProps) => {
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isDisabled) {
-      onClick(e);
+      await onClick(e);
+      // Força refresh da página após curtir
+      window.location.reload();
     }
   };
 

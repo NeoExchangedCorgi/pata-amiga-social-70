@@ -22,12 +22,22 @@ const PostMetrics = ({
   onLike,
   onSave
 }: PostMetricsProps) => {
+  const handleLike = async () => {
+    await onLike();
+    window.location.reload();
+  };
+
+  const handleSave = async () => {
+    await onSave();
+    window.location.reload();
+  };
+
   return (
     <div className="flex items-center space-x-4 pt-4 border-t border-foreground/10">
       <Button 
         variant="ghost" 
         size="sm" 
-        onClick={onLike}
+        onClick={handleLike}
         disabled={isOwnPost || !isAuthenticated}
         className={`${isLiked ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'} ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
@@ -37,7 +47,7 @@ const PostMetrics = ({
       <Button
         variant="ghost"
         size="sm"
-        onClick={onSave}
+        onClick={handleSave}
         disabled={isOwnPost || !isAuthenticated}
         className={`${isSaved ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-blue-500'} ${(isOwnPost || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
