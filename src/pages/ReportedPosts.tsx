@@ -5,10 +5,10 @@ import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostCard from '@/components/PostCard';
-import { useReportedPosts } from '@/hooks/useReportedPosts';
+import { useReportedPostsData } from '@/hooks/useReportedPostsData';
 
 const ReportedPosts = () => {
-  const { reportedPosts, isLoading } = useReportedPosts();
+  const { reportedPosts, isLoading } = useReportedPostsData();
 
   if (isLoading) {
     return (
@@ -35,14 +35,6 @@ const ReportedPosts = () => {
     );
   }
 
-  // Agrupar posts por ID para evitar duplicatas
-  const uniquePosts = reportedPosts.reduce((acc, report) => {
-    if (!acc.find(item => item.posts.id === report.posts.id)) {
-      acc.push(report);
-    }
-    return acc;
-  }, [] as typeof reportedPosts);
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -53,16 +45,16 @@ const ReportedPosts = () => {
             <div className="p-1 sm:p-2 space-y-3 sm:space-y-4">
               <h1 className="text-2xl font-bold text-foreground mb-6 px-1 sm:px-2">Posts Denunciados</h1>
               
-              {uniquePosts.length === 0 ? (
+              {reportedPosts.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">
                     Nenhum post foi denunciado ainda.
                   </p>
                 </div>
               ) : (
-                uniquePosts.map(report => (
-                  <div key={report.id} className="animate-fade-in">
-                    <PostCard post={report.posts} />
+                reportedPosts.map(post => (
+                  <div key={post.id} className="animate-fade-in">
+                    <PostCard post={post} />
                   </div>
                 ))
               )}

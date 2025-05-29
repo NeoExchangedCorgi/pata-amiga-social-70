@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
 import { useHiddenPosts } from '@/hooks/useHiddenPosts';
 import { usePostsData } from './usePostsData';
+import { useReportedPostsData } from './useReportedPostsData';
 
 export type SortType = 'likes' | 'recent' | 'reported';
 
@@ -14,57 +15,12 @@ export const usePostsManager = () => {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [sortType, setSortType] = useState<SortType>('likes');
-  const [reportedPosts, setReportedPosts] = useState<Post[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const { isProfileHidden } = useHiddenProfiles();
   const { isPostHidden } = useHiddenPosts();
   const { posts: allPosts, isLoading, refetch, setPosts } = usePostsData();
-
-  // Fetch reported posts
-  const fetchReportedPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('post_reports')
-        .select(`
-          *,
-          posts!fk_post_reports_post_id (
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching reported posts:', error);
-        return;
-      }
-
-      // Get unique posts from reports
-      const uniquePosts = data?.reduce((acc, report) => {
-        if (report.posts && !acc.find(p => p.id === report.posts.id)) {
-          acc.push(report.posts);
-        }
-        return acc;
-      }, [] as Post[]) || [];
-
-      setReportedPosts(uniquePosts);
-    } catch (error) {
-      console.error('Error fetching reported posts:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchReportedPosts();
-  }, []);
+  const { reportedPosts } = useReportedPostsData();
 
   // Filter and sort posts
   useEffect(() => {
@@ -211,9 +167,6 @@ export const usePostsManager = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, () => {
         refetch();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_reports' }, () => {
-        fetchReportedPosts();
-      })
       .subscribe();
 
     return () => {
@@ -229,9 +182,6 @@ export const usePostsManager = () => {
     createPost,
     updatePost,
     deletePost,
-    refetch: () => {
-      refetch();
-      fetchReportedPosts();
-    },
+    refetch,
   };
 };

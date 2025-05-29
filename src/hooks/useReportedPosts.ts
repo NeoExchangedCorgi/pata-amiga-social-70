@@ -1,57 +1,13 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import type { Post } from '@/hooks/usePosts';
-
-interface ReportedPost {
-  id: string;
-  post_id: string;
-  user_id: string;
-  created_at: string;
-  posts: Post;
-}
+import { supabase } from '@/integrations/supabase/client';
+import { useReportedPostsData } from './useReportedPostsData';
 
 export const useReportedPosts = () => {
-  const [reportedPosts, setReportedPosts] = useState<ReportedPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
-
-  const fetchReportedPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('post_reports')
-        .select(`
-          *,
-          posts!fk_post_reports_post_id (
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching reported posts:', error);
-        return;
-      }
-
-      setReportedPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching reported posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { reportedPosts, isLoading, refetch } = useReportedPostsData();
 
   const reportPost = async (postId: string) => {
     if (!user) {
@@ -85,7 +41,7 @@ export const useReportedPosts = () => {
         title: "Post denunciado",
         description: "O post foi denunciado e movido para a seção 'Denunciados'",
       });
-      await fetchReportedPosts();
+      await refetch();
       return true;
     } catch (error) {
       console.error('Error reporting post:', error);
@@ -129,7 +85,7 @@ export const useReportedPosts = () => {
         title: "Denúncia retirada",
         description: "A denúncia foi removida",
       });
-      await fetchReportedPosts();
+      await refetch();
       return true;
     } catch (error) {
       console.error('Error removing report:', error);
@@ -144,12 +100,8 @@ export const useReportedPosts = () => {
 
   const isPostReported = (postId: string) => {
     if (!user) return false;
-    return reportedPosts.some(report => report.post_id === postId && report.user_id === user.id);
+    return reportedPosts.some(post => post.id === postId);
   };
-
-  useEffect(() => {
-    fetchReportedPosts();
-  }, []);
 
   return {
     reportedPosts,
@@ -157,6 +109,6 @@ export const useReportedPosts = () => {
     reportPost,
     removeReport,
     isPostReported,
-    refetch: fetchReportedPosts,
+    refetch,
   };
 };
