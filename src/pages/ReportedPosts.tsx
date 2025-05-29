@@ -8,6 +8,7 @@ import PostCard from '@/components/PostCard';
 import PostFilter from '@/components/PostFilter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReportedPostsData } from '@/hooks/useReportedPostsData';
+import { ROUTES } from '@/constants/app';
 
 const ReportedPosts = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -41,6 +42,17 @@ const ReportedPosts = () => {
           : "Faça login para ver posts denunciados."
         }
       </p>
+      {!isAuthenticated && (
+        <div className="mt-3 text-sm">
+          <a href={ROUTES.SIGNUP} className="text-primary hover:underline">
+            Criar conta
+          </a>
+          {" ou "}
+          <a href={ROUTES.LOGIN} className="text-primary hover:underline">
+            Fazer login
+          </a>
+        </div>
+      )}
     </div>
   );
 
