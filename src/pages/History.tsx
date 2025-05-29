@@ -67,10 +67,10 @@ const History = () => {
       <div className="flex w-full">
         <LeftSidebar />
         <main className="md:ml-64 lg:mr-80 min-h-screen bg-background pb-20 md:pb-0">
-          <div className="max-w-2xl mx-auto p-1 sm:p-2 space-y-3 sm:space-y-4">
-            <h1 className="text-2xl font-bold text-foreground mb-6 px-1 sm:px-2">Histórico</h1>
+          <div className="max-w-2xl mx-auto p-4 space-y-4">
+            <h1 className="text-2xl font-bold text-foreground mb-6">Histórico</h1>
             
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4">
               {history.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">
@@ -80,7 +80,7 @@ const History = () => {
               ) : (
                 history.map(entry => (
                   <div key={entry.id} className="animate-fade-in">
-                    <div className="flex items-center justify-between mb-2 px-1 sm:px-2">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="text-xs text-muted-foreground">
                         {getActionLabel(entry.action_type)} • {formatTimeAgo(entry.created_at)}
                       </div>
