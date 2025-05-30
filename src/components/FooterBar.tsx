@@ -23,7 +23,7 @@ const FooterBar = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      window.location.href = '/';
+      navigate('/');
       setIsOpen(false);
       toast({
         title: "Logout realizado",
@@ -52,13 +52,13 @@ const FooterBar = () => {
         variant: "destructive",
         className: "bg-red-500 text-white border-red-600",
       });
-      window.location.href = '/signup';
+      navigate('/signup');
       setIsOpen(false);
       return;
     }
     
     if (path) {
-      window.location.href = path;
+      navigate(path);
       setIsOpen(false);
     }
   };
@@ -69,7 +69,7 @@ const FooterBar = () => {
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
     { icon: Bookmark, label: 'Marcações', path: '/marcacoes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
-    { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
+    { icon: EyeOff, label: 'Ocultos', path: '/hidden', requiresAuth: true },
     { icon: Phone, label: 'Contate a ONG', path: '/contact-ong', requiresAuth: false },
     ...(isAuthenticated ? [{ icon: LogOut, label: 'Logout', action: handleLogout, requiresAuth: false }] : [])
   ];

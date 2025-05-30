@@ -20,6 +20,7 @@ import DeleteProfile from "./pages/DeleteProfile";
 import ReportedPosts from "./pages/ReportedPosts";
 import Notifications from "./pages/Notifications";
 import Search from "./pages/Search";
+import ContactOng from "./pages/ContactOng";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/marcacoes" element={<Marcacoes />} />
               <Route path="/history" element={<History />} />
               <Route path="/hidden" element={<HiddenProfiles />} />
+              <Route path="/contact-ong" element={<ContactOng />} />
               <Route path="/reported-posts" element={<ReportedPosts />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/search" element={<Search />} />

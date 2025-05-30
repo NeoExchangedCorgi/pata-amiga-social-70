@@ -18,7 +18,7 @@ const LeftSidebar = () => {
     { icon: Heart, label: 'Curtidas', path: '/likes', requiresAuth: true },
     { icon: Bookmark, label: 'Marcações', path: '/marcacoes', requiresAuth: true },
     { icon: History, label: 'Histórico', path: '/history', requiresAuth: true },
-    { icon: EyeOff, label: 'Ocultos', path: '/hidden-profiles', requiresAuth: true },
+    { icon: EyeOff, label: 'Ocultos', path: '/hidden', requiresAuth: true },
     { icon: Phone, label: 'Contate a ONG', path: '/contact-ong', requiresAuth: false },
   ];
 
@@ -30,9 +30,9 @@ const LeftSidebar = () => {
         variant: "destructive",
         className: "bg-red-500 text-white border-red-600",
       });
-      window.location.href = '/signup';
+      navigate('/signup');
     } else {
-      window.location.href = item.path;
+      navigate(item.path);
     }
   };
 
@@ -40,7 +40,7 @@ const LeftSidebar = () => {
     if (isAuthenticated) {
       logout();
     }
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   return (
