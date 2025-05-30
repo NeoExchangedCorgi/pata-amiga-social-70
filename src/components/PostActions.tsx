@@ -39,7 +39,6 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.stopPropagation();
     if (isAuthenticated && !isOwnPost) {
       await toggleLike(postId);
-      // Removido o reload da página
     }
   };
 
@@ -48,14 +47,11 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.stopPropagation();
     if (isOwnPost) {
       await deletePost(postId);
-      // Mantém apenas o reload para delete
       window.location.reload();
     }
   };
 
-  const handleHideProfile = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleHideProfile = async () => {
     await hideProfile(authorId);
     window.location.reload();
   };
@@ -64,7 +60,6 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.preventDefault();
     e.stopPropagation();
     await handleSave();
-    // Removido o reload da página
   };
 
   const handleReportPost = async (e: React.MouseEvent) => {

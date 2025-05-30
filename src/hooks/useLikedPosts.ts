@@ -36,8 +36,7 @@ export const useLikedPosts = () => {
               id,
               username,
               full_name,
-              avatar_url,
-              user_type
+              avatar_url
             ),
             post_likes!fk_post_likes_post_id (
               user_id

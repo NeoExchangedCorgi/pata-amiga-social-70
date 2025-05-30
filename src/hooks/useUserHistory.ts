@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Post } from '@/services/posts/types';
+import type { Post } from '@/hooks/usePosts';
 
 type ActionType = 'like' | 'save' | 'report' | 'hide' | 'view';
 
@@ -55,8 +55,7 @@ export const useUserHistory = () => {
               id,
               username,
               full_name,
-              avatar_url,
-              user_type
+              avatar_url
             ),
             post_likes!fk_post_likes_post_id (
               user_id
@@ -71,8 +70,13 @@ export const useUserHistory = () => {
         return;
       }
 
-      // Type assertion to ensure proper typing
-      setHistory((data || []) as HistoryEntry[]);
+      // Type the data properly
+      const typedData = data?.map(item => ({
+        ...item,
+        action_type: item.action_type as ActionType
+      })) as HistoryEntry[];
+
+      setHistory(typedData || []);
     } catch (error) {
       console.error('Error fetching history:', error);
     } finally {

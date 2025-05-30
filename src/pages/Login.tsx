@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Moon, Sun, Home, Shield } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
@@ -151,17 +150,6 @@ const Login = () => {
               {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-
-          <div className="mt-4 space-y-2">
-            <Button
-              variant="outline"
-              className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/20"
-              onClick={() => navigate('/admin-login')}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Logar como admin
-            </Button>
-          </div>
 
           <div className="mt-4 text-center">
             <Link 

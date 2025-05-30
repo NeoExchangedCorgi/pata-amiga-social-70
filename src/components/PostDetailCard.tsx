@@ -92,7 +92,7 @@ const PostDetailCard = ({
         <PostContent 
           content={post.content}
           mediaUrl={post.media_url}
-          mediaType={post.media_type as 'image' | 'video' | 'mixed' | undefined}
+          mediaType={post.media_type}
           postId={post.id}
           authorId={post.author_id}
           postActions={postActions}
