@@ -514,7 +514,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      media_type_enum: "image" | "video"
+      media_type_enum: "image" | "video" | "mixed"
       user_type: "user" | "admin"
     }
     CompositeTypes: {
@@ -631,7 +631,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      media_type_enum: ["image", "video"],
+      media_type_enum: ["image", "video", "mixed"],
       user_type: ["user", "admin"],
     },
   },

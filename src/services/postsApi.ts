@@ -69,7 +69,7 @@ export const postsApi = {
       .insert({
         content,
         media_urls: mediaUrls,
-        media_type: mediaType,
+        media_type: mediaType as any, // Type assertion to handle the enum mismatch
         author_id: userId,
       })
       .select(`
