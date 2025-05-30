@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -140,18 +139,6 @@ const AdminLogin = () => {
               {isSubmitting ? 'Entrando...' : 'Entrar como Admin'}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Não é cadastrado como admin?{' '}
-              <Link 
-                to="/admin/signup" 
-                className="text-primary hover:underline font-medium"
-              >
-                Cadastre-se aqui!
-              </Link>
-            </p>
-          </div>
 
           <div className="mt-4 text-center">
             <p className="text-sm text-muted-foreground">

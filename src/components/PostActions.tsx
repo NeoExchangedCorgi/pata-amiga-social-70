@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePostActions } from '@/hooks/usePostActions';
 import { useHiddenProfiles } from '@/hooks/useHiddenProfiles';
 import { usePosts } from '@/hooks/usePosts';
 import { useLikedPosts } from '@/hooks/useLikedPosts';
+import { useAdminPrivileges } from '@/hooks/useAdminPrivileges';
 import PostLikeButton from './post/PostLikeButton';
 import PostShareButton from './post/PostShareButton';
 import PostDropdownMenu from './post/PostDropdownMenu';
@@ -21,6 +21,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
   const { user, isAuthenticated } = useAuth();
   const { deletePost } = usePosts();
   const { toggleLike } = useLikedPosts();
+  const { canDeleteAnyPost } = useAdminPrivileges();
   const { 
     handleReport, 
     handleRemoveReport, 
@@ -46,6 +47,15 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
     e.preventDefault();
     e.stopPropagation();
     if (isOwnPost) {
+      await deletePost(postId);
+      window.location.reload();
+    }
+  };
+
+  const handleAdminDeletePost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (canDeleteAnyPost) {
       await deletePost(postId);
       window.location.reload();
     }
@@ -124,6 +134,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
         onRemoveReport={handleRemoveReportPost}
         onDelete={handleDeletePost}
         onEdit={handleEditPost}
+        onAdminDelete={handleAdminDeletePost}
       />
     </div>
   );

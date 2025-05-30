@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useAdminPrivileges } from '@/hooks/useAdminPrivileges';
 
 interface PostDropdownMenuProps {
   isAuthenticated: boolean;
@@ -34,6 +35,7 @@ interface PostDropdownMenuProps {
   onRemoveReport: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
   onEdit: (e: React.MouseEvent) => void;
+  onAdminDelete?: (e: React.MouseEvent) => void;
 }
 
 const PostDropdownMenu = ({
@@ -50,11 +52,14 @@ const PostDropdownMenu = ({
   onReport,
   onRemoveReport,
   onDelete,
-  onEdit
+  onEdit,
+  onAdminDelete
 }: PostDropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showAdminDeleteDialog, setShowAdminDeleteDialog] = useState(false);
+  const { isAdmin, canDeleteAnyPost } = useAdminPrivileges();
 
   const handleItemClick = (action: (e: React.MouseEvent) => void, e: React.MouseEvent) => {
     e.preventDefault();
@@ -98,6 +103,13 @@ const PostDropdownMenu = ({
     }
   };
 
+  const handleAdminDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAdminDeleteDialog(true);
+    setIsOpen(false);
+  };
+
   const handleConfirmDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -110,6 +122,15 @@ const PostDropdownMenu = ({
     e.stopPropagation();
     onReport(e);
     setShowReportDialog(false);
+  };
+
+  const handleConfirmAdminDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onAdminDelete) {
+      onAdminDelete(e);
+    }
+    setShowAdminDeleteDialog(false);
   };
 
   return (
@@ -208,6 +229,21 @@ const PostDropdownMenu = ({
                   </DropdownMenuItem>
                 </>
               )}
+
+              {/* Admin delete option for any post */}
+              {canDeleteAnyPost && !isOwnPost && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleAdminDeleteClick}
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir (Admin)
+                  </DropdownMenuItem>
+                </>
+              )}
             </>
           )}
         </DropdownMenuContent>
@@ -259,6 +295,32 @@ const PostDropdownMenu = ({
               className="bg-red-600 hover:bg-red-700"
             >
               Confirmar denúncia
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showAdminDeleteDialog} onOpenChange={setShowAdminDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir post (Administrador)</AlertDialogTitle>
+            <AlertDialogDescription>
+              Como administrador, você está prestes a excluir permanentemente este post. 
+              Esta ação não pode ser desfeita e o post será removido completamente do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmAdminDelete} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Excluir Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
