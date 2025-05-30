@@ -5,10 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
-  type: 'like' | 'comment' | 'reply' | 'comment_like';
+  type: 'like';
   post_id: string;
   actor_id: string;
-  comment_id?: string;
   read: boolean;
   created_at: string;
   actor: {
@@ -17,9 +16,6 @@ interface Notification {
     avatar_url?: string;
   };
   post: {
-    content: string;
-  };
-  comment?: {
     content: string;
   };
 }
@@ -45,13 +41,10 @@ export const useNotifications = () => {
           ),
           post:posts!fk_notifications_post_id (
             content
-          ),
-          comment:comments!notifications_comment_id_fkey (
-            content
           )
         `)
         .eq('user_id', user.id)
-        .in('type', ['like', 'comment', 'reply', 'comment_like'])
+        .eq('type', 'like')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -60,28 +53,14 @@ export const useNotifications = () => {
         return;
       }
 
-      // Transform and filter the data to ensure proper typing
-      const transformedNotifications = (data || [])
-        .filter(notification => 
-          notification.actor && 
-          notification.post && 
-          (notification.comment_id ? notification.comment : true)
-        )
-        .map(notification => ({
-          id: notification.id,
-          type: notification.type as 'like' | 'comment' | 'reply' | 'comment_like',
-          post_id: notification.post_id,
-          actor_id: notification.actor_id,
-          comment_id: notification.comment_id,
-          read: notification.read || false,
-          created_at: notification.created_at,
-          actor: Array.isArray(notification.actor) ? notification.actor[0] : notification.actor,
-          post: Array.isArray(notification.post) ? notification.post[0] : notification.post,
-          comment: notification.comment ? (Array.isArray(notification.comment) ? notification.comment[0] : notification.comment) : undefined
-        })) as Notification[];
+      // Type assertion para garantir que o tipo seja correto
+      const typedNotifications = (data || []).map(notification => ({
+        ...notification,
+        type: notification.type as 'like'
+      })) as Notification[];
 
-      setNotifications(transformedNotifications);
-      setUnreadCount(transformedNotifications.filter(n => !n.read).length);
+      setNotifications(typedNotifications);
+      setUnreadCount(typedNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -137,7 +116,7 @@ export const useNotifications = () => {
   useEffect(() => {
     fetchNotifications();
 
-    // Configure realtime for notifications
+    // Configurar realtime para notificações
     const channel = supabase
       .channel('notifications-changes')
       .on(

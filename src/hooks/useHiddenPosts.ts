@@ -36,7 +36,7 @@ export const useHiddenPosts = () => {
     if (!user) return;
 
     try {
-      // Fetch hidden posts
+      // Primeiro buscar os posts ocultos
       const { data: hiddenData, error: hiddenError } = await supabase
         .from('hidden_posts')
         .select('*')
@@ -54,7 +54,7 @@ export const useHiddenPosts = () => {
         return;
       }
 
-      // Fetch post details
+      // Buscar os dados dos posts
       const postIds = hiddenData.map(hp => hp.post_id);
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
@@ -79,7 +79,7 @@ export const useHiddenPosts = () => {
         return;
       }
 
-      // Combine the data
+      // Combinar os dados
       const combinedData: HiddenPost[] = hiddenData.map(hiddenPost => {
         const post = postsData?.find(p => p.id === hiddenPost.post_id);
         return {

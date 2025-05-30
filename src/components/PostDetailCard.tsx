@@ -4,9 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import PostContent from '@/components/PostContent';
 import PostDetailActions from '@/components/PostDetailActions';
-import PostMetricsWithComments from '@/components/PostMetricsWithComments';
-import CommentsList from '@/components/comments/CommentsList';
-import { useComments } from '@/hooks/useComments';
+import PostMetrics from '@/components/post/PostMetrics';
 import type { Post } from '@/hooks/usePosts';
 
 interface PostDetailCardProps {
@@ -42,18 +40,6 @@ const PostDetailCard = ({
   onAuthorClick,
   formatTimeAgo
 }: PostDetailCardProps) => {
-  const {
-    comments,
-    isLoading: commentsLoading,
-    sortType,
-    setSortType,
-    commentsCount,
-    createComment,
-    updateComment,
-    deleteComment,
-    toggleLike: toggleCommentLike
-  } = useComments(post.id);
-
   const postActions = {
     isOwnPost,
     isSaved,
@@ -66,10 +52,6 @@ const PostDetailCard = ({
     handleHidePost: () => {},
     handleUnhidePost: () => {},
     handleEdit: () => {}
-  };
-
-  const handleReply = async (content: string, parentId: string) => {
-    return await createComment(content, parentId);
   };
 
   return (
@@ -116,9 +98,8 @@ const PostDetailCard = ({
           postActions={postActions}
         />
 
-        <PostMetricsWithComments
+        <PostMetrics
           likesCount={likesCount}
-          commentsCount={commentsCount}
           isLiked={isLiked}
           isSaved={isSaved}
           isOwnPost={isOwnPost}
@@ -126,21 +107,6 @@ const PostDetailCard = ({
           onLike={onLike}
           onSave={onMark}
         />
-
-        <div className="mt-6">
-          <CommentsList
-            comments={comments}
-            isLoading={commentsLoading}
-            sortType={sortType}
-            onSortChange={setSortType}
-            onCreateComment={createComment}
-            onReply={handleReply}
-            onEdit={updateComment}
-            onDelete={deleteComment}
-            onLike={toggleCommentLike}
-            commentsCount={commentsCount}
-          />
-        </div>
       </CardContent>
     </Card>
   );
