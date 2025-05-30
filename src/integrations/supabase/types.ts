@@ -316,6 +316,7 @@ export type Database = {
           id: string
           phone: string | null
           updated_at: string | null
+          user_type: Database["public"]["Enums"]["user_type"]
           username: string
         }
         Insert: {
@@ -326,6 +327,7 @@ export type Database = {
           id: string
           phone?: string | null
           updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
           username: string
         }
         Update: {
@@ -336,6 +338,7 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
           username?: string
         }
         Relationships: []
@@ -430,7 +433,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_user_is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       media_type_enum: "image" | "video" | "mixed"

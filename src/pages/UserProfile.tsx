@@ -9,9 +9,20 @@ import PostCard from '@/components/PostCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Calendar, ArrowLeft } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { User, Calendar, ArrowLeft, Trash2, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdminActions } from '@/hooks/useAdminActions';
 import type { Post } from '@/hooks/usePosts';
 
 interface UserProfile {
@@ -19,6 +30,7 @@ interface UserProfile {
   username: string;
   full_name: string;
   bio?: string;
+  user_type: 'user' | 'admin';
   created_at: string;
   avatar_url?: string;
 }
@@ -26,9 +38,11 @@ interface UserProfile {
 const UserProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
+  const { isAdmin, deleteUser } = useAdminActions();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -59,7 +73,8 @@ const UserProfile = () => {
               id,
               username,
               full_name,
-              avatar_url
+              avatar_url,
+              user_type
             ),
             post_likes!fk_post_likes_post_id (
               user_id
@@ -81,6 +96,16 @@ const UserProfile = () => {
 
     fetchUserData();
   }, [username]);
+
+  const handleDeleteUser = async () => {
+    if (!profile) return;
+
+    const success = await deleteUser(profile.id);
+    if (success) {
+      setShowDeleteDialog(false);
+      navigate('/');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,6 +148,8 @@ const UserProfile = () => {
     );
   }
 
+  const isAdminProfile = profile.user_type === 'admin';
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -139,27 +166,49 @@ const UserProfile = () => {
               Voltar
             </Button>
 
-            <Card className="border-foreground/20">
+            <Card className={`border-foreground/20 ${
+              isAdminProfile ? 'bg-red-50/30 dark:bg-red-950/10 border-red-200/50 dark:border-red-800/30' : ''
+            }`}>
               <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    {profile.avatar_url ? (
-                      <img 
-                        src={profile.avatar_url} 
-                        alt={profile.full_name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      profile.full_name.charAt(0)
-                    )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                      {profile.avatar_url ? (
+                        <img 
+                          src={profile.avatar_url} 
+                          alt={profile.full_name}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        profile.full_name.charAt(0)
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-foreground flex items-center space-x-2">
+                        <User className="h-5 w-5" />
+                        <span>{profile.full_name}</span>
+                        {isAdminProfile && (
+                          <Shield className="h-5 w-5 text-red-600" />
+                        )}
+                      </CardTitle>
+                      <p className="text-muted-foreground">@{profile.username}</p>
+                      {isAdminProfile && (
+                        <p className="text-sm text-red-600 dark:text-red-400">Administrador</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-foreground flex items-center space-x-2">
-                      <User className="h-5 w-5" />
-                      <span>{profile.full_name}</span>
-                    </CardTitle>
-                    <p className="text-muted-foreground">@{profile.username}</p>
-                  </div>
+                  
+                  {isAdmin && !isAdminProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/20"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Deletar Perfil
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -210,6 +259,28 @@ const UserProfile = () => {
         <RightSidebar />
       </div>
       <FooterBar />
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deletar Perfil de Usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar permanentemente o perfil de {profile.full_name}? 
+              Esta ação irá remover todos os dados do usuário, incluindo posts, curtidas e histórico.
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Deletar Permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

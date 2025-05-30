@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, Home, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { adminLogin, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
@@ -40,19 +40,19 @@ const Login = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const { error } = await login(formData.email, formData.password);
+    const { error } = await adminLogin(formData.email, formData.password);
     
     if (error) {
       toast({
-        title: "Erro no login",
+        title: "Erro no login administrativo",
         description: error,
         variant: "destructive",
         className: "bg-red-500 text-white border-red-600",
       });
     } else {
       toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta!",
+        title: "Login administrativo realizado com sucesso!",
+        description: "Bem-vindo, administrador!",
         className: "bg-green-500 text-white border-green-600",
       });
       navigate('/');
@@ -90,27 +90,33 @@ const Login = () => {
 
       <Card className="w-full max-w-md border-foreground/20">
         <CardHeader className="text-center space-y-4">
-          <img 
-            src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
-            alt="Paraíso dos Focinhos" 
-            className="h-16 w-auto mx-auto"
-          />
+          <div className="flex items-center justify-center space-x-2">
+            <Shield className="h-8 w-8 text-red-600" />
+            <img 
+              src={theme === 'dark' ? "/lovable-uploads/00b1e86b-2813-433a-9aea-d914e445fe0a.png" : "/lovable-uploads/93af301e-74f3-46b0-8935-2af2039cabcf.png"}
+              alt="Paraíso dos Focinhos" 
+              className="h-16 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Login - Pata Amiga
+            Login Administrativo
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Acesso restrito para administradores
+          </p>
         </CardHeader>
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">E-mail</Label>
+              <Label htmlFor="email" className="text-foreground">E-mail Administrativo</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Digite seu e-mail"
+                placeholder="Digite seu e-mail administrativo"
                 required
                 className="border-foreground/20"
               />
@@ -146,40 +152,20 @@ const Login = () => {
             <Button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              className="w-full bg-red-600 text-white hover:bg-red-700"
             >
-              {isSubmitting ? 'Entrando...' : 'Entrar'}
+              {isSubmitting ? 'Entrando...' : 'Entrar como Administrador'}
             </Button>
           </form>
 
-          <div className="mt-4 space-y-2">
-            <Button
-              variant="outline"
-              className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/20"
-              onClick={() => navigate('/admin-login')}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Logar como admin
-            </Button>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Link 
-              to="/forgot-password" 
-              className="text-sm text-primary hover:underline"
-            >
-              Esqueci minha senha
-            </Link>
-          </div>
-
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Não é cadastrado?{' '}
+              Login comum?{' '}
               <Link 
-                to="/signup" 
+                to="/login" 
                 className="text-primary hover:underline font-medium"
               >
-                Clique aqui!
+                Clique aqui
               </Link>
             </p>
           </div>
@@ -189,4 +175,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;
