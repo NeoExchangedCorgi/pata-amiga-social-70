@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Post } from '@/hooks/usePosts';
 
 type ActionType = 'like' | 'save' | 'report' | 'hide' | 'view';
 
@@ -11,77 +9,26 @@ interface HistoryEntry {
   post_id: string;
   action_type: ActionType;
   created_at: string;
-  posts: Post;
+  posts: any;
 }
 
 export const useUserHistory = () => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
   const addToHistory = async (postId: string, actionType: ActionType) => {
     if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_history')
-        .upsert({
-          user_id: user.id,
-          post_id: postId,
-          action_type: actionType,
-        }, {
-          onConflict: 'user_id,post_id,action_type'
-        });
-
-      if (!error) {
-        await fetchHistory();
-      }
-    } catch (error) {
-      console.error('Error adding to history:', error);
-    }
+    // TODO: Implementar adição ao histórico com o novo banco
+    console.log('Adding to history - to be implemented with new database', { postId, actionType });
   };
 
   const fetchHistory = async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_history')
-        .select(`
-          *,
-          posts!fk_user_history_post_id (
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching history:', error);
-        return;
-      }
-
-      // Type the data properly
-      const typedData = data?.map(item => ({
-        ...item,
-        action_type: item.action_type as ActionType
-      })) as HistoryEntry[];
-
-      setHistory(typedData || []);
-    } catch (error) {
-      console.error('Error fetching history:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar busca de histórico com o novo banco
+    console.log('Fetching history - to be implemented with new database');
+    setHistory([]);
+    setIsLoading(false);
   };
 
   useEffect(() => {

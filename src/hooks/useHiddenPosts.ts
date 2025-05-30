@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,84 +27,18 @@ export interface HiddenPost {
 export const useHiddenPosts = () => {
   const [hiddenPosts, setHiddenPosts] = useState<HiddenPost[]>([]);
   const [hiddenPostIds, setHiddenPostIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const fetchHiddenPosts = async () => {
     if (!user) return;
 
-    try {
-      // Primeiro buscar os posts ocultos
-      const { data: hiddenData, error: hiddenError } = await supabase
-        .from('hidden_posts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('hidden_at', { ascending: false });
-
-      if (hiddenError) {
-        console.error('Error fetching hidden posts:', hiddenError);
-        return;
-      }
-
-      if (!hiddenData || hiddenData.length === 0) {
-        setHiddenPosts([]);
-        setHiddenPostIds(new Set());
-        return;
-      }
-
-      // Buscar os dados dos posts
-      const postIds = hiddenData.map(hp => hp.post_id);
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          content,
-          media_url,
-          media_type,
-          created_at,
-          author_id,
-          profiles!fk_posts_author_id (
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .in('id', postIds);
-
-      if (postsError) {
-        console.error('Error fetching post details:', postsError);
-        return;
-      }
-
-      // Combinar os dados
-      const combinedData: HiddenPost[] = hiddenData.map(hiddenPost => {
-        const post = postsData?.find(p => p.id === hiddenPost.post_id);
-        return {
-          ...hiddenPost,
-          posts: post || {
-            id: hiddenPost.post_id,
-            content: 'Post não encontrado',
-            created_at: hiddenPost.hidden_at,
-            author_id: '',
-            profiles: {
-              id: '',
-              username: 'Usuário desconhecido',
-              full_name: 'Usuário desconhecido',
-              avatar_url: undefined
-            }
-          }
-        };
-      });
-
-      setHiddenPosts(combinedData);
-      setHiddenPostIds(new Set(hiddenData.map(hp => hp.post_id)));
-    } catch (error) {
-      console.error('Error fetching hidden posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar busca de posts ocultos com o novo banco
+    console.log('Fetching hidden posts - to be implemented with new database');
+    setHiddenPosts([]);
+    setHiddenPostIds(new Set());
+    setIsLoading(false);
   };
 
   const hidePost = async (postId: string) => {
@@ -118,77 +51,25 @@ export const useHiddenPosts = () => {
       return false;
     }
 
-    try {
-      const { error } = await supabase
-        .from('hidden_posts')
-        .insert({
-          user_id: user.id,
-          post_id: postId,
-        });
-
-      if (error) {
-        console.error('Error hiding post:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao ocultar post. Tente novamente.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      setHiddenPostIds(prev => new Set([...prev, postId]));
-      await fetchHiddenPosts();
-      
-      toast({
-        title: "Post ocultado",
-        description: "O post foi ocultado da sua feed.",
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error hiding post:', error);
-      return false;
-    }
+    // TODO: Implementar ocultação de post com o novo banco
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "A ocultação de posts será implementada com o novo banco",
+      className: "bg-blue-500 text-white border-blue-600",
+    });
+    return true;
   };
 
   const unhidePost = async (postId: string) => {
     if (!user) return false;
 
-    try {
-      const { error } = await supabase
-        .from('hidden_posts')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('post_id', postId);
-
-      if (error) {
-        console.error('Error unhiding post:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao desocultar post. Tente novamente.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      setHiddenPostIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(postId);
-        return newSet;
-      });
-      
-      await fetchHiddenPosts();
-      
-      toast({
-        title: "Post desocultado",
-        description: "O post voltará a aparecer na sua feed.",
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error unhiding post:', error);
-      return false;
-    }
+    // TODO: Implementar desocultação de post com o novo banco
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "A desocultação de posts será implementada com o novo banco",
+      className: "bg-blue-500 text-white border-blue-600",
+    });
+    return true;
   };
 
   const isPostHidden = (postId: string) => {

@@ -1,20 +1,18 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import type { Post } from '@/hooks/usePosts';
 
 interface LikedPost {
   id: string;
   post_id: string;
   created_at: string;
-  posts: Post;
+  posts: any;
 }
 
 export const useLikedPosts = () => {
   const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -25,43 +23,10 @@ export const useLikedPosts = () => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('post_likes')
-        .select(`
-          *,
-          posts!fk_post_likes_post_id (
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching liked posts:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar posts curtidos",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setLikedPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching liked posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar busca de posts curtidos com o novo banco
+    console.log('Fetching liked posts - to be implemented with new database');
+    setLikedPosts([]);
+    setIsLoading(false);
   };
 
   const toggleLike = async (postId: string) => {
@@ -74,74 +39,21 @@ export const useLikedPosts = () => {
       return false;
     }
 
-    try {
-      const existingLike = likedPosts.find(like => like.post_id === postId);
-      
-      if (existingLike) {
-        // Remove like
-        const { error } = await supabase
-          .from('post_likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error removing like:', error);
-          return false;
-        }
-
-        setLikedPosts(prev => prev.filter(like => like.post_id !== postId));
-        return false; // unliked
-      } else {
-        // Add like
-        const { error } = await supabase
-          .from('post_likes')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-          });
-
-        if (error) {
-          console.error('Error adding like:', error);
-          return false;
-        }
-
-        await fetchLikedPosts(); // Refresh to get the complete data
-        return true; // liked
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      return false;
-    }
+    // TODO: Implementar toggle de curtida com o novo banco
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "A funcionalidade de curtir será implementada com o novo banco",
+      className: "bg-blue-500 text-white border-blue-600",
+    });
+    return false;
   };
 
   const isPostLiked = (postId: string) => {
-    return likedPosts.some(like => like.post_id === postId);
+    return false; // TODO: Implementar com o novo banco
   };
 
   useEffect(() => {
     fetchLikedPosts();
-  }, [user]);
-
-  // Set up realtime subscription
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('liked_posts_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'post_likes',
-        filter: `user_id=eq.${user.id}`
-      }, () => {
-        fetchLikedPosts();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [user]);
 
   return {

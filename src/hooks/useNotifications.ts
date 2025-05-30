@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
@@ -23,119 +22,32 @@ interface Notification {
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
   const fetchNotifications = async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select(`
-          *,
-          actor:profiles!fk_notifications_actor_id (
-            username,
-            full_name,
-            avatar_url
-          ),
-          post:posts!fk_notifications_post_id (
-            content
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('type', 'like')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        return;
-      }
-
-      // Type assertion para garantir que o tipo seja correto
-      const typedNotifications = (data || []).map(notification => ({
-        ...notification,
-        type: notification.type as 'like'
-      })) as Notification[];
-
-      setNotifications(typedNotifications);
-      setUnreadCount(typedNotifications.filter(n => !n.read).length);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar busca de notificações com o novo banco
+    console.log('Fetching notifications - to be implemented with new database');
+    setNotifications([]);
+    setUnreadCount(0);
+    setIsLoading(false);
   };
 
   const markAsRead = async (notificationId: string) => {
     if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId);
-
-      if (error) {
-        console.error('Error marking notification as read:', error);
-        return;
-      }
-
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+    // TODO: Implementar marcação como lida com o novo banco
+    console.log('Marking as read - to be implemented with new database', notificationId);
   };
 
   const markAllAsRead = async () => {
     if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false);
-
-      if (error) {
-        console.error('Error marking all notifications as read:', error);
-        return;
-      }
-
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
+    // TODO: Implementar marcação de todas como lidas com o novo banco
+    console.log('Marking all as read - to be implemented with new database');
   };
 
   useEffect(() => {
     fetchNotifications();
-
-    // Configurar realtime para notificações
-    const channel = supabase
-      .channel('notifications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user?.id}`
-        },
-        () => {
-          fetchNotifications();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [user?.id]);
 
   return {

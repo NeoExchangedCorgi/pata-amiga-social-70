@@ -1,125 +1,44 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Post } from '@/hooks/usePosts';
 
 interface PostView {
   id: string;
   post_id: string;
   viewed_at: string;
   is_pinned: boolean;
-  posts: Post;
+  posts: any;
 }
 
 export const usePostViews = () => {
   const [viewedPosts, setViewedPosts] = useState<PostView[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
   const fetchViewedPosts = async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('post_views')
-        .select(`
-          *,
-          posts!fk_post_views_post_id (
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            ),
-            comments!fk_comments_post_id (
-              id
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('is_pinned', { ascending: false })
-        .order('viewed_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching viewed posts:', error);
-        return;
-      }
-
-      setViewedPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching viewed posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar busca de posts visualizados com o novo banco
+    console.log('Fetching viewed posts - to be implemented with new database');
+    setViewedPosts([]);
+    setIsLoading(false);
   };
 
   const addPostView = async (postId: string) => {
     if (!user) return;
-
-    try {
-      await supabase
-        .from('post_views')
-        .upsert({
-          user_id: user.id,
-          post_id: postId,
-          viewed_at: new Date().toISOString(),
-        });
-    } catch (error) {
-      console.error('Error adding post view:', error);
-    }
+    // TODO: Implementar adição de visualização com o novo banco
+    console.log('Adding post view - to be implemented with new database', postId);
   };
 
   const togglePinPost = async (postId: string) => {
     if (!user) return;
-
-    try {
-      const existingView = viewedPosts.find(view => view.post_id === postId);
-      
-      if (existingView) {
-        const { error } = await supabase
-          .from('post_views')
-          .update({ is_pinned: !existingView.is_pinned })
-          .eq('id', existingView.id);
-
-        if (!error) {
-          fetchViewedPosts();
-        }
-      } else {
-        await supabase
-          .from('post_views')
-          .insert({
-            user_id: user.id,
-            post_id: postId,
-            is_pinned: true,
-          });
-        fetchViewedPosts();
-      }
-    } catch (error) {
-      console.error('Error toggling pin:', error);
-    }
+    // TODO: Implementar toggle de pin com o novo banco
+    console.log('Toggling pin - to be implemented with new database', postId);
   };
 
   const removeFromHistory = async (postId: string) => {
     if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('post_views')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('post_id', postId);
-
-      if (!error) {
-        fetchViewedPosts();
-      }
-    } catch (error) {
-      console.error('Error removing from history:', error);
-    }
+    // TODO: Implementar remoção do histórico com o novo banco
+    console.log('Removing from history - to be implemented with new database', postId);
   };
 
   useEffect(() => {

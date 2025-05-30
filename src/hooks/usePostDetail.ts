@@ -2,13 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { usePosts } from '@/hooks/usePosts';
 import { useLikedPosts } from '@/hooks/useLikedPosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
-import type { Post } from '@/hooks/usePosts';
 
 export const usePostDetail = (postId: string | undefined) => {
   const navigate = useNavigate();
@@ -19,47 +17,20 @@ export const usePostDetail = (postId: string | undefined) => {
   const { addPostView } = usePostViews();
   const { reportPost, removeReport, isPostReported } = usePostReports();
 
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [post, setPost] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchPostData = async () => {
       if (!postId) return;
 
-      try {
-        const { data: postData, error: postError } = await supabase
-          .from('posts')
-          .select(`
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          `)
-          .eq('id', postId)
-          .single();
+      // TODO: Implementar busca de post por ID com o novo banco
+      console.log('Fetching post data - to be implemented with new database', postId);
+      setPost(null);
+      setIsLoading(false);
 
-        if (postError || !postData) {
-          console.error('Error fetching post:', postError);
-          setIsLoading(false);
-          return;
-        }
-
-        setPost(postData);
-
-        if (user && postData) {
-          addPostView(postData.id);
-        }
-
-      } catch (error) {
-        console.error('Error fetching post data:', error);
-      } finally {
-        setIsLoading(false);
+      if (user) {
+        addPostView(postId);
       }
     };
 
@@ -82,8 +53,8 @@ export const usePostDetail = (postId: string | undefined) => {
   };
 
   const isOwnPost = user?.id === post?.author_id;
-  const isLiked = post?.post_likes?.some(like => like.user_id === user?.id) || false;
-  const likesCount = post?.post_likes?.length || 0;
+  const isLiked = false; // TODO: Implementar com o novo banco
+  const likesCount = 0; // TODO: Implementar com o novo banco
   const isSaved = post ? isPostSaved(post.id) : false;
   const isReported = post ? isPostReported(post.id) : false;
 

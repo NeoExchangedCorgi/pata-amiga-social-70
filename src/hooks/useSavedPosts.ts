@@ -1,20 +1,18 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import type { Post } from '@/hooks/usePosts';
 
 interface SavedPost {
   id: string;
   post_id: string;
   saved_at: string;
-  posts: Post;
+  posts: any;
 }
 
 export const useSavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -25,43 +23,10 @@ export const useSavedPosts = () => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('saved_posts')
-        .select(`
-          *,
-          posts!fk_saved_posts_post_id (
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('saved_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching saved posts:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar posts marcados",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setSavedPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching saved posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar busca de posts salvos com o novo banco
+    console.log('Fetching saved posts - to be implemented with new database');
+    setSavedPosts([]);
+    setIsLoading(false);
   };
 
   const toggleSavePost = async (postId: string) => {
@@ -74,82 +39,21 @@ export const useSavedPosts = () => {
       return false;
     }
 
-    try {
-      const existingSave = savedPosts.find(save => save.post_id === postId);
-      
-      if (existingSave) {
-        // Remove save
-        const { error } = await supabase
-          .from('saved_posts')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error removing save:', error);
-          return false;
-        }
-
-        setSavedPosts(prev => prev.filter(save => save.post_id !== postId));
-        toast({
-          title: "Post desmarcado",
-          description: "O post foi removido das suas marcações",
-        });
-        return false; // unsaved
-      } else {
-        // Add save
-        const { error } = await supabase
-          .from('saved_posts')
-          .insert({
-            post_id: postId,
-            user_id: user.id,
-          });
-
-        if (error) {
-          console.error('Error adding save:', error);
-          return false;
-        }
-
-        await fetchSavedPosts(); // Refresh to get the complete data
-        toast({
-          title: "Post marcado",
-          description: "O post foi adicionado às suas marcações",
-        });
-        return true; // saved
-      }
-    } catch (error) {
-      console.error('Error toggling save:', error);
-      return false;
-    }
+    // TODO: Implementar toggle de salvamento com o novo banco
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "A funcionalidade de marcar posts será implementada com o novo banco",
+      className: "bg-blue-500 text-white border-blue-600",
+    });
+    return false;
   };
 
   const isPostSaved = (postId: string) => {
-    return savedPosts.some(save => save.post_id === postId);
+    return false; // TODO: Implementar com o novo banco
   };
 
   useEffect(() => {
     fetchSavedPosts();
-  }, [user]);
-
-  // Set up realtime subscription
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('saved_posts_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'saved_posts',
-        filter: `user_id=eq.${user.id}`
-      }, () => {
-        fetchSavedPosts();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [user]);
 
   return {
