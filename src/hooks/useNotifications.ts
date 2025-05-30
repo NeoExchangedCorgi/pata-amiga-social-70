@@ -60,13 +60,28 @@ export const useNotifications = () => {
         return;
       }
 
-      const typedNotifications = (data || []).map(notification => ({
-        ...notification,
-        type: notification.type as 'like' | 'comment' | 'reply' | 'comment_like'
-      })) as Notification[];
+      // Transform and filter the data to ensure proper typing
+      const transformedNotifications = (data || [])
+        .filter(notification => 
+          notification.actor && 
+          notification.post && 
+          (notification.comment_id ? notification.comment : true)
+        )
+        .map(notification => ({
+          id: notification.id,
+          type: notification.type as 'like' | 'comment' | 'reply' | 'comment_like',
+          post_id: notification.post_id,
+          actor_id: notification.actor_id,
+          comment_id: notification.comment_id,
+          read: notification.read || false,
+          created_at: notification.created_at,
+          actor: Array.isArray(notification.actor) ? notification.actor[0] : notification.actor,
+          post: Array.isArray(notification.post) ? notification.post[0] : notification.post,
+          comment: notification.comment ? (Array.isArray(notification.comment) ? notification.comment[0] : notification.comment) : undefined
+        })) as Notification[];
 
-      setNotifications(typedNotifications);
-      setUnreadCount(typedNotifications.filter(n => !n.read).length);
+      setNotifications(transformedNotifications);
+      setUnreadCount(transformedNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {

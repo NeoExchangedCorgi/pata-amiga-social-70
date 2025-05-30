@@ -44,12 +44,12 @@ export const commentsApi = {
         ...comment,
         profiles: Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles,
         comment_likes: comment.comment_likes || [],
-        replies: (comment.replies || []).map((reply: any) => ({
+        replies: Array.isArray(comment.replies) ? comment.replies.map((reply: any) => ({
           ...reply,
           profiles: Array.isArray(reply.profiles) ? reply.profiles[0] : reply.profiles,
           comment_likes: reply.comment_likes || []
-        })).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
-        replies_count: comment.replies?.length || 0
+        })).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [],
+        replies_count: Array.isArray(comment.replies) ? comment.replies.length : 0
       })) as Comment[];
 
       // Sort comments based on type
