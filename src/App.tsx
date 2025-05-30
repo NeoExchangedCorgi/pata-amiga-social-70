@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import AdminLogin from "./pages/AdminLogin";
+import AdminSignUp from "./pages/AdminSignUp";
 import Profile from "./pages/Profile";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
@@ -36,6 +38,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/signup" element={<AdminSignUp />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/delete-profile" element={<DeleteProfile />} />
               <Route path="/post/:id" element={<PostDetail />} />

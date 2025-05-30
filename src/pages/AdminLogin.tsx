@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Moon, Sun, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { login, isAuthenticated, isLoading } = useAuth();
@@ -39,23 +40,12 @@ const Login = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const { error } = await login(formData.email, formData.password);
-    
-    if (error) {
-      toast({
-        title: "Erro no login",
-        description: error,
-        variant: "destructive",
-        className: "bg-red-500 text-white border-red-600",
-      });
-    } else {
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta!",
-        className: "bg-green-500 text-white border-green-600",
-      });
-      navigate('/');
-    }
+    // TODO: Implementar lógica específica para login de admin
+    toast({
+      title: "Login de Administrador",
+      description: "Funcionalidade em desenvolvimento - backend necessário",
+      className: "bg-blue-500 text-white border-blue-600",
+    });
     
     setIsSubmitting(false);
   };
@@ -95,7 +85,7 @@ const Login = () => {
             className="h-16 w-auto mx-auto"
           />
           <CardTitle className="text-2xl font-bold text-foreground">
-            Login - Pata Amiga
+            Login Administrador - Pata Amiga
           </CardTitle>
         </CardHeader>
         
@@ -109,7 +99,7 @@ const Login = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Digite seu e-mail"
+                placeholder="Digite seu e-mail de administrador"
                 required
                 className="border-foreground/20"
               />
@@ -124,7 +114,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Digite sua senha"
+                  placeholder="Digite sua senha de administrador"
                   required
                   className="border-foreground/20 pr-10"
                 />
@@ -147,34 +137,27 @@ const Login = () => {
               disabled={isSubmitting}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {isSubmitting ? 'Entrando...' : 'Entrar'}
+              {isSubmitting ? 'Entrando...' : 'Entrar como Admin'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/admin/login')}
-              className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              Fazer login como Admin
-            </Button>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Link 
-              to="/forgot-password" 
-              className="text-sm text-primary hover:underline"
-            >
-              Esqueci minha senha
-            </Link>
-          </div>
-
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Não é cadastrado?{' '}
+              Não é cadastrado como admin?{' '}
               <Link 
-                to="/signup" 
+                to="/admin/signup" 
+                className="text-primary hover:underline font-medium"
+              >
+                Cadastre-se aqui!
+              </Link>
+            </p>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Voltar ao login normal?{' '}
+              <Link 
+                to="/login" 
                 className="text-primary hover:underline font-medium"
               >
                 Clique aqui!
@@ -187,4 +170,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;
