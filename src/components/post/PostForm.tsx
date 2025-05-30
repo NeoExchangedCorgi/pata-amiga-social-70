@@ -9,25 +9,59 @@ import MediaPreview from './MediaPreview';
 import MediaUploadButtons from './MediaUploadButtons';
 
 interface PostFormProps {
-  onPostCreate: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video') => Promise<{ error?: string }>;
+  onPostCreate: (content: string, mediaUrls?: string[], mediaType?: 'image' | 'video') => Promise<{ error?: string }>;
   onSuccess: () => void;
   profileId: string;
 }
 
 const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
   const [content, setContent] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const { toast } = useToast();
 
   const handleMediaUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log('File selected:', file.name, file.size, file.type);
+    const files = Array.from(event.target.files || []);
+    
+    if (type === 'video') {
+      if (files.length > 1) {
+        toast({
+          title: "Erro",
+          description: "Você pode anexar apenas um vídeo por post",
+          variant: "destructive",
+        });
+        return;
+      }
       
+      // Limpar qualquer mídia anterior ao selecionar vídeo
+      setSelectedFiles([]);
+      setPreviewUrls([]);
+    } else {
+      // Para imagens, verificar se já há um vídeo
+      if (mediaType === 'video') {
+        toast({
+          title: "Erro",
+          description: "Você não pode adicionar imagens quando já há um vídeo anexado",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Verificar limite de 4 imagens
+      if (selectedFiles.length + files.length > 4) {
+        toast({
+          title: "Limite excedido",
+          description: "Você pode anexar no máximo 4 imagens por post",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    for (const file of files) {
       // Verificar tamanho do arquivo (50MB max)
       const maxSize = 50 * 1024 * 1024; // 50MB
       if (file.size > maxSize) {
@@ -36,16 +70,21 @@ const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
           description: "O arquivo deve ter no máximo 50MB",
           variant: "destructive",
         });
-        return;
+        continue;
       }
 
-      setSelectedFile(file);
-      setMediaType(type);
-      
-      // Criar preview para exibição imediata
       try {
         const previewDataUrl = await convertFileToDataUrl(file);
-        setPreviewUrl(previewDataUrl);
+        
+        if (type === 'video') {
+          setSelectedFiles([file]);
+          setPreviewUrls([previewDataUrl]);
+          setMediaType('video');
+        } else {
+          setSelectedFiles(prev => [...prev, file]);
+          setPreviewUrls(prev => [...prev, previewDataUrl]);
+          setMediaType('image');
+        }
       } catch (error) {
         console.error('Error creating preview:', error);
         toast({
@@ -71,34 +110,40 @@ const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
     setUploadProgress('Iniciando...');
     
     try {
-      let mediaUrl: string | undefined;
+      let mediaUrls: string[] = [];
       
-      // Se há um arquivo selecionado, fazer upload primeiro
-      if (selectedFile) {
-        setUploadProgress('Fazendo upload do arquivo...');
-        console.log('Starting file upload process');
+      // Se há arquivos selecionados, fazer upload
+      if (selectedFiles.length > 0) {
+        setUploadProgress(`Fazendo upload de ${selectedFiles.length} arquivo(s)...`);
+        console.log('Starting file upload process for', selectedFiles.length, 'files');
         
-        const uploadResult = await uploadFile(selectedFile, profileId);
-        
-        if (uploadResult.error) {
-          console.error('Upload failed:', uploadResult.error);
-          toast({
-            title: "Erro no upload",
-            description: uploadResult.error,
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          setUploadProgress('');
-          return;
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          setUploadProgress(`Fazendo upload do arquivo ${i + 1}/${selectedFiles.length}...`);
+          
+          const uploadResult = await uploadFile(file, profileId);
+          
+          if (uploadResult.error) {
+            console.error('Upload failed:', uploadResult.error);
+            toast({
+              title: "Erro no upload",
+              description: uploadResult.error,
+              variant: "destructive",
+            });
+            setIsSubmitting(false);
+            setUploadProgress('');
+            return;
+          }
+          
+          mediaUrls.push(uploadResult.url!);
         }
         
-        mediaUrl = uploadResult.url;
-        console.log('Upload successful, media URL:', mediaUrl);
+        console.log('Upload successful, media URLs:', mediaUrls);
         setUploadProgress('Criando post...');
       }
       
-      console.log('Creating post with:', { content, mediaUrl, mediaType });
-      const { error } = await onPostCreate(content, mediaUrl, mediaType || undefined);
+      console.log('Creating post with:', { content, mediaUrls, mediaType });
+      const { error } = await onPostCreate(content, mediaUrls.length > 0 ? mediaUrls : undefined, mediaType || undefined);
       
       if (error) {
         console.error('Post creation failed:', error);
@@ -117,8 +162,8 @@ const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
         
         // Limpar formulário
         setContent('');
-        setSelectedFile(null);
-        setPreviewUrl(null);
+        setSelectedFiles([]);
+        setPreviewUrls([]);
         setMediaType(null);
         setUploadProgress('');
         
@@ -137,9 +182,18 @@ const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
     setUploadProgress('');
   };
 
-  const removeMedia = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
+  const removeMedia = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    
+    if (selectedFiles.length === 1) {
+      setMediaType(null);
+    }
+  };
+
+  const removeAllMedia = () => {
+    setSelectedFiles([]);
+    setPreviewUrls([]);
     setMediaType(null);
     setUploadProgress('');
   };
@@ -160,11 +214,12 @@ const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
         </div>
       )}
       
-      {previewUrl && mediaType && (
+      {previewUrls.length > 0 && mediaType && (
         <MediaPreview
-          previewUrl={previewUrl}
+          previewUrls={previewUrls}
           mediaType={mediaType}
           onRemove={removeMedia}
+          onRemoveAll={removeAllMedia}
           isSubmitting={isSubmitting}
         />
       )}
@@ -174,6 +229,8 @@ const PostForm = ({ onPostCreate, onSuccess, profileId }: PostFormProps) => {
           onImageUpload={(e) => handleMediaUpload(e, 'image')}
           onVideoUpload={(e) => handleMediaUpload(e, 'video')}
           isSubmitting={isSubmitting}
+          hasVideo={mediaType === 'video'}
+          imageCount={mediaType === 'image' ? selectedFiles.length : 0}
         />
         
         <Button

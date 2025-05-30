@@ -7,9 +7,17 @@ interface MediaUploadButtonsProps {
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onVideoUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isSubmitting: boolean;
+  hasVideo?: boolean;
+  imageCount?: number;
 }
 
-const MediaUploadButtons = ({ onImageUpload, onVideoUpload, isSubmitting }: MediaUploadButtonsProps) => {
+const MediaUploadButtons = ({ 
+  onImageUpload, 
+  onVideoUpload, 
+  isSubmitting, 
+  hasVideo = false, 
+  imageCount = 0 
+}: MediaUploadButtonsProps) => {
   return (
     <div className="flex space-x-2">
       <input
@@ -18,7 +26,8 @@ const MediaUploadButtons = ({ onImageUpload, onVideoUpload, isSubmitting }: Medi
         onChange={onImageUpload}
         className="hidden"
         id="image-upload"
-        disabled={isSubmitting}
+        disabled={isSubmitting || hasVideo || imageCount >= 4}
+        multiple
       />
       <label htmlFor="image-upload">
         <Button
@@ -27,11 +36,13 @@ const MediaUploadButtons = ({ onImageUpload, onVideoUpload, isSubmitting }: Medi
           size="sm"
           className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
           asChild
-          disabled={isSubmitting}
+          disabled={isSubmitting || hasVideo || imageCount >= 4}
         >
           <span>
             <ImageIcon className="h-4 w-4" />
-            <span className="ml-2 hidden sm:inline">Foto</span>
+            <span className="ml-2 hidden sm:inline">
+              Foto{imageCount > 0 ? ` (${imageCount}/4)` : 's'}
+            </span>
           </span>
         </Button>
       </label>
@@ -42,7 +53,7 @@ const MediaUploadButtons = ({ onImageUpload, onVideoUpload, isSubmitting }: Medi
         onChange={onVideoUpload}
         className="hidden"
         id="video-upload"
-        disabled={isSubmitting}
+        disabled={isSubmitting || imageCount > 0}
       />
       <label htmlFor="video-upload">
         <Button
@@ -51,7 +62,7 @@ const MediaUploadButtons = ({ onImageUpload, onVideoUpload, isSubmitting }: Medi
           size="sm"
           className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
           asChild
-          disabled={isSubmitting}
+          disabled={isSubmitting || imageCount > 0}
         >
           <span>
             <Video className="h-4 w-4" />

@@ -4,6 +4,7 @@ import React from 'react';
 interface PostContentProps {
   content: string;
   mediaUrl?: string;
+  mediaUrls?: string[];
   mediaType?: 'image' | 'video';
   postId: string;
   authorId: string;
@@ -12,16 +13,19 @@ interface PostContentProps {
 
 const PostContent = ({ 
   content, 
-  mediaUrl, 
+  mediaUrl,
+  mediaUrls, 
   mediaType 
 }: PostContentProps) => {
+  const urls = mediaUrls || (mediaUrl ? [mediaUrl] : []);
+
   return (
     <div className="space-y-3">
       <p className="text-foreground whitespace-pre-wrap break-words">
         {content}
       </p>
       
-      {mediaUrl && (
+      {urls.length > 0 && (
         <div className="rounded-lg overflow-hidden">
           {mediaType === 'video' ? (
             <video 
@@ -29,16 +33,30 @@ const PostContent = ({
               className="w-full max-h-96 object-cover"
               preload="metadata"
             >
-              <source src={mediaUrl} type="video/mp4" />
+              <source src={urls[0]} type="video/mp4" />
               Seu navegador não suporta vídeos.
             </video>
           ) : (
-            <img 
-              src={mediaUrl} 
-              alt="Mídia do post" 
-              className="w-full max-h-96 object-cover"
-              loading="lazy"
-            />
+            <div className={`grid gap-2 ${
+              urls.length === 1 ? 'grid-cols-1' :
+              urls.length === 2 ? 'grid-cols-2' :
+              urls.length === 3 ? 'grid-cols-3' :
+              'grid-cols-2'
+            }`}>
+              {urls.map((url, index) => (
+                <img 
+                  key={index}
+                  src={url} 
+                  alt={`Mídia do post ${index + 1}`} 
+                  className={`w-full object-cover ${
+                    urls.length === 1 ? 'max-h-96' :
+                    urls.length === 4 && index >= 2 ? 'h-32' :
+                    'h-48'
+                  }`}
+                  loading="lazy"
+                />
+              ))}
+            </div>
           )}
         </div>
       )}
