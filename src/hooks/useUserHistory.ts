@@ -55,7 +55,8 @@ export const useUserHistory = () => {
               id,
               username,
               full_name,
-              avatar_url
+              avatar_url,
+              user_type
             ),
             post_likes!fk_post_likes_post_id (
               user_id
@@ -70,13 +71,7 @@ export const useUserHistory = () => {
         return;
       }
 
-      // Type the data properly
-      const typedData = data?.map(item => ({
-        ...item,
-        action_type: item.action_type as ActionType
-      })) as HistoryEntry[];
-
-      setHistory(typedData || []);
+      setHistory(data || []);
     } catch (error) {
       console.error('Error fetching history:', error);
     } finally {

@@ -3,17 +3,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { usePosts } from '@/hooks/usePosts';
 import { useLikedPosts } from '@/hooks/useLikedPosts';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { usePostViews } from '@/hooks/usePostViews';
 import { usePostReports } from '@/hooks/usePostReports';
+import { postManagement } from '@/services/posts/postManagement';
 import type { Post } from '@/hooks/usePosts';
 
 export const usePostDetail = (postId: string | undefined) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { deletePost } = usePosts();
   const { toggleLike } = useLikedPosts();
   const { toggleSavePost, isPostSaved } = useSavedPosts();
   const { addPostView } = usePostViews();
@@ -35,7 +34,8 @@ export const usePostDetail = (postId: string | undefined) => {
               id,
               username,
               full_name,
-              avatar_url
+              avatar_url,
+              user_type
             ),
             post_likes!fk_post_likes_post_id (
               user_id
@@ -109,8 +109,8 @@ export const usePostDetail = (postId: string | undefined) => {
   };
 
   const handleDelete = async () => {
-    if (isOwnPost && post) {
-      const success = await deletePost(post.id);
+    if (isOwnPost && post && user) {
+      const success = await postManagement.deletePost(post.id, user.id);
       if (success) {
         navigate('/');
       }

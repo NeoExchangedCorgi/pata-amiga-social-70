@@ -1,6 +1,7 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { postManagement } from '@/services/posts/postManagement';
 
 export interface Post {
   id: string;
@@ -23,7 +24,9 @@ export interface Post {
 }
 
 export const usePosts = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['posts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -51,4 +54,22 @@ export const usePosts = () => {
       return data as Post[];
     },
   });
+
+  const deletePost = async (postId: string) => {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return false;
+
+    const success = await postManagement.deletePost(postId, user.user.id);
+    
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    }
+    
+    return success;
+  };
+
+  return {
+    ...query,
+    deletePost,
+  };
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,13 +30,11 @@ export const usePostViews = () => {
               id,
               username,
               full_name,
-              avatar_url
+              avatar_url,
+              user_type
             ),
             post_likes!fk_post_likes_post_id (
               user_id
-            ),
-            comments!fk_comments_post_id (
-              id
             )
           )
         `)
