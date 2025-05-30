@@ -9,24 +9,24 @@ export const commentsApi = {
         .from('comments')
         .select(`
           *,
-          profiles!fk_comments_author_id (
+          profiles!comments_author_id_fkey (
             id,
             username,
             full_name,
             avatar_url
           ),
-          comment_likes!fk_comment_likes_comment_id (
+          comment_likes (
             user_id
           ),
-          replies:comments!parent_comment_id (
+          replies:comments!comments_parent_comment_id_fkey (
             *,
-            profiles!fk_comments_author_id (
+            profiles!comments_author_id_fkey (
               id,
               username,
               full_name,
               avatar_url
             ),
-            comment_likes!fk_comment_likes_comment_id (
+            comment_likes (
               user_id
             )
           )
@@ -79,13 +79,13 @@ export const commentsApi = {
         .from('comments')
         .select(`
           *,
-          profiles!fk_comments_author_id (
+          profiles!comments_author_id_fkey (
             id,
             username,
             full_name,
             avatar_url
           ),
-          comment_likes!fk_comment_likes_comment_id (
+          comment_likes (
             user_id
           )
         `)
@@ -122,13 +122,13 @@ export const commentsApi = {
         })
         .select(`
           *,
-          profiles!fk_comments_author_id (
+          profiles!comments_author_id_fkey (
             id,
             username,
             full_name,
             avatar_url
           ),
-          comment_likes!fk_comment_likes_comment_id (
+          comment_likes (
             user_id
           )
         `)
@@ -161,13 +161,13 @@ export const commentsApi = {
         .eq('author_id', userId)
         .select(`
           *,
-          profiles!fk_comments_author_id (
+          profiles!comments_author_id_fkey (
             id,
             username,
             full_name,
             avatar_url
           ),
-          comment_likes!fk_comment_likes_comment_id (
+          comment_likes (
             user_id
           )
         `)

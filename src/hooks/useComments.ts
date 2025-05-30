@@ -15,7 +15,6 @@ export const useComments = (postId: string) => {
   const { toast } = useToast();
 
   const fetchComments = async () => {
-    setIsLoading(true);
     try {
       const data = await commentsApi.fetchComments(postId, sortType);
       setComments(data);
@@ -50,8 +49,8 @@ export const useComments = (postId: string) => {
           title: "Comentário criado!",
           description: "Seu comentário foi publicado com sucesso.",
         });
-        // Refresh the page to show new comment
-        window.location.reload();
+        // Refresh comments instead of reloading the page
+        await fetchComments();
         return true;
       } else {
         toast({
