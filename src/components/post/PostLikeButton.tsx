@@ -16,8 +16,7 @@ const PostLikeButton = ({ likesCount, isLiked, isDisabled, onClick }: PostLikeBu
     e.stopPropagation();
     if (!isDisabled) {
       await onClick(e);
-      // Força refresh da página após curtir
-      window.location.reload();
+      // Removido o reload automático da página
     }
   };
 

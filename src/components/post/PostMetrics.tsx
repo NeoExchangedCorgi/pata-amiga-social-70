@@ -24,12 +24,12 @@ const PostMetrics = ({
 }: PostMetricsProps) => {
   const handleLike = async () => {
     await onLike();
-    window.location.reload();
+    // Removido o reload automático
   };
 
   const handleSave = async () => {
     await onSave();
-    window.location.reload();
+    // Removido o reload automático
   };
 
   return (
