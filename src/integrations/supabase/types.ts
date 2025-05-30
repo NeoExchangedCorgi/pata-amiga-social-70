@@ -9,38 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      chat_conversations: {
+      comment_likes: {
         Row: {
-          admin_id: string
-          has_unread_messages: boolean | null
+          comment_id: string
+          created_at: string
           id: string
-          last_message_at: string | null
           user_id: string
         }
         Insert: {
-          admin_id: string
-          has_unread_messages?: boolean | null
+          comment_id: string
+          created_at?: string
           id?: string
-          last_message_at?: string | null
           user_id: string
         }
         Update: {
-          admin_id?: string
-          has_unread_messages?: boolean | null
+          comment_id?: string
+          created_at?: string
           id?: string
-          last_message_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "chat_conversations_admin_id_fkey"
-            columns: ["admin_id"]
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "comments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "chat_conversations_user_id_fkey"
+            foreignKeyName: "comment_likes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -48,44 +45,54 @@ export type Database = {
           },
         ]
       }
-      chat_messages: {
+      comments: {
         Row: {
-          created_at: string | null
+          author_id: string
+          content: string
+          created_at: string
           id: string
-          message: string
-          read: boolean | null
-          recipient_id: string
-          sender_id: string
+          parent_comment_id: string | null
+          post_id: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
+          author_id: string
+          content: string
+          created_at?: string
           id?: string
-          message: string
-          read?: boolean | null
-          recipient_id: string
-          sender_id: string
+          parent_comment_id?: string | null
+          post_id: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          author_id?: string
+          content?: string
+          created_at?: string
           id?: string
-          message?: string
-          read?: boolean | null
-          recipient_id?: string
-          sender_id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "chat_messages_recipient_id_fkey"
-            columns: ["recipient_id"]
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "chat_messages_sender_id_fkey"
-            columns: ["sender_id"]
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
