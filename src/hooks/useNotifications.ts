@@ -38,15 +38,15 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          actor:profiles!fk_notifications_actor_id (
+          actor:profiles!notifications_actor_id_fkey (
             username,
             full_name,
             avatar_url
           ),
-          post:posts!fk_notifications_post_id (
+          post:posts!notifications_post_id_fkey (
             content
           ),
-          comment:comments!fk_notifications_comment_id (
+          comment:comments!notifications_comment_id_fkey (
             content
           )
         `)
@@ -60,14 +60,17 @@ export const useNotifications = () => {
         return;
       }
 
-      // Type assertion para garantir que o tipo seja correto
-      const typedNotifications = (data || []).map(notification => ({
-        ...notification,
-        type: notification.type as 'like' | 'comment' | 'reply' | 'comment_like'
-      })) as Notification[];
+      // Process and filter notifications safely
+      const processedNotifications = (data || [])
+        .filter(notification => notification.actor && notification.post)
+        .map(notification => ({
+          ...notification,
+          type: notification.type as 'like' | 'comment' | 'reply' | 'comment_like',
+          comment: notification.comment || undefined
+        })) as Notification[];
 
-      setNotifications(typedNotifications);
-      setUnreadCount(typedNotifications.filter(n => !n.read).length);
+      setNotifications(processedNotifications);
+      setUnreadCount(processedNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {

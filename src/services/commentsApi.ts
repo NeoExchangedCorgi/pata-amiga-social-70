@@ -8,13 +8,13 @@ export const commentsApi = {
       .from('comments')
       .select(`
         *,
-        profiles!fk_comments_author_id (
+        profiles (
           id,
           username,
           full_name,
           avatar_url
         ),
-        comment_likes!fk_comment_likes_comment_id (
+        comment_likes (
           user_id
         )
       `)
@@ -64,13 +64,13 @@ export const commentsApi = {
       .from('comments')
       .select(`
         *,
-        profiles!fk_comments_author_id (
+        profiles (
           id,
           username,
           full_name,
           avatar_url
         ),
-        comment_likes!fk_comment_likes_comment_id (
+        comment_likes (
           user_id
         )
       `)
@@ -96,13 +96,13 @@ export const commentsApi = {
       })
       .select(`
         *,
-        profiles!fk_comments_author_id (
+        profiles (
           id,
           username,
           full_name,
           avatar_url
         ),
-        comment_likes!fk_comment_likes_comment_id (
+        comment_likes (
           user_id
         )
       `)
@@ -139,13 +139,13 @@ export const commentsApi = {
       .eq('author_id', userId)
       .select(`
         *,
-        profiles!fk_comments_author_id (
+        profiles (
           id,
           username,
           full_name,
           avatar_url
         ),
-        comment_likes!fk_comment_likes_comment_id (
+        comment_likes (
           user_id
         )
       `)
