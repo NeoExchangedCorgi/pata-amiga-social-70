@@ -7,7 +7,6 @@ import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostDetailHeader from '@/components/PostDetailHeader';
 import PostDetailCard from '@/components/PostDetailCard';
-import CommentsList from '@/components/comments/CommentsList';
 import { usePostDetail } from '@/hooks/usePostDetail';
 
 const PostDetail = () => {
@@ -96,8 +95,6 @@ const PostDetail = () => {
               onAuthorClick={handleAuthorClick}
               formatTimeAgo={formatTimeAgo}
             />
-
-            <CommentsList postId={post.id} authorId={post.author_id} />
           </div>
         </main>
         <RightSidebar />
