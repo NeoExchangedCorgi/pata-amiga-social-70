@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { postsApi, type Post } from '@/services/postsApi';
@@ -77,7 +76,7 @@ export const usePostsManager = () => {
     setFilteredPosts(filtered);
   }, [allPosts, reportedPosts, isProfileHidden, isPostHidden, user, sortType]);
 
-  const createPost = async (content: string, mediaUrls?: string[], mediaType?: 'image' | 'video') => {
+  const createPost = async (content: string, mediaUrls?: string[], mediaType?: 'image' | 'video' | 'mixed') => {
     if (!user) {
       toast({
         title: "Erro",

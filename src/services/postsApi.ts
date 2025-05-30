@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
@@ -6,7 +5,7 @@ export interface Post {
   content: string;
   media_url?: string;
   media_urls?: string[];
-  media_type?: 'image' | 'video';
+  media_type?: 'image' | 'video' | 'mixed';
   created_at: string;
   author_id: string;
   profiles: {
@@ -64,7 +63,7 @@ export const postsApi = {
     return sortedData as Post[];
   },
 
-  async createPost(content: string, mediaUrls?: string[], mediaType?: 'image' | 'video', userId?: string) {
+  async createPost(content: string, mediaUrls?: string[], mediaType?: 'image' | 'video' | 'mixed', userId?: string) {
     const { data, error } = await supabase
       .from('posts')
       .insert({

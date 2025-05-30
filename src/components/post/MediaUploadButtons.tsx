@@ -26,7 +26,7 @@ const MediaUploadButtons = ({
         onChange={onImageUpload}
         className="hidden"
         id="image-upload"
-        disabled={isSubmitting || hasVideo || imageCount >= 4}
+        disabled={isSubmitting || imageCount >= 4}
         multiple
       />
       <label htmlFor="image-upload">
@@ -36,7 +36,7 @@ const MediaUploadButtons = ({
           size="sm"
           className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
           asChild
-          disabled={isSubmitting || hasVideo || imageCount >= 4}
+          disabled={isSubmitting || imageCount >= 4}
         >
           <span>
             <ImageIcon className="h-4 w-4" />
@@ -53,7 +53,7 @@ const MediaUploadButtons = ({
         onChange={onVideoUpload}
         className="hidden"
         id="video-upload"
-        disabled={isSubmitting || imageCount > 0}
+        disabled={isSubmitting}
       />
       <label htmlFor="video-upload">
         <Button
@@ -62,11 +62,13 @@ const MediaUploadButtons = ({
           size="sm"
           className="text-pata-blue-light dark:text-pata-blue-dark hover:bg-pata-blue-light/10 dark:hover:bg-pata-blue-dark/10"
           asChild
-          disabled={isSubmitting || imageCount > 0}
+          disabled={isSubmitting}
         >
           <span>
             <Video className="h-4 w-4" />
-            <span className="ml-2 hidden sm:inline">Vídeo</span>
+            <span className="ml-2 hidden sm:inline">
+              Vídeo{hasVideo ? ' (1/1)' : ''}
+            </span>
           </span>
         </Button>
       </label>

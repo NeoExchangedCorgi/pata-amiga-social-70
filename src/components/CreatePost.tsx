@@ -15,7 +15,7 @@ const CreatePost = () => {
     return null;
   }
 
-  const handlePostCreate = async (content: string, mediaUrls?: string[], mediaType?: 'image' | 'video') => {
+  const handlePostCreate = async (content: string, mediaUrls?: string[], mediaType?: 'image' | 'video' | 'mixed') => {
     const result = await createPost(content, mediaUrls, mediaType);
     window.location.reload();
     return result;
