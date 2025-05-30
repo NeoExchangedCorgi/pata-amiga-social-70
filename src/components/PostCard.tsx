@@ -68,6 +68,7 @@ const PostCard = ({ post }: PostCardProps) => {
           <PostContent 
             content={post.content}
             mediaUrl={post.media_url}
+            mediaUrls={post.media_urls}
             mediaType={post.media_type}
             postId={post.id}
             authorId={post.author_id}

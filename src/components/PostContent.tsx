@@ -17,7 +17,8 @@ const PostContent = ({
   mediaUrls, 
   mediaType 
 }: PostContentProps) => {
-  const urls = mediaUrls || (mediaUrl ? [mediaUrl] : []);
+  // Priorizar media_urls, mas manter compatibilidade com media_url
+  const urls = mediaUrls && mediaUrls.length > 0 ? mediaUrls : (mediaUrl ? [mediaUrl] : []);
 
   return (
     <div className="space-y-3">
