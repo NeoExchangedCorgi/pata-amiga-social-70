@@ -5,10 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
-  type: 'like' | 'comment' | 'reply' | 'comment_like';
+  type: 'like';
   post_id: string;
   actor_id: string;
-  comment_id?: string;
   read: boolean;
   created_at: string;
   actor: {
@@ -17,9 +16,6 @@ interface Notification {
     avatar_url?: string;
   };
   post: {
-    content: string;
-  };
-  comment?: {
     content: string;
   };
 }
@@ -38,20 +34,17 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          actor:profiles!notifications_actor_id_fkey (
+          actor:profiles!fk_notifications_actor_id (
             username,
             full_name,
             avatar_url
           ),
-          post:posts!notifications_post_id_fkey (
-            content
-          ),
-          comment:comments!notifications_comment_id_fkey (
+          post:posts!fk_notifications_post_id (
             content
           )
         `)
         .eq('user_id', user.id)
-        .in('type', ['like', 'comment', 'reply', 'comment_like'])
+        .eq('type', 'like')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -60,17 +53,14 @@ export const useNotifications = () => {
         return;
       }
 
-      // Process and filter notifications safely
-      const processedNotifications = (data || [])
-        .filter(notification => notification.actor && notification.post)
-        .map(notification => ({
-          ...notification,
-          type: notification.type as 'like' | 'comment' | 'reply' | 'comment_like',
-          comment: notification.comment || undefined
-        })) as Notification[];
+      // Type assertion para garantir que o tipo seja correto
+      const typedNotifications = (data || []).map(notification => ({
+        ...notification,
+        type: notification.type as 'like'
+      })) as Notification[];
 
-      setNotifications(processedNotifications);
-      setUnreadCount(processedNotifications.filter(n => !n.read).length);
+      setNotifications(typedNotifications);
+      setUnreadCount(typedNotifications.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
