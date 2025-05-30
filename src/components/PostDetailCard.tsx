@@ -4,8 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import PostContent from '@/components/PostContent';
 import PostDetailActions from '@/components/PostDetailActions';
-import PostMetrics from '@/components/post/PostMetrics';
-import type { Post } from '@/hooks/usePosts';
+import PostMetricsWithComments from '@/components/PostMetricsWithComments';
+import CommentsList from '@/components/comments/CommentsList';
+import type { Post } from '@/types/post';
 
 interface PostDetailCardProps {
   post: Post;
@@ -55,60 +56,70 @@ const PostDetailCard = ({
   };
 
   return (
-    <Card className="border-foreground/20">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start space-x-3">
-            <Avatar className="cursor-pointer" onClick={onAuthorClick}>
-              <AvatarImage src={post.profiles.avatar_url || "/placeholder.svg"} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-600 text-white">
-                {post.profiles.full_name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <h3 
-                  className="font-semibold text-foreground cursor-pointer hover:underline"
-                  onClick={onAuthorClick}
-                >
-                  {post.profiles.full_name}
-                </h3>
-                <span className="text-muted-foreground">@{post.profiles.username}</span>
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground">{formatTimeAgo(post.created_at)}</span>
+    <div className="space-y-6">
+      <Card className="border-foreground/20">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start space-x-3">
+              <Avatar className="cursor-pointer" onClick={onAuthorClick}>
+                <AvatarImage src={post.profiles.avatar_url || "/placeholder.svg"} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-600 text-white">
+                  {post.profiles.full_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center space-x-2">
+                  <h3 
+                    className="font-semibold text-foreground cursor-pointer hover:underline"
+                    onClick={onAuthorClick}
+                  >
+                    {post.profiles.full_name}
+                  </h3>
+                  <span className="text-muted-foreground">@{post.profiles.username}</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">{formatTimeAgo(post.created_at)}</span>
+                </div>
               </div>
             </div>
+            
+            <PostDetailActions
+              isOwnPost={isOwnPost}
+              isReported={isReported}
+              onDelete={onDelete}
+              onReport={onReport}
+              onRemoveReport={onRemoveReport}
+            />
           </div>
-          
-          <PostDetailActions
-            isOwnPost={isOwnPost}
-            isReported={isReported}
-            onDelete={onDelete}
-            onReport={onReport}
-            onRemoveReport={onRemoveReport}
+
+          <PostContent 
+            content={post.content}
+            mediaUrl={post.media_url}
+            mediaUrls={post.media_urls}
+            mediaType={post.media_type}
+            postId={post.id}
+            authorId={post.author_id}
+            postActions={postActions}
           />
-        </div>
 
-        <PostContent 
-          content={post.content}
-          mediaUrl={post.media_url}
-          mediaType={post.media_type}
-          postId={post.id}
-          authorId={post.author_id}
-          postActions={postActions}
-        />
+          <PostMetricsWithComments
+            likesCount={likesCount}
+            commentsCount={post.comments_count}
+            isLiked={isLiked}
+            isSaved={isSaved}
+            isOwnPost={isOwnPost}
+            isAuthenticated={isAuthenticated}
+            onLike={onLike}
+            onSave={onMark}
+          />
+        </CardContent>
+      </Card>
 
-        <PostMetrics
-          likesCount={likesCount}
-          isLiked={isLiked}
-          isSaved={isSaved}
-          isOwnPost={isOwnPost}
-          isAuthenticated={isAuthenticated}
-          onLike={onLike}
-          onSave={onMark}
-        />
-      </CardContent>
-    </Card>
+      <Card className="border-foreground/20">
+        <CardContent className="p-6">
+          <CommentsList postId={post.id} formatTimeAgo={formatTimeAgo} />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
