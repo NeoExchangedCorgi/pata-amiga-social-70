@@ -7,89 +7,28 @@ import RightSidebar from '@/components/RightSidebar';
 import FooterBar from '@/components/FooterBar';
 import PostDetailHeader from '@/components/PostDetailHeader';
 import PostDetailCard from '@/components/PostDetailCard';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { usePosts } from '@/hooks/usePosts';
-import { useLikedPosts } from '@/hooks/useLikedPosts';
-import { useSavedPosts } from '@/hooks/useSavedPosts';
-import { usePostViews } from '@/hooks/usePostViews';
-import { usePostReports } from '@/hooks/usePostReports';
-import type { Post } from '@/hooks/usePosts';
+import CommentsList from '@/components/comments/CommentsList';
+import { usePostDetail } from '@/hooks/usePostDetail';
 
 const PostDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { user, profile, isAuthenticated } = useAuth();
-  const { deletePost } = usePosts();
-  const { toggleLike } = useLikedPosts();
-  const { toggleSavePost, isPostSaved } = useSavedPosts();
-  const { addPostView } = usePostViews();
-  const { reportPost, removeReport, isPostReported } = usePostReports();
-
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPostData = async () => {
-      if (!id) return;
-
-      try {
-        // Buscar dados do post
-        const { data: postData, error: postError } = await supabase
-          .from('posts')
-          .select(`
-            *,
-            profiles!fk_posts_author_id (
-              id,
-              username,
-              full_name,
-              avatar_url
-            ),
-            post_likes!fk_post_likes_post_id (
-              user_id
-            )
-          `)
-          .eq('id', id)
-          .single();
-
-        if (postError || !postData) {
-          console.error('Error fetching post:', postError);
-          setIsLoading(false);
-          return;
-        }
-
-        setPost(postData);
-
-        // Registrar visualização
-        if (user && postData) {
-          addPostView(postData.id);
-        }
-
-      } catch (error) {
-        console.error('Error fetching post data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPostData();
-  }, [id, user, addPostView]);
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      return 'agora';
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d`;
-    }
-  };
+  const {
+    post,
+    isLoading,
+    isOwnPost,
+    isLiked,
+    likesCount,
+    isSaved,
+    isReported,
+    isAuthenticated,
+    handleLike,
+    handleReport,
+    handleRemoveReport,
+    handleDelete,
+    handleMark,
+    handleAuthorClick,
+    formatTimeAgo
+  } = usePostDetail(id);
 
   if (isLoading) {
     return (
@@ -132,53 +71,6 @@ const PostDetail = () => {
     );
   }
 
-  const isOwnPost = user?.id === post.author_id;
-  const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
-  const likesCount = post.post_likes?.length || 0;
-  const isSaved = isPostSaved(post.id);
-  const isReported = isPostReported(post.id);
-
-  const handleLike = async () => {
-    if (!isOwnPost && isAuthenticated) {
-      await toggleLike(post.id);
-      window.location.reload();
-    }
-  };
-
-  const handleReport = async () => {
-    if (isAuthenticated && !isOwnPost) {
-      await reportPost(post.id);
-      window.location.reload();
-    }
-  };
-
-  const handleRemoveReport = async () => {
-    if (isAuthenticated && !isOwnPost) {
-      await removeReport(post.id);
-      window.location.reload();
-    }
-  };
-
-  const handleDelete = async () => {
-    if (isOwnPost) {
-      const success = await deletePost(post.id);
-      if (success) {
-        navigate('/');
-      }
-    }
-  };
-
-  const handleMark = async () => {
-    if (isAuthenticated) {
-      await toggleSavePost(post.id);
-      window.location.reload();
-    }
-  };
-
-  const handleAuthorClick = () => {
-    navigate(`/user/${post.profiles.username}`);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -204,6 +96,8 @@ const PostDetail = () => {
               onAuthorClick={handleAuthorClick}
               formatTimeAgo={formatTimeAgo}
             />
+
+            <CommentsList postId={post.id} authorId={post.author_id} />
           </div>
         </main>
         <RightSidebar />

@@ -18,6 +18,8 @@ import History from "./pages/History";
 import HiddenProfiles from "./pages/HiddenProfiles";
 import DeleteProfile from "./pages/DeleteProfile";
 import ReportedPosts from "./pages/ReportedPosts";
+import Notifications from "./pages/Notifications";
+import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ const App = () => (
               <Route path="/history" element={<History />} />
               <Route path="/hidden" element={<HiddenProfiles />} />
               <Route path="/reported-posts" element={<ReportedPosts />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/search" element={<Search />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
