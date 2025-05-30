@@ -13,15 +13,26 @@ interface CommentFormProps {
 
 const CommentForm = ({ onSubmit, placeholder = "Adicione um comentário...", isSubmitting = false, autoFocus = false }: CommentFormProps) => {
   const [content, setContent] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !isAuthenticated) return;
+    if (!content.trim() || !isAuthenticated || isLoading) return;
 
-    const success = await onSubmit(content.trim());
-    if (success) {
-      setContent('');
+    console.log('CommentForm submitting:', content.trim());
+    setIsLoading(true);
+    
+    try {
+      const success = await onSubmit(content.trim());
+      if (success) {
+        setContent('');
+        console.log('Comment submitted successfully');
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,14 +55,15 @@ const CommentForm = ({ onSubmit, placeholder = "Adicione um comentário...", isS
         rows={3}
         autoFocus={autoFocus}
         className="resize-none"
+        disabled={isLoading || isSubmitting}
       />
       <div className="flex justify-end">
         <Button 
           type="submit" 
-          disabled={!content.trim() || isSubmitting}
+          disabled={!content.trim() || isLoading || isSubmitting}
           size="sm"
         >
-          {isSubmitting ? 'Enviando...' : 'Comentar'}
+          {isLoading || isSubmitting ? 'Enviando...' : 'Comentar'}
         </Button>
       </div>
     </form>

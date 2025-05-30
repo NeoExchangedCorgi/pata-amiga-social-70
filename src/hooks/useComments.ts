@@ -16,7 +16,10 @@ export const useComments = (postId: string) => {
 
   const fetchComments = async () => {
     try {
+      setIsLoading(true);
+      console.log('Fetching comments for post:', postId);
       const data = await commentsApi.fetchComments(postId, sortType);
+      console.log('Fetched comments:', data);
       setComments(data);
       
       // Calculate total comments count (including replies)
@@ -24,6 +27,7 @@ export const useComments = (postId: string) => {
         return acc + 1 + (comment.replies?.length || 0);
       }, 0);
       setCommentsCount(totalCount);
+      console.log('Total comments count:', totalCount);
     } catch (error) {
       console.error('Error fetching comments:', error);
     } finally {
@@ -41,18 +45,22 @@ export const useComments = (postId: string) => {
       return false;
     }
 
+    console.log('Creating comment:', { content, parentCommentId, userId: user.id, postId });
     setIsSubmitting(true);
     try {
       const result = await commentsApi.createComment(postId, content, parentCommentId, user.id);
+      console.log('Comment creation result:', result);
+      
       if (!result.error) {
         toast({
           title: "Comentário criado!",
           description: "Seu comentário foi publicado com sucesso.",
         });
-        // Refresh comments instead of reloading the page
+        // Refresh comments to show the new one
         await fetchComments();
         return true;
       } else {
+        console.error('Error creating comment:', result.error);
         toast({
           title: "Erro",
           description: result.error,
@@ -155,7 +163,9 @@ export const useComments = (postId: string) => {
   };
 
   useEffect(() => {
-    fetchComments();
+    if (postId) {
+      fetchComments();
+    }
   }, [postId, sortType]);
 
   return {
