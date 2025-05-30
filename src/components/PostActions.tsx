@@ -52,6 +52,7 @@ const PostActions = ({ postId, authorId, likesCount, isLiked, onEdit }: PostActi
   };
 
   const handleHideProfile = async () => {
+    // Permitir que usuários ocultem qualquer perfil, incluindo o próprio
     await hideProfile(authorId);
     window.location.reload();
   };

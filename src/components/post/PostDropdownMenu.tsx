@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MoreHorizontal, Flag, Bookmark, EyeOff, Trash2, FlagOff, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -140,34 +139,32 @@ const PostDropdownMenu = ({
                 {isSaved ? 'Desmarcar post' : 'Marcar post'}
               </DropdownMenuItem>
               
-              {!isOwnPost && (
-                <>
-                  <DropdownMenuItem 
-                    onClick={handleHidePostClick}
-                    onSelect={(e) => e.preventDefault()}
-                  >
-                    {isPostHidden ? (
-                      <>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Desocultar post
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="h-4 w-4 mr-2" />
-                        Ocultar post
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem 
-                    onClick={(e) => handleItemClick(onHideProfile, e)}
-                    onSelect={(e) => e.preventDefault()}
-                  >
+              {/* Sempre mostrar a opção de ocultar/desocultar post para usuários autenticados */}
+              <DropdownMenuItem 
+                onClick={handleHidePostClick}
+                onSelect={(e) => e.preventDefault()}
+              >
+                {isPostHidden ? (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Desocultar post
+                  </>
+                ) : (
+                  <>
                     <EyeOff className="h-4 w-4 mr-2" />
-                    {isProfileHidden ? 'Perfil já ocultado' : 'Ocultar perfil'}
-                  </DropdownMenuItem>
-                </>
-              )}
+                    {isOwnPost ? 'Ocultar meu post' : 'Ocultar post'}
+                  </>
+                )}
+              </DropdownMenuItem>
+              
+              {/* Sempre mostrar a opção de ocultar perfil para usuários autenticados */}
+              <DropdownMenuItem 
+                onClick={(e) => handleItemClick(onHideProfile, e)}
+                onSelect={(e) => e.preventDefault()}
+              >
+                <EyeOff className="h-4 w-4 mr-2" />
+                {isOwnPost ? 'Ocultar meu perfil' : 'Ocultar perfil'}
+              </DropdownMenuItem>
               
               {isOwnPost ? (
                 <>

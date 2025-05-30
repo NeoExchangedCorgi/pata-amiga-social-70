@@ -26,15 +26,10 @@ export const usePostActions = (postId: string, authorId: string) => {
   const isHidden = isPostHidden(postId);
   const isLiked = isPostLiked(postId);
 
-  const reloadPage = () => {
-    window.location.reload();
-  };
-
   const handleLike = async () => {
     if (!isOwnPost && isAuthenticated) {
       const result = await toggleLike(postId);
       await addToHistory(postId, 'like');
-      reloadPage();
       return result;
     }
   };
@@ -42,9 +37,6 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleEdit = async (newContent: string) => {
     if (!isAuthenticated || !isOwnPost) return false;
     const result = await updatePost(postId, newContent);
-    if (!result.error) {
-      reloadPage();
-    }
     return !result.error;
   };
 
@@ -53,7 +45,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     const success = await reportPost(postId);
     if (success) {
       await addToHistory(postId, 'report');
-      reloadPage();
     }
     return success;
   };
@@ -61,28 +52,21 @@ export const usePostActions = (postId: string, authorId: string) => {
   const handleRemoveReport = async () => {
     if (!isAuthenticated || isOwnPost) return false;
     const success = await removeReport(postId);
-    if (success) {
-      reloadPage();
-    }
     return success;
   };
 
   const handleHidePost = async () => {
-    if (!isAuthenticated || isOwnPost) return false;
+    if (!isAuthenticated) return false;
     const success = await hidePost(postId);
     if (success) {
       await addToHistory(postId, 'hide');
-      reloadPage();
     }
     return success;
   };
 
   const handleUnhidePost = async () => {
-    if (!isAuthenticated || isOwnPost) return false;
+    if (!isAuthenticated) return false;
     const success = await unhidePost(postId);
-    if (success) {
-      reloadPage();
-    }
     return success;
   };
 
@@ -97,7 +81,6 @@ export const usePostActions = (postId: string, authorId: string) => {
     }
     const result = await toggleSavePost(postId);
     await addToHistory(postId, 'save');
-    reloadPage();
     return result;
   };
 
