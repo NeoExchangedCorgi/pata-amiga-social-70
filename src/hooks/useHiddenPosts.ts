@@ -13,7 +13,7 @@ export interface HiddenPost {
     id: string;
     content: string;
     media_url?: string;
-    media_type?: 'image' | 'video';
+    media_type?: 'image' | 'video' | 'mixed';
     created_at: string;
     author_id: string;
     profiles: {
