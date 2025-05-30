@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Post } from '@/hooks/usePosts';
+import type { Post } from '@/services/posts/types';
 
 type ActionType = 'like' | 'save' | 'report' | 'hide' | 'view';
 
@@ -71,7 +71,8 @@ export const useUserHistory = () => {
         return;
       }
 
-      setHistory(data || []);
+      // Type assertion to ensure proper typing
+      setHistory((data || []) as HistoryEntry[]);
     } catch (error) {
       console.error('Error fetching history:', error);
     } finally {

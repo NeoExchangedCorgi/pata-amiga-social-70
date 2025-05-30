@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Post } from '@/services/postsApi';
+import type { Post } from '@/services/posts/types';
 
 interface ReportedPost {
   id: string;
@@ -27,7 +27,8 @@ export const useReportedPostsData = () => {
               id,
               username,
               full_name,
-              avatar_url
+              avatar_url,
+              user_type
             ),
             post_likes!fk_post_likes_post_id (
               user_id
@@ -41,8 +42,8 @@ export const useReportedPostsData = () => {
         return;
       }
 
-      // Get unique posts from reports
-      const uniquePosts = data?.reduce((acc, report: ReportedPost) => {
+      // Get unique posts from reports with proper typing
+      const uniquePosts = data?.reduce((acc: Post[], report: ReportedPost) => {
         if (report.posts && !acc.find(p => p.id === report.posts.id)) {
           acc.push(report.posts);
         }
