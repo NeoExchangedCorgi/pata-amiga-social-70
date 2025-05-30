@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { commentsApi } from '@/services/commentsApi';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,11 +14,13 @@ export const useComments = (postId: string) => {
   const { toast } = useToast();
 
   const fetchComments = async () => {
+    if (!postId) return;
+    
     try {
       setIsLoading(true);
-      console.log('Fetching comments for post:', postId);
+      console.log('useComments: Fetching comments for post:', postId);
       const data = await commentsApi.fetchComments(postId, sortType);
-      console.log('Fetched comments:', data);
+      console.log('useComments: Fetched comments:', data);
       setComments(data);
       
       // Calculate total comments count (including replies)
@@ -27,9 +28,9 @@ export const useComments = (postId: string) => {
         return acc + 1 + (comment.replies?.length || 0);
       }, 0);
       setCommentsCount(totalCount);
-      console.log('Total comments count:', totalCount);
+      console.log('useComments: Total comments count:', totalCount);
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.error('useComments: Error fetching comments:', error);
     } finally {
       setIsLoading(false);
     }
@@ -45,39 +46,42 @@ export const useComments = (postId: string) => {
       return false;
     }
 
-    console.log('Creating comment:', { content, parentCommentId, userId: user.id, postId });
+    console.log('useComments: Creating comment:', { content, parentCommentId, userId: user.id, postId });
     setIsSubmitting(true);
+    
     try {
       const result = await commentsApi.createComment(postId, content, parentCommentId, user.id);
-      console.log('Comment creation result:', result);
+      console.log('useComments: Comment creation result:', result);
       
-      if (!result.error) {
-        toast({
-          title: "Comentário criado!",
-          description: "Seu comentário foi publicado com sucesso.",
-        });
-        // Refresh comments to show the new one
-        await fetchComments();
-        return true;
-      } else {
-        console.error('Error creating comment:', result.error);
+      if (result.error) {
+        console.error('useComments: Error creating comment:', result.error);
         toast({
           title: "Erro",
           description: result.error,
           variant: "destructive",
         });
+        return false;
+      } else {
+        toast({
+          title: "Comentário criado!",
+          description: "Seu comentário foi publicado com sucesso.",
+        });
+        
+        // Refresh comments to show the new one
+        await fetchComments();
+        return true;
       }
     } catch (error) {
-      console.error('Error creating comment:', error);
+      console.error('useComments: Error creating comment:', error);
       toast({
         title: "Erro",
         description: "Erro ao criar comentário",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsSubmitting(false);
     }
-    return false;
   };
 
   const updateComment = async (commentId: string, content: string) => {

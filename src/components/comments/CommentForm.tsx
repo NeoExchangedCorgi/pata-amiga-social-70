@@ -14,25 +14,40 @@ interface CommentFormProps {
 const CommentForm = ({ onSubmit, placeholder = "Adicione um comentário...", isSubmitting = false, autoFocus = false }: CommentFormProps) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !isAuthenticated || isLoading) return;
+    
+    if (!content.trim() || !isAuthenticated || !user || isLoading || isSubmitting) {
+      console.log('Comment submission blocked:', { 
+        hasContent: !!content.trim(), 
+        isAuthenticated, 
+        hasUser: !!user, 
+        isLoading, 
+        isSubmitting 
+      });
+      return;
+    }
 
-    console.log('CommentForm submitting:', content.trim());
+    console.log('CommentForm: Starting submission', { content: content.trim(), userId: user.id });
     setIsLoading(true);
     
     try {
       const success = await onSubmit(content.trim());
+      console.log('CommentForm: Submission result', success);
+      
       if (success) {
         setContent('');
-        console.log('Comment submitted successfully');
+        console.log('CommentForm: Comment submitted successfully, form cleared');
+      } else {
+        console.error('CommentForm: Comment submission failed');
       }
     } catch (error) {
-      console.error('Error submitting comment:', error);
+      console.error('CommentForm: Error submitting comment:', error);
     } finally {
       setIsLoading(false);
+      console.log('CommentForm: Loading state reset');
     }
   };
 

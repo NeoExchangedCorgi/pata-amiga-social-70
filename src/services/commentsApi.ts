@@ -1,16 +1,21 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Comment, CommentSortType } from '@/types/comment';
 
 export const commentsApi = {
   async fetchComments(postId: string, sortType: CommentSortType = 'chronological') {
     try {
-      console.log('Fetching comments from database for post:', postId);
+      console.log('commentsApi: Fetching comments for post:', postId);
       
       const { data, error } = await supabase
         .from('comments')
         .select(`
-          *,
+          id,
+          post_id,
+          author_id,
+          parent_comment_id,
+          content,
+          created_at,
+          updated_at,
           profiles!comments_author_id_fkey (
             id,
             username,
@@ -21,7 +26,13 @@ export const commentsApi = {
             user_id
           ),
           replies:comments!comments_parent_comment_id_fkey (
-            *,
+            id,
+            post_id,
+            author_id,
+            parent_comment_id,
+            content,
+            created_at,
+            updated_at,
             profiles!comments_author_id_fkey (
               id,
               username,
@@ -37,26 +48,30 @@ export const commentsApi = {
         .is('parent_comment_id', null);
 
       if (error) {
-        console.error('Supabase error fetching comments:', error);
+        console.error('commentsApi: Supabase error fetching comments:', error);
         return [];
       }
 
-      console.log('Raw comments data from Supabase:', data);
+      console.log('commentsApi: Raw comments data:', data);
 
       // Transform data to match Comment interface
-      const transformedComments = (data || []).map(comment => ({
-        ...comment,
-        profiles: Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles,
-        comment_likes: Array.isArray(comment.comment_likes) ? comment.comment_likes : [],
-        replies: Array.isArray(comment.replies) ? comment.replies.map((reply: any) => ({
-          ...reply,
-          profiles: Array.isArray(reply.profiles) ? reply.profiles[0] : reply.profiles,
-          comment_likes: Array.isArray(reply.comment_likes) ? reply.comment_likes : []
-        })).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [],
-        replies_count: Array.isArray(comment.replies) ? comment.replies.length : 0
-      })) as Comment[];
+      const transformedComments = (data || []).map(comment => {
+        const replies = Array.isArray(comment.replies) ? comment.replies : [];
+        
+        return {
+          ...comment,
+          profiles: Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles,
+          comment_likes: Array.isArray(comment.comment_likes) ? comment.comment_likes : [],
+          replies: replies.map((reply: any) => ({
+            ...reply,
+            profiles: Array.isArray(reply.profiles) ? reply.profiles[0] : reply.profiles,
+            comment_likes: Array.isArray(reply.comment_likes) ? reply.comment_likes : []
+          })).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+          replies_count: replies.length
+        };
+      }) as Comment[];
 
-      console.log('Transformed comments:', transformedComments);
+      console.log('commentsApi: Transformed comments:', transformedComments);
 
       // Sort comments based on type
       if (sortType === 'popularity') {
@@ -74,8 +89,73 @@ export const commentsApi = {
         );
       }
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.error('commentsApi: Error fetching comments:', error);
       return [];
+    }
+  },
+
+  async createComment(postId: string, content: string, parentCommentId?: string, userId?: string) {
+    if (!userId) {
+      console.error('commentsApi: No user ID provided for comment creation');
+      return { error: 'User not authenticated' };
+    }
+
+    console.log('commentsApi: Creating comment', { postId, content, parentCommentId, userId });
+
+    try {
+      const insertData: any = {
+        post_id: postId,
+        content: content.trim(),
+        author_id: userId
+      };
+
+      if (parentCommentId) {
+        insertData.parent_comment_id = parentCommentId;
+      }
+
+      console.log('commentsApi: Insert data:', insertData);
+
+      const { data, error } = await supabase
+        .from('comments')
+        .insert(insertData)
+        .select(`
+          id,
+          post_id,
+          author_id,
+          parent_comment_id,
+          content,
+          created_at,
+          updated_at,
+          profiles!comments_author_id_fkey (
+            id,
+            username,
+            full_name,
+            avatar_url
+          ),
+          comment_likes (
+            user_id
+          )
+        `)
+        .single();
+
+      if (error) {
+        console.error('commentsApi: Supabase error creating comment:', error);
+        return { error: error.message };
+      }
+
+      console.log('commentsApi: Comment created successfully:', data);
+
+      return { 
+        data: {
+          ...data,
+          profiles: Array.isArray(data.profiles) ? data.profiles[0] : data.profiles,
+          comment_likes: Array.isArray(data.comment_likes) ? data.comment_likes : []
+        },
+        error: null
+      };
+    } catch (error) {
+      console.error('commentsApi: Error creating comment:', error);
+      return { error: 'Internal server error' };
     }
   },
 
@@ -111,64 +191,6 @@ export const commentsApi = {
     } catch (error) {
       console.error('Error fetching replies:', error);
       return [];
-    }
-  },
-
-  async createComment(postId: string, content: string, parentCommentId?: string, userId?: string) {
-    if (!userId) {
-      console.error('No user ID provided for comment creation');
-      return { error: 'User not authenticated' };
-    }
-
-    console.log('Creating comment in database:', { postId, content, parentCommentId, userId });
-
-    try {
-      const insertData: any = {
-        post_id: postId,
-        content: content.trim(),
-        author_id: userId
-      };
-
-      if (parentCommentId) {
-        insertData.parent_comment_id = parentCommentId;
-      }
-
-      console.log('Insert data:', insertData);
-
-      const { data, error } = await supabase
-        .from('comments')
-        .insert(insertData)
-        .select(`
-          *,
-          profiles!comments_author_id_fkey (
-            id,
-            username,
-            full_name,
-            avatar_url
-          ),
-          comment_likes (
-            user_id
-          )
-        `)
-        .single();
-
-      if (error) {
-        console.error('Supabase error creating comment:', error);
-        return { error: error.message };
-      }
-
-      console.log('Comment created successfully:', data);
-
-      return { 
-        data: {
-          ...data,
-          profiles: Array.isArray(data.profiles) ? data.profiles[0] : data.profiles,
-          comment_likes: Array.isArray(data.comment_likes) ? data.comment_likes : []
-        }
-      };
-    } catch (error) {
-      console.error('Error creating comment:', error);
-      return { error: 'Internal server error' };
     }
   },
 

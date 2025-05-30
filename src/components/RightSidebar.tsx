@@ -13,7 +13,10 @@ const RightSidebar = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-  const handleSearchClick = () => {
+  const handleSearchClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('RightSidebar: Search clicked, isAuthenticated:', isAuthenticated);
+    
     if (!isAuthenticated) {
       toast({
         title: "Acesso negado",
@@ -23,6 +26,7 @@ const RightSidebar = () => {
       });
       navigate('/signup');
     } else {
+      console.log('RightSidebar: Navigating to /search');
       navigate('/search');
     }
   };
@@ -35,7 +39,7 @@ const RightSidebar = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input 
             placeholder="Procurar perfis..." 
-            className="pl-10 bg-muted/50 border-foreground/20"
+            className="pl-10 bg-muted/50 border-foreground/20 cursor-pointer"
             onClick={handleSearchClick}
             readOnly
           />
