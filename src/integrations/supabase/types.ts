@@ -348,6 +348,7 @@ export type Database = {
           id: string
           media_type: Database["public"]["Enums"]["media_type_enum"] | null
           media_url: string | null
+          media_urls: string[] | null
           updated_at: string | null
         }
         Insert: {
@@ -357,6 +358,7 @@ export type Database = {
           id?: string
           media_type?: Database["public"]["Enums"]["media_type_enum"] | null
           media_url?: string | null
+          media_urls?: string[] | null
           updated_at?: string | null
         }
         Update: {
@@ -366,6 +368,7 @@ export type Database = {
           id?: string
           media_type?: Database["public"]["Enums"]["media_type_enum"] | null
           media_url?: string | null
+          media_urls?: string[] | null
           updated_at?: string | null
         }
         Relationships: [
